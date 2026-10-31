@@ -23,7 +23,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::time::{Duration, Instant};
 
 /// The formats `parse` implements (gen-fetchers.mjs STORE_FORMATS is the same set: guard F5).
-pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics"];
+pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics", "riksbank"];
 
 /// One observation: a daily close (`px:<symbol>`, with open/high/low when the source has them), a curve point
 /// (`curve:<CC>:<tenor>`), a GDP (`gdp:<CC>`) or a rate (`fx:USD<CCY>`). `date` is YYYY-MM-DD, or YYYY-MM for a monthly series.
@@ -53,6 +53,7 @@ pub fn parse(format: &str, body: &str, decl: &Value, id: &str) -> Vec<Obs> {
         "csv_wide" => csv_wide(body, decl),
         "valet" => valet(body, decl),
         "dbnomics" => dbnomics(body, decl),
+        "riksbank" => riksbank(body, decl),
         _ => Vec::new(),
     }
 }
@@ -247,6 +248,23 @@ pub fn dbnomics(body: &str, d: &Value) -> Vec<Obs> {
                 if is_period(pp) {
                     out.push(ob(id, pp.to_string(), x));
                 }
+            }
+        }
+    }
+    out
+}
+
+/// Riksbank SWEA latest-by-group: `[{seriesId, date, value}]`; each mapped seriesId is one observation.
+pub fn riksbank(body: &str, d: &Value) -> Vec<Obs> {
+    let v = jsonv(body);
+    let map = d.get("map").cloned().unwrap_or(Value::Null);
+    let mut out = Vec::new();
+    for o in v.as_array().map(Vec::as_slice).unwrap_or(&[]) {
+        let code = o.get("seriesId").and_then(Value::as_str).unwrap_or_default();
+        let Some(id) = map.get(code).and_then(Value::as_str) else { continue };
+        if let (Some(date), Some(x)) = (o.get("date").and_then(Value::as_str), numv(o.get("value"))) {
+            if is_period(date) {
+                out.push(ob(id, date.to_string(), x));
             }
         }
     }
@@ -1182,6 +1200,8 @@ mod tests {
         assert_eq!(v, vec![ob("curve:CA:10Y", "2026-10-30".into(), 3.21)]);
         let d = dbnomics(r#"{"series":{"docs":[{"series_code":"IND.M.IRLT.PA._Z._Z._Z","period":["2026-04","2026-05"],"value":["NA",7.02]}]}}"#, &json!({"map":{"IND.M.IRLT.PA._Z._Z._Z":"curve:IN:10Y"}}));
         assert_eq!(d, vec![ob("curve:IN:10Y", "2026-05".into(), 7.02)]);
+        let r = riksbank(r#"[{"seriesId":"SEGVB10YC","date":"2026-10-30","value":3.142},{"seriesId":"SETB12MBENCH","date":"2010-10-06","value":0.73}]"#, &json!({"map":{"SEGVB10YC":"curve:SE:10Y"}}));
+        assert_eq!(r, vec![ob("curve:SE:10Y", "2026-10-30".into(), 3.142)]);
         let w = worldbank(r#"[{"page":1},[{"country":{"id":"CN"},"date":"2025","value":1.9e13},{"country":{"id":"TW"},"date":"2025","value":null}]]"#);
         assert_eq!(w, vec![ob("gdp:CN", "2025".into(), 1.9e13)]);
         let mut f = frankfurter_ts(r#"{"rates":{"2026-10-29":{"BRL":5.4,"KRW":1400}}}"#);
