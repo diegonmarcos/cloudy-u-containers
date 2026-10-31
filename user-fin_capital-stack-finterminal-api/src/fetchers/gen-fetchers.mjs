@@ -113,6 +113,7 @@ export function buildUniverse(u, byId, fail, dashboards, v1) {
   }
   for (const k of ['gdp']) src[c[k].source] ?? fail(`universe: curves.${k} names unknown source`);
   src[u.em_bonds.fx.source] ?? fail('universe: em_bonds.fx names unknown source');
+  if (u.fx_ppp) { src[u.fx_ppp.wb?.source] ?? fail('universe: fx_ppp.wb names unknown source'); for (const r of u.fx_ppp.rows ?? []) if (!r.cc || !r.ccy) fail('universe: an fx_ppp row needs cc and ccy'); }
   src[u.earnings.source] ?? fail('universe: earnings names unknown source');
   for (const [t, cik] of Object.entries(u.earnings.companies)) if (!/^\d{10}$/.test(cik)) fail(`universe: earnings ${t} CIK ${cik} is not 10 digits`);
   const { resolve: _r, unavailable: _u, extra: _e, ...hist } = h;

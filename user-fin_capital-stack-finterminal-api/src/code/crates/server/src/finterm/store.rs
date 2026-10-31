@@ -273,6 +273,11 @@ pub fn riksbank(body: &str, d: &Value) -> Vec<Obs> {
 
 /// World Bank indicator: `[meta, [{country:{id}, date, value}]]` as `gdp:<CC>` dated by year.
 pub fn worldbank(body: &str) -> Vec<Obs> {
+    worldbank_as(body, "gdp")
+}
+
+/// The same answer as `<prefix>:<CC>` (fx_ppp: `ppp:` PA.NUS.PPP, `cpi:` FP.CPI.TOTL).
+pub fn worldbank_as(body: &str, prefix: &str) -> Vec<Obs> {
     let v = jsonv(body);
     v.get(1)
         .and_then(Value::as_array)
@@ -282,7 +287,7 @@ pub fn worldbank(body: &str) -> Vec<Obs> {
                     let cc = r.pointer("/country/id")?.as_str()?;
                     let year = r.get("date")?.as_str()?;
                     let x = numv(r.get("value"))?;
-                    Some(ob(&format!("gdp:{cc}"), year.to_string(), x))
+                    Some(ob(&format!("{prefix}:{cc}"), year.to_string(), x))
                 })
                 .collect()
         })
@@ -442,6 +447,7 @@ enum Task {
     Curve(Value),
     Gdp,
     Fx,
+    Wb(String, String),
     Earn(String, String),
 }
 
@@ -461,6 +467,10 @@ fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
     }
     t.push(("gdp".into(), u.pointer("/curves/gdp/every_s").and_then(Value::as_i64).unwrap_or(604_800), Task::Gdp));
     t.push(("fx".into(), u.pointer("/em_bonds/fx/every_s").and_then(Value::as_i64).unwrap_or(86_400), Task::Fx));
+    let wb_every = u.pointer("/fx_ppp/wb/every_s").and_then(Value::as_i64).unwrap_or(604_800);
+    for (prefix, code) in u.pointer("/fx_ppp/wb/indicators").and_then(Value::as_object).cloned().unwrap_or_default() {
+        t.push((format!("wb:{prefix}"), wb_every, Task::Wb(prefix, code.as_str().unwrap_or_default().to_string())));
+    }
     let e_every = u.pointer("/earnings/every_s").and_then(Value::as_i64).unwrap_or(86_400);
     for (sym, cik) in u.pointer("/earnings/companies").and_then(Value::as_object).cloned().unwrap_or_default() {
         t.push((format!("earn:{sym}"), e_every, Task::Earn(sym, cik.as_str().unwrap_or_default().to_string())));
@@ -488,6 +498,7 @@ async fn run_due(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer) {
             Task::Curve(f) => run_curve(st, pool, pacer, &u, f).await,
             Task::Gdp => run_gdp(st, pool, pacer, &u).await,
             Task::Fx => run_fx(st, pool, pacer, &u).await,
+            Task::Wb(prefix, code) => run_wb(st, pool, pacer, &u, prefix, code).await,
             Task::Earn(sym, cik) => run_earn(st, pool, pacer, &u, sym, cik).await,
         };
         let (ok, rows, err) = match res {
@@ -658,6 +669,22 @@ async fn run_gdp(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value)
     put(pool, &obs).await
 }
 
+/// fx_ppp.wb: one World Bank indicator for every fx_ppp row country and the US, stored as `<prefix>:<CC>` by year.
+async fn run_wb(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value, prefix: &str, code: &str) -> anyhow::Result<usize> {
+    let w = &u["fx_ppp"]["wb"];
+    let source_id = w["source"].as_str().unwrap_or_default();
+    let so = src(u, source_id);
+    let mut cc: Vec<String> = u["fx_ppp"]["rows"].as_array().cloned().unwrap_or_default().iter().filter_map(|r| r["cc"].as_str().map(str::to_string)).collect();
+    cc.push("US".into());
+    pacer.wait(source_id, per_min(so)).await;
+    let link = url(so, w["path"].as_str().unwrap_or_default(), &w["params"], &[("countries", cc.join(";")), ("indicator", code.to_string())]);
+    let obs = worldbank_as(&fetch(st, &link).await?, prefix);
+    if obs.is_empty() {
+        anyhow::bail!("the answer parsed to nothing");
+    }
+    put(pool, &obs).await
+}
+
 async fn run_fx(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value) -> anyhow::Result<usize> {
     let fx = &u["em_bonds"]["fx"];
     let source_id = fx["source"].as_str().unwrap_or_default();
@@ -710,6 +737,7 @@ pub fn router() -> Router<AppState> {
         .route("/v1/history", get(history_root))
         .route("/v1/history/{symbol}", get(history_route))
         .route("/v1/bonds/em-usd", get(em_usd))
+        .route("/v1/fx/ppp", get(fx_ppp))
         .route("/v1/store/status", get(status))
 }
 
@@ -1021,6 +1049,96 @@ async fn embond_index(p: &SqlitePool, u: &Value, cc: &str) -> Vec<(String, f64)>
     chain(&em_monthly(p, u, cc).await.0)
 }
 
+// ---------------------------------------------------------------- FX vs PPP (#1374, /v1/fx/ppp)
+
+/// PPP (local currency per USD) carried from its base year to the latest CPI year by relative inflation: ppp0 * (home CPI growth / US CPI growth).
+pub fn ppp_today(ppp0: f64, home0: f64, home1: f64, us0: f64, us1: f64) -> f64 {
+    ppp0 * (home1 / home0) / (us1 / us0)
+}
+
+/// A year-ago local-per-USD rate in today's prices: the rate that would leave the real exchange rate unchanged after a year of
+/// home inflation (home1 / home0) and US inflation (us1 / us0).
+pub fn real_adjust(rate: f64, home0: f64, home1: f64, us0: f64, us1: f64) -> f64 {
+    rate * (home1 / home0) / (us1 / us0)
+}
+
+/// (a / b - 1) in percent.
+pub fn pct(a: f64, b: f64) -> f64 {
+    (a / b - 1.0) * 100.0
+}
+
+/// The mean of a daily series over the `days` calendar days ending at `end` (None: no observation in the window).
+pub fn window_avg(s: &[(String, f64)], end: NaiveDate, days: i64) -> Option<f64> {
+    let a = (end - Days::days((days - 1).max(0))).to_string();
+    let b = end.to_string();
+    let v: Vec<f64> = s.iter().filter(|(d, _)| d.as_str() >= a.as_str() && d.as_str() <= b.as_str()).map(|x| x.1).collect();
+    (!v.is_empty()).then(|| v.iter().sum::<f64>() / v.len() as f64)
+}
+
+fn at_year(s: &[(String, f64)], y: i32) -> Option<f64> {
+    s.iter().find(|(d, _)| d.as_str() == y.to_string()).map(|x| x.1)
+}
+
+/// One FX vs PPP row (pure): spot, PPP extrapolated to the latest CPI year both sides publish, over/undervaluation, the last
+/// `win` days' average, the same window a year earlier in today's prices, and the real change; each empty cell says why.
+pub fn fx_ppp_row(r: &Value, fx: &[(String, f64)], ppp: &[(String, f64)], cpi: &[(String, f64)], us_cpi: &[(String, f64)], win: i64) -> Value {
+    let mut why = Map::new();
+    let spot = fx.last().cloned();
+    if spot.is_none() {
+        why.insert("spot".into(), json!(r["no_fx"].as_str().unwrap_or("no free official daily USD rate for this currency (ECB reference rates)")));
+    }
+    let year = |s: &[(String, f64)]| s.last().and_then(|x| x.0.get(0..4)?.parse::<i32>().ok());
+    let (y0, y1) = (year(ppp), year(cpi).zip(year(us_cpi)).map(|(a, b)| a.min(b)));
+    let base = y0.and_then(|y| at_year(ppp, y));
+    let mut ppp_now = None;
+    match (y0, base, y1) {
+        (None, _, _) | (_, None, _) => { why.insert("ppp".into(), json!("no World Bank PPP conversion factor (PA.NUS.PPP) for this country")); }
+        (Some(y0), Some(p0), Some(y1)) if y1 >= y0 => {
+            if let (Some(h0), Some(h1), Some(u0), Some(u1)) = (at_year(cpi, y0), at_year(cpi, y1), at_year(us_cpi, y0), at_year(us_cpi, y1)) {
+                ppp_now = Some(ppp_today(p0, h0, h1, u0, u1));
+            } else {
+                why.insert("ppp".into(), json!("no World Bank CPI (FP.CPI.TOTL) for the PPP base year"));
+            }
+        }
+        (Some(_), Some(p0), _) => ppp_now = Some(p0),
+    }
+    let over = ppp_now.zip(spot.as_ref().map(|s| s.1)).map(|(a, b)| pct(a, b));
+    let end = spot.as_ref().and_then(|s| NaiveDate::parse_from_str(&s.0, "%Y-%m-%d").ok());
+    let now = end.and_then(|e| window_avg(fx, e, win));
+    let ago = end.and_then(|e| window_avg(fx, e - Days::days(365), win));
+    if spot.is_some() && ago.is_none() {
+        why.insert("year_ago".into(), json!("less than a year of FX history in the store"));
+    }
+    let real = y1.and_then(|y| Some((at_year(cpi, y - 1)?, at_year(cpi, y)?, at_year(us_cpi, y - 1)?, at_year(us_cpi, y)?)));
+    if ago.is_some() && real.is_none() {
+        why.insert("real".into(), json!("no World Bank CPI for the last two years on both sides"));
+    }
+    let ago_real = ago.zip(real).map(|(a, (h0, h1, u0, u1))| real_adjust(a, h0, h1, u0, u1));
+    let change = ago_real.zip(now).map(|(a, n)| pct(a, n));
+    json!({ "country": r["cc"], "currency": r["ccy"], "label": r["label"], "group": r["group"],
+            "spot": spot.as_ref().map(|s| s.1), "spot_date": spot.as_ref().map(|s| s.0.clone()),
+            "ppp_base": base, "ppp_base_year": y0, "cpi_year": y1, "ppp": ppp_now, "over_under_pct": over,
+            "avg_window": now, "avg_window_year_ago": ago, "avg_window_year_ago_real": ago_real, "real_change_pct": change,
+            "window_days": win, "null_reason": why })
+}
+
+/// `/v1/fx/ppp`: every fx_ppp row (major DM and EM currencies against USD) from the stored ECB reference rates and World Bank PPP / CPI.
+async fn fx_ppp(State(s): State<AppState>) -> Response {
+    let u = &s.finterm.universe;
+    let Some(p) = pool(&s) else { return unavailable("the FX / PPP store (FINTERM_DB unset)") };
+    let x = &u["fx_ppp"];
+    let win = x["window_days"].as_i64().unwrap_or(30);
+    let us_cpi = series(p, "cpi:US").await;
+    let mut rows = Vec::new();
+    for r in x["rows"].as_array().cloned().unwrap_or_default() {
+        let cc = r["cc"].as_str().unwrap_or_default();
+        let ccy = r["ccy"].as_str().unwrap_or_default();
+        let fx = series(p, &format!("fx:USD{ccy}")).await;
+        rows.push(fx_ppp_row(&r, &fx, &series(p, &format!("ppp:{cc}")).await, &series(p, &format!("cpi:{cc}")).await, &us_cpi, win));
+    }
+    ok(json!({ "method": x["method"], "rows": rows }), 3600, "finterm-store")
+}
+
 /// `/v1/bonds/em-usd`: the top EMs' 10-year local government bonds as unhedged USD total returns (1, 10 and 25 years, annualised).
 async fn em_usd(State(s): State<AppState>) -> Response {
     let u = &s.finterm.universe;
@@ -1192,6 +1310,30 @@ mod tests {
         let bbk = "TIME_PERIOD;OBS_VALUE;K\n2026-10-30;3,40;R10XX\n";
         let d = json!({"delimiter":";","decimal":",","key_col":"K","date_col":"TIME_PERIOD","value_col":"OBS_VALUE","map":{"R10XX":"curve:DE:10Y"}});
         assert_eq!(csv_long(bbk, &d), vec![ob("curve:DE:10Y", "2026-10-30".into(), 3.4)]);
+    }
+
+    #[test]
+    fn ppp_extrapolation_and_real_adjustment() {
+        // PPP 3.4 in 2023; home prices +10%, US prices +5% since: 3.4 * 1.10 / 1.05
+        assert!((ppp_today(3.4, 100.0, 110.0, 200.0, 210.0) - 3.4 * 1.10 / 1.05).abs() < 1e-12);
+        // a year-ago rate of 7.0 with 4% home and 2% US inflation over the year is worth 7.0 * 1.04 / 1.02 today
+        assert!((real_adjust(7.0, 100.0, 104.0, 100.0, 102.0) - 7.0 * 1.04 / 1.02).abs() < 1e-12);
+        assert!((pct(3.4, 6.8) + 50.0).abs() < 1e-12);
+        let fx: Vec<(String, f64)> = vec![("2025-10-01".into(), 7.0), ("2025-10-30".into(), 7.2), ("2026-10-01".into(), 6.9), ("2026-10-30".into(), 7.1)];
+        let end = NaiveDate::from_ymd_opt(2026, 10, 30).unwrap();
+        assert_eq!(window_avg(&fx, end, 30), Some(7.0));
+        assert_eq!(window_avg(&fx, end - Days::days(365), 30), Some(7.1));
+        let y = |v: &[(i32, f64)]| v.iter().map(|(a, b)| (a.to_string(), *b)).collect::<Vec<_>>();
+        let r = fx_ppp_row(&json!({"cc":"CN","ccy":"CNY","label":"Chinese yuan","group":"em"}), &fx, &y(&[(2024, 3.5), (2025, 3.4)]),
+            &y(&[(2024, 100.0), (2025, 101.0), (2026, 103.0)]), &y(&[(2024, 140.0), (2025, 143.0)]), 30);
+        // CPI year = 2025 (the US stops there); PPP base 2025, so no extrapolation: 3.4 vs spot 7.1
+        assert_eq!(r["cpi_year"], json!(2025));
+        assert!((r["over_under_pct"].as_f64().unwrap() - pct(3.4, 7.1)).abs() < 1e-12);
+        let want_real = real_adjust(7.1, 100.0, 101.0, 140.0, 143.0);
+        assert!((r["avg_window_year_ago_real"].as_f64().unwrap() - want_real).abs() < 1e-12);
+        assert!((r["real_change_pct"].as_f64().unwrap() - pct(want_real, 7.0)).abs() < 1e-12);
+        let e = fx_ppp_row(&json!({"cc":"SA","ccy":"SAR"}), &[], &[], &[], &[], 30);
+        assert!(e["spot"].is_null() && e["null_reason"]["spot"].is_string() && e["null_reason"]["ppp"].is_string());
     }
 
     #[test]
