@@ -1195,6 +1195,17 @@ mod tests {
     }
 
     #[test]
+    fn rba_f17_short_end_and_riksbank_5y_benchmarks() {
+        // RBA F17 zero-coupon curve: the declared FZCY ids become AU 3M/6M/1Y/7Y; an undeclared column and a blank cell give nothing.
+        let f17 = "F17 ZERO-COUPON\nTitle,Zero-coupon yield – 0.25 yrs,Zero-coupon yield – 0.5 yrs,Zero-coupon yield – 1 yr,Zero-coupon yield – 2 yrs,Zero-coupon yield – 7 yrs\nSeries ID,FZCY25D,FZCY50D,FZCY100D,FZCY200D,FZCY700D\n30-Sep-2026,3.61,3.58,3.52,3.40,\n";
+        let d = json!({"header":"Series ID","date_fmt":"%d-%b-%Y","map":{"FZCY25D":"curve:AU:3M","FZCY50D":"curve:AU:6M","FZCY100D":"curve:AU:1Y","FZCY700D":"curve:AU:7Y"}});
+        assert_eq!(csv_wide(f17, &d), vec![ob("curve:AU:3M", "2026-09-30".into(), 3.61), ob("curve:AU:6M", "2026-09-30".into(), 3.58), ob("curve:AU:1Y", "2026-09-30".into(), 3.52)]);
+        // Riksbank group 99 (international 5Y): only the declared FR and NL series are kept.
+        let r = riksbank(r#"[{"seriesId":"FRGVB5Y","date":"2026-10-30","value":2.81},{"seriesId":"DEGVB5Y","date":"2026-10-30","value":2.3},{"seriesId":"NLGVB5Y","date":"2026-10-30","value":2.55}]"#, &json!({"map":{"FRGVB5Y":"curve:FR:5Y","NLGVB5Y":"curve:NL:5Y"}}));
+        assert_eq!(r, vec![ob("curve:FR:5Y", "2026-10-30".into(), 2.81), ob("curve:NL:5Y", "2026-10-30".into(), 2.55)]);
+    }
+
+    #[test]
     fn valet_dbnomics_worldbank_frankfurter() {
         let v = valet(r#"{"observations":[{"d":"2026-10-30","BD.CDN.10YR.DQ.YLD":{"v":"3.21"},"TB.CDN.90D.MID":{"v":""}}]}"#, &json!({"map":{"BD.CDN.10YR.DQ.YLD":"curve:CA:10Y","TB.CDN.90D.MID":"curve:CA:3M"}}));
         assert_eq!(v, vec![ob("curve:CA:10Y", "2026-10-30".into(), 3.21)]);
