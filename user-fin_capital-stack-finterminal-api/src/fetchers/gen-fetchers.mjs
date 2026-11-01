@@ -125,6 +125,15 @@ export function buildUniverse(u, byId, fail, dashboards, v1) {
       if (!STORE_FORMATS.includes(f.format)) fail(`universe: fx_matrix feed ${f.id} format ${f.format} has no store parser`);
     }
   }
+  if (u.g20_bonds) {
+    const g = u.g20_bonds;
+    if (g.route !== v1 + '/bonds/g20-real') fail(`universe: g20_bonds.route ${g.route} is not ${v1}/bonds/g20-real`);
+    for (const r of g.rows ?? []) if (!r.cc || !r.ccy || !r.a3 || !r.flag || !r.bench) fail('universe: a g20_bonds row needs cc, ccy, a3, flag and bench');
+    for (const f of g.feeds ?? []) {
+      src[f.source] ?? fail(`universe: g20_bonds feed ${f.id} names unknown source ${f.source}`);
+      if (!STORE_FORMATS.includes(f.format)) fail(`universe: g20_bonds feed ${f.id} format ${f.format} has no store parser`);
+    }
+  }
   src[u.earnings.source] ?? fail('universe: earnings names unknown source');
   for (const [t, cik] of Object.entries(u.earnings.companies)) if (!/^\d{10}$/.test(cik)) fail(`universe: earnings ${t} CIK ${cik} is not 10 digits`);
   const { resolve: _r, unavailable: _u, extra: _e, ...hist } = h;

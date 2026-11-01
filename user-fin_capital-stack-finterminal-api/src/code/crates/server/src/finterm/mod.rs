@@ -8,6 +8,7 @@ pub mod normalise;
 pub mod routes;
 pub mod scheduler;
 pub mod fxmatrix;
+pub mod g20bonds;
 pub mod store;
 
 use serde_json::Value;

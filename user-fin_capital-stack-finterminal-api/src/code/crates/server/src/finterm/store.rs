@@ -515,6 +515,9 @@ fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
     for f in u.pointer("/fx_matrix/feeds").and_then(Value::as_array).cloned().unwrap_or_default() {
         t.push((format!("fxm:{}", f["id"].as_str().unwrap_or_default()), f["every_s"].as_i64().unwrap_or(86_400), Task::Feed(f)));
     }
+    for f in u.pointer("/g20_bonds/feeds").and_then(Value::as_array).cloned().unwrap_or_default() {
+        t.push((format!("g20:{}", f["id"].as_str().unwrap_or_default()), f["every_s"].as_i64().unwrap_or(86_400), Task::Feed(f)));
+    }
     let e_every = u.pointer("/earnings/every_s").and_then(Value::as_i64).unwrap_or(86_400);
     for (sym, cik) in u.pointer("/earnings/companies").and_then(Value::as_object).cloned().unwrap_or_default() {
         t.push((format!("earn:{sym}"), e_every, Task::Earn(sym, cik.as_str().unwrap_or_default().to_string())));
@@ -810,6 +813,7 @@ pub fn router() -> Router<AppState> {
         .route("/v1/bonds/em-usd", get(em_usd))
         .route("/v1/fx/ppp", get(fx_ppp))
         .route("/v1/fx/ppp-matrix", get(fx_matrix))
+        .route("/v1/bonds/g20-real", get(g20_real))
         .route("/v1/store/status", get(status))
 }
 
@@ -1240,6 +1244,29 @@ async fn fx_matrix(State(s): State<AppState>) -> Response {
     ok(json!({ "method": m["method"], "reading": m["reading"], "window_days": win, "lags_years": lags, "keys": super::fxmatrix::keys(&lags), "rows": out }), 3600, "finterm-store")
 }
 
+/// `/v1/bonds/g20-real` (#1397): the G20 sovereign 10Y table (g20_bonds rows): nominal MA30 today / -1y / -3y from the daily curve
+/// feeds and FRED DGS10, else the OECD monthly average; FX depreciation from the stored daily rates; net and real against FRED US CPI.
+async fn g20_real(State(s): State<AppState>) -> Response {
+    let u = &s.finterm.universe;
+    let Some(p) = pool(&s) else { return unavailable("the G20 bonds store (FINTERM_DB unset)") };
+    let g = &u["g20_bonds"];
+    let win = g["window_days"].as_i64().unwrap_or(30);
+    let min_daily = g["min_daily"].as_u64().unwrap_or(10) as usize;
+    let cpi = super::g20bonds::cpi_yoy(&series(p, g["us_cpi"].as_str().unwrap_or("cpim:US")).await);
+    let pat = g["series"].as_str().unwrap_or("y10:{cc}");
+    let end = today();
+    let mut out = Vec::new();
+    for r in g["rows"].as_array().cloned().unwrap_or_default() {
+        let (cc, ccy) = (r["cc"].as_str().unwrap_or_default(), r["ccy"].as_str().unwrap_or_default());
+        let mut y = series(p, &format!("curve:{cc}:10Y")).await;
+        y.extend(series(p, &pat.replace("{cc}", cc)).await);
+        y.sort_by(|a, b| a.0.cmp(&b.0));
+        let fx = if ccy == "USD" { Vec::new() } else { series(p, &format!("fx:USD{ccy}")).await };
+        out.push(super::g20bonds::row(&r, &y, &fx, cpi.as_ref(), end, win, min_daily));
+    }
+    ok(json!({ "method": g["method"], "footer": g["footer"], "window_days": win, "keys": super::g20bonds::KEYS, "rows": out }), 3600, "finterm-store")
+}
+
 /// `/v1/bonds/em-usd`: the top EMs' 10-year local government bonds as unhedged USD total returns (1, 10 and 25 years, annualised).
 async fn em_usd(State(s): State<AppState>) -> Response {
     let u = &s.finterm.universe;
@@ -1485,6 +1512,35 @@ mod tests {
             assert!(f.universe["sources"][x["source"].as_str().unwrap()]["endpoint"].as_str().unwrap().starts_with("https://"), "{x}");
         }
         assert!(tasks(&f.universe).iter().any(|t| t.0 == "fxm:bigmac") && tasks(&f.universe).iter().any(|t| t.0 == "fxm:rub"));
+    }
+
+    #[test]
+    fn the_g20_bonds_declaration_is_complete() {
+        let f = super::super::Finterm::from_embedded().unwrap();
+        let g = &f.universe["g20_bonds"];
+        assert_eq!(g["route"], "/v1/bonds/g20-real");
+        let cc: Vec<&str> = g["rows"].as_array().unwrap().iter().map(|r| r["cc"].as_str().unwrap()).collect();
+        assert_eq!(cc, ["US", "DE", "JP", "GB", "CA", "AU", "KR", "CN", "IN", "BR", "RU", "ZA", "ID"]);
+        for r in g["rows"].as_array().unwrap() {
+            assert!(!r["flag"].as_str().unwrap().is_empty() && !r["bench"].as_str().unwrap().is_empty(), "{r}");
+        }
+        for x in g["feeds"].as_array().unwrap() {
+            assert!(STORE_FORMATS.contains(&x["format"].as_str().unwrap()), "{x}");
+            assert!(f.universe["sources"][x["source"].as_str().unwrap()]["endpoint"].as_str().unwrap().starts_with("https://"), "{x}");
+        }
+        let t = tasks(&f.universe);
+        for id in ["g20:us10y", "g20:uscpi", "g20:oecd10y"] {
+            assert!(t.iter().any(|x| x.0 == id), "{id}");
+        }
+        let fred = r#"observation_date,DGS10
+2026-10-29,4.10
+2026-10-30,.
+"#;
+        let us = g["feeds"].as_array().unwrap().iter().find(|x| x["id"] == "us10y").unwrap();
+        assert_eq!(parse("fred_csv", fred, us, "y10:US"), vec![ob("y10:US", "2026-10-29".into(), 4.1)]);
+        let oecd = g["feeds"].as_array().unwrap().iter().find(|x| x["id"] == "oecd10y").unwrap();
+        let body = r#"{"series":{"docs":[{"series_code":"BRA.M.IRLT.PA._Z._Z._Z","period":["2026-08","2026-09"],"value":[13.9,"NA"]}]}}"#;
+        assert_eq!(parse("dbnomics", body, oecd, ""), vec![ob("y10:BR", "2026-08".into(), 13.9)]);
     }
 
     #[test]
