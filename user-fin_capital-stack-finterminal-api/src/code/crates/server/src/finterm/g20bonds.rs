@@ -152,6 +152,13 @@ mod tests {
             assert!((g(k) - want).abs() < 1e-12, "{k}: {} want {want}", g(k));
         }
         assert_eq!(r["basis"]["y1"], "monthly 2025-10");
+        assert!(r["basis"].get("y0").is_none(), "a daily MA30 carries no basis");
+        // the window is the 30 days ending at `end`: day end-29 is in, day end-30 is out
+        assert_eq!(ma(&s(&[("2026-10-01", 5.0)]), end, 30, 1), Some((5.0, "daily".into())));
+        assert_eq!(ma(&s(&[("2026-09-30", 5.0)]), end, 30, 1), None);
+        // the monthly fallback is the month the window centres on (end - 15 days), not the month of `end`
+        let nov = NaiveDate::from_ymd_opt(2026, 11, 10).unwrap();
+        assert_eq!(ma(&s(&[("2026-10", 6.0), ("2026-11", 7.0)]), nov, 30, 1), Some((6.0, "monthly 2026-10".into())));
         assert_eq!(r["null_reason"], json!({}));
         let us = row(&json!({"cc":"US","ccy":"USD"}), &y, &[], Some(&cpi), end, 30, 3);
         assert_eq!(us["fx3"].as_f64(), Some(0.0));
