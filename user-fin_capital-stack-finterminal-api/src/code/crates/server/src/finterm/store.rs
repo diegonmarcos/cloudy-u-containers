@@ -23,7 +23,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::time::{Duration, Instant};
 
 /// The formats `parse` implements (gen-fetchers.mjs STORE_FORMATS is the same set: guard F5).
-pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics", "riksbank"];
+pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics", "riksbank", "bigmac_csv", "cbr_xml"];
 
 /// One observation: a daily close (`px:<symbol>`, with open/high/low when the source has them), a curve point
 /// (`curve:<CC>:<tenor>`), a GDP (`gdp:<CC>`) or a rate (`fx:USD<CCY>`). `date` is YYYY-MM-DD, or YYYY-MM for a monthly series.
@@ -54,6 +54,8 @@ pub fn parse(format: &str, body: &str, decl: &Value, id: &str) -> Vec<Obs> {
         "valet" => valet(body, decl),
         "dbnomics" => dbnomics(body, decl),
         "riksbank" => riksbank(body, decl),
+        "bigmac_csv" => bigmac_csv(body),
+        "cbr_xml" => cbr_xml(body, id),
         _ => Vec::new(),
     }
 }
@@ -294,6 +296,44 @@ pub fn worldbank_as(body: &str, prefix: &str) -> Vec<Obs> {
         .unwrap_or_default()
 }
 
+/// The Economist big-mac-full-index.csv (#1396): each row's local Big Mac price as `bigmac:<ISO A3>` dated by survey.
+pub fn bigmac_csv(body: &str) -> Vec<Obs> {
+    let mut lines = body.lines().filter(|l| !l.trim().is_empty());
+    let Some(head) = lines.next() else { return Vec::new() };
+    let h = cells(head.trim_start_matches('\u{feff}'), ',');
+    let col = |n: &str| h.iter().position(|c| c == n);
+    let (Some(d), Some(a), Some(p)) = (col("date"), col("iso_a3"), col("local_price")) else { return Vec::new() };
+    lines
+        .filter_map(|l| {
+            let c = cells(l, ',');
+            let date = c.get(d)?;
+            let x = c.get(p)?.trim().parse::<f64>().ok()?;
+            let a3 = c.get(a)?;
+            (is_period(date) && x.is_finite()).then(|| ob(&format!("bigmac:{a3}"), date.clone(), x))
+        })
+        .collect()
+}
+
+/// Bank of Russia XML_dynamic (#1396): `<Record Date="dd.mm.yyyy"><Nominal>n</Nominal><Value>x,y</Value>` as `id` (roubles per unit).
+pub fn cbr_xml(body: &str, id: &str) -> Vec<Obs> {
+    let tag = |s: &str, t: &str| -> Option<String> {
+        let a = s.find(&format!("<{t}>"))? + t.len() + 2;
+        let b = s[a..].find(&format!("</{t}>"))? + a;
+        Some(s[a..b].trim().to_string())
+    };
+    body.split("<Record ")
+        .skip(1)
+        .filter_map(|r| {
+            let a = r.find("Date=\"")? + 6;
+            let dmy = r.get(a..a + 10)?;
+            let date = NaiveDate::parse_from_str(dmy, "%d.%m.%Y").ok()?;
+            let n = tag(r, "Nominal")?.parse::<f64>().ok().filter(|n| *n > 0.0)?;
+            let v = tag(r, "Value")?.replace(',', ".").parse::<f64>().ok()?;
+            Some(ob(id, date.to_string(), v / n))
+        })
+        .collect()
+}
+
 /// Frankfurter time series: `{rates:{YYYY-MM-DD:{CCY:x}}}` as `fx:USD<CCY>` (local currency per USD).
 pub fn frankfurter_ts(body: &str) -> Vec<Obs> {
     let v = jsonv(body);
@@ -449,6 +489,7 @@ enum Task {
     Fx,
     Wb(String, String),
     Earn(String, String),
+    Feed(Value),
 }
 
 fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
@@ -470,6 +511,9 @@ fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
     let wb_every = u.pointer("/fx_ppp/wb/every_s").and_then(Value::as_i64).unwrap_or(604_800);
     for (prefix, code) in u.pointer("/fx_ppp/wb/indicators").and_then(Value::as_object).cloned().unwrap_or_default() {
         t.push((format!("wb:{prefix}"), wb_every, Task::Wb(prefix, code.as_str().unwrap_or_default().to_string())));
+    }
+    for f in u.pointer("/fx_matrix/feeds").and_then(Value::as_array).cloned().unwrap_or_default() {
+        t.push((format!("fxm:{}", f["id"].as_str().unwrap_or_default()), f["every_s"].as_i64().unwrap_or(86_400), Task::Feed(f)));
     }
     let e_every = u.pointer("/earnings/every_s").and_then(Value::as_i64).unwrap_or(86_400);
     for (sym, cik) in u.pointer("/earnings/companies").and_then(Value::as_object).cloned().unwrap_or_default() {
@@ -500,6 +544,7 @@ async fn run_due(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer) {
             Task::Fx => run_fx(st, pool, pacer, &u).await,
             Task::Wb(prefix, code) => run_wb(st, pool, pacer, &u, prefix, code).await,
             Task::Earn(sym, cik) => run_earn(st, pool, pacer, &u, sym, cik).await,
+            Task::Feed(f) => run_feed(st, pool, pacer, &u, f).await,
         };
         let (ok, rows, err) = match res {
             Ok(n) => (Some(now), n as i64, None),
@@ -674,11 +719,37 @@ async fn run_wb(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value, 
     let w = &u["fx_ppp"]["wb"];
     let source_id = w["source"].as_str().unwrap_or_default();
     let so = src(u, source_id);
-    let mut cc: Vec<String> = u["fx_ppp"]["rows"].as_array().cloned().unwrap_or_default().iter().filter_map(|r| r["cc"].as_str().map(str::to_string)).collect();
+    let mut cc: Vec<String> = Vec::new();
+    for p in ["/fx_ppp/rows", "/fx_matrix/rows", "/fx_matrix/dxy/legs"] {
+        for r in u.pointer(p).and_then(Value::as_array).cloned().unwrap_or_default() {
+            if let Some(c) = r["cc"].as_str().filter(|c| !cc.iter().any(|x| x == c)) {
+                cc.push(c.to_string());
+            }
+        }
+    }
     cc.push("US".into());
     pacer.wait(source_id, per_min(so)).await;
     let link = url(so, w["path"].as_str().unwrap_or_default(), &w["params"], &[("countries", cc.join(";")), ("indicator", code.to_string())]);
     let obs = worldbank_as(&fetch(st, &link).await?, prefix);
+    if obs.is_empty() {
+        anyhow::bail!("the answer parsed to nothing");
+    }
+    put(pool, &obs).await
+}
+
+/// fx_matrix.feeds (#1396): one declared request per run (`{from}`/`{to}`, `{from_dmy}`/`{to_dmy}` from the series' last stored day
+/// minus 10, else `first`), parsed by its declared format into its declared `series` (a multi-series format names its own).
+async fn run_feed(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value, f: &Value) -> anyhow::Result<usize> {
+    let source_id = f["source"].as_str().unwrap_or_default();
+    let so = src(u, source_id);
+    let sid = f["series"].as_str().unwrap_or_default();
+    let day = today();
+    let first = date_of(&f["first"]).unwrap_or(day - Days::days(365 * 4));
+    let a = if sid.is_empty() { first } else { last_date(pool, sid).await.map(|d| d - Days::days(10)).unwrap_or(first).max(first) };
+    pacer.wait(source_id, per_min(so)).await;
+    let dmy = |d: NaiveDate| d.format("%d/%m/%Y").to_string();
+    let link = url(so, f["path"].as_str().unwrap_or_default(), &f["params"], &[("from", a.to_string()), ("to", day.to_string()), ("from_dmy", dmy(a)), ("to_dmy", dmy(day))]);
+    let obs = parse(f["format"].as_str().unwrap_or_default(), &fetch(st, &link).await?, f, sid);
     if obs.is_empty() {
         anyhow::bail!("the answer parsed to nothing");
     }
@@ -738,6 +809,7 @@ pub fn router() -> Router<AppState> {
         .route("/v1/history/{symbol}", get(history_route))
         .route("/v1/bonds/em-usd", get(em_usd))
         .route("/v1/fx/ppp", get(fx_ppp))
+        .route("/v1/fx/ppp-matrix", get(fx_matrix))
         .route("/v1/store/status", get(status))
 }
 
@@ -1139,6 +1211,35 @@ async fn fx_ppp(State(s): State<AppState>) -> Response {
     ok(json!({ "method": x["method"], "rows": rows }), 3600, "finterm-store")
 }
 
+/// `/v1/fx/ppp-matrix` (#1396): the G20 FX & PPP Matrix, DXY first then the declared rows (fx_matrix), from the stored daily rates,
+/// World Bank PPP / CPI and The Economist Big Mac prices; the DXY legs not shown as rows are computed for the index only.
+async fn fx_matrix(State(s): State<AppState>) -> Response {
+    let u = &s.finterm.universe;
+    let Some(p) = pool(&s) else { return unavailable("the FX matrix store (FINTERM_DB unset)") };
+    let m = &u["fx_matrix"];
+    let win = m["window_days"].as_i64().unwrap_or(30);
+    let lags: Vec<i64> = m["lags_years"].as_array().map(|a| a.iter().filter_map(Value::as_i64).collect()).unwrap_or_else(|| vec![1, 3]);
+    let us_cpi = series(p, "cpi:US").await;
+    let bm_us = series(p, &format!("bigmac:{}", m["bigmac"]["us"].as_str().unwrap_or("USA"))).await;
+    let rows = m["rows"].as_array().cloned().unwrap_or_default();
+    let mut all = rows.clone();
+    for l in m["dxy"]["legs"].as_array().cloned().unwrap_or_default() {
+        if !all.iter().any(|r| r["ccy"] == l["ccy"]) {
+            all.push(l);
+        }
+    }
+    let mut by: HashMap<String, Value> = HashMap::new();
+    for r in &all {
+        let (cc, ccy, a3) = (r["cc"].as_str().unwrap_or_default(), r["ccy"].as_str().unwrap_or_default(), r["a3"].as_str().unwrap_or_default());
+        let fx = series(p, &format!("fx:USD{ccy}")).await;
+        let row = super::fxmatrix::row(r, &fx, &series(p, &format!("ppp:{cc}")).await, &series(p, &format!("cpi:{cc}")).await, &us_cpi, &series(p, &format!("bigmac:{a3}")).await, &bm_us, win, &lags);
+        by.insert(ccy.to_string(), row);
+    }
+    let mut out = vec![super::fxmatrix::dxy_row(&m["dxy"], &by, &lags)];
+    out.extend(rows.iter().filter_map(|r| by.get(r["ccy"].as_str().unwrap_or_default()).cloned()));
+    ok(json!({ "method": m["method"], "reading": m["reading"], "window_days": win, "lags_years": lags, "keys": super::fxmatrix::keys(&lags), "rows": out }), 3600, "finterm-store")
+}
+
 /// `/v1/bonds/em-usd`: the top EMs' 10-year local government bonds as unhedged USD total returns (1, 10 and 25 years, annualised).
 async fn em_usd(State(s): State<AppState>) -> Response {
     let u = &s.finterm.universe;
@@ -1360,6 +1461,30 @@ mod tests {
         let mut f = frankfurter_ts(r#"{"rates":{"2026-10-29":{"BRL":5.4,"KRW":1400}}}"#);
         f.sort_by(|a, b| a.id.cmp(&b.id));
         assert_eq!(f[0], ob("fx:USDBRL", "2026-10-29".into(), 5.4));
+    }
+
+    #[test]
+    fn bigmac_and_cbr_formats() {
+        let csv = "date,iso_a3,currency_code,name,local_price,dollar_ex\n2026-07-01,KOR,KRW,\"Korea, South\",5700,1400\n2026-07-01,USA,USD,United States,6.22,1\n2026-07-01,XXX,X,Bad,,1\n";
+        assert_eq!(parse("bigmac_csv", csv, &json!({}), ""), vec![ob("bigmac:KOR", "2026-07-01".into(), 5700.0), ob("bigmac:USA", "2026-07-01".into(), 6.22)]);
+        assert!(bigmac_csv("a,b\n1,2\n").is_empty(), "no declared columns, nothing");
+        let xml = r#"<?xml version="1.0" encoding="windows-1251"?><ValCurs ID="R01235"><Record Date="28.10.2026" Id="R01235"><Nominal>1</Nominal><Value>80,5307</Value><VunitRate>80,5307</VunitRate></Record><Record Date="29.10.2026" Id="R01235"><Nominal>10</Nominal><Value>805,0</Value></Record><Record Date="bad" Id="R01235"><Nominal>1</Nominal><Value>1,0</Value></Record></ValCurs>"#;
+        assert_eq!(parse("cbr_xml", xml, &json!({}), "fx:USDRUB"), vec![ob("fx:USDRUB", "2026-10-28".into(), 80.5307), ob("fx:USDRUB", "2026-10-29".into(), 80.5)]);
+    }
+
+    #[test]
+    fn the_matrix_declaration_is_complete() {
+        let f = super::super::Finterm::from_embedded().unwrap();
+        let m = &f.universe["fx_matrix"];
+        let w: f64 = m["dxy"]["legs"].as_array().unwrap().iter().map(|l| l["weight"].as_f64().unwrap()).sum();
+        assert!((w - 1.0).abs() < 1e-9, "ICE weights sum to {w}");
+        let ccys: Vec<&str> = m["rows"].as_array().unwrap().iter().map(|r| r["ccy"].as_str().unwrap()).collect();
+        assert_eq!(ccys, ["EUR", "JPY", "GBP", "CAD", "AUD", "KRW", "CNY", "INR", "BRL", "RUB", "ZAR", "IDR"]);
+        for x in m["feeds"].as_array().unwrap() {
+            assert!(STORE_FORMATS.contains(&x["format"].as_str().unwrap()), "{x}");
+            assert!(f.universe["sources"][x["source"].as_str().unwrap()]["endpoint"].as_str().unwrap().starts_with("https://"), "{x}");
+        }
+        assert!(tasks(&f.universe).iter().any(|t| t.0 == "fxm:bigmac") && tasks(&f.universe).iter().any(|t| t.0 == "fxm:rub"));
     }
 
     #[test]

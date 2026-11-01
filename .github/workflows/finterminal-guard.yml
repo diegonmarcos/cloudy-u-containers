@@ -21,6 +21,10 @@ on:
         description: 'run cargo-mutants over finterm/normalise.rs'
         type: boolean
         default: false
+      mutants_file:
+        description: 'the finterm/*.rs file cargo-mutants mutates (normalise.rs, fxmatrix.rs)'
+        type: string
+        default: 'normalise.rs'
 
 permissions:
   contents: read
@@ -57,8 +61,11 @@ jobs:
           workspaces: user-fin_capital-stack-finterminal-api/src/code
       - name: server crate tests (lib + http_smoke)
         run: cargo test -p fin-api --lib --test http_smoke
-      - name: cargo-mutants over finterm/normalise.rs (every mutant caught)
+      - name: cargo-mutants over finterm/${{ inputs.mutants_file }} (every mutant caught)
         if: github.event_name == 'workflow_dispatch' && inputs.mutants
+        env:
+          FILE: ${{ inputs.mutants_file }}
         run: |
+          case "$FILE" in normalise.rs|fxmatrix.rs) ;; *) echo "::error::unknown mutants_file $FILE"; exit 2 ;; esac
           cargo install cargo-mutants --locked
-          cargo mutants -p fin-api --file crates/server/src/finterm/normalise.rs --test-tool cargo -- --lib
+          cargo mutants -p fin-api --file "crates/server/src/finterm/$FILE" --test-tool cargo -- --lib

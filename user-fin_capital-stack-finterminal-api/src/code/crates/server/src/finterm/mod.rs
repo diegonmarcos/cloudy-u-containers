@@ -7,6 +7,7 @@
 pub mod normalise;
 pub mod routes;
 pub mod scheduler;
+pub mod fxmatrix;
 pub mod store;
 
 use serde_json::Value;
