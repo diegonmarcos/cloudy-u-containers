@@ -73,7 +73,8 @@
    "GPL-2.0-only": 1,
    "MIT License, Apache License, Version 2.0": 1,
    "MIT-CMU": 1,
-   "PSF-2.0": 1
+   "PSF-2.0": 1,
+   "Unlicense": 1
   },
   "vendored": {
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1,
@@ -6628,6 +6629,17 @@
    "scope": "shipped",
    "licence": "BSD-3-Clause",
    "licence_source": "pypi.org 17.3 license_expression",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "pypi:yt-dlp": {
+   "kind": "pypi",
+   "declared_in": [
+    "user-data_scrappers-api/src/code/requirements.txt"
+   ],
+   "version": "yt-dlp==2025.10.22",
+   "scope": "shipped",
+   "licence": "Unlicense",
+   "licence_source": "pypi.org 2025.10.22 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:zstandard": {
