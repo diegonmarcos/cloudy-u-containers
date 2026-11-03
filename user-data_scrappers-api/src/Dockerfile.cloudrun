@@ -1,0 +1,15 @@
+# #1429 scrappers-api for Cloud Run (linux/amd64), built by .github/workflows/cloud-run-images.yml.
+# The oci-apps image is build.json's native_build image-wrapper (arm64, generated); this file is the same recipe
+# written out for the amd64 Cloud Run registry: python:3.13-slim-bookworm + curl ca-certificates git ffmpeg,
+# requirements.txt, `python main.py`. Cloud Run sets PORT; DATA_DIR is the instance's own (ephemeral) disk.
+FROM python:3.13-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates git ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY code/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY code/ .
+ENV PORT=3020 DATA_DIR=/app/data SESSION_DIR=/app/session
+RUN mkdir -p /app/data /app/session
+EXPOSE 3020
+CMD ["python", "main.py"]

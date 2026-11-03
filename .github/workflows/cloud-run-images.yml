@@ -2,7 +2,7 @@ name: cloud-run-images (linux/amd64 images for the Cloud Run registry)
 
 # Cloud Run runs linux/amd64 only, while the fleet's VM images are arm64 (build.json docker.arch). This workflow builds
 # the amd64 image of each Cloud Run service declared in cloudy-t-infra c_vps/vps_gcloud/src/terraform.json
-# cloud_run_services (#1432 agy, #1433 finterminal-api, #1434 migration). On push it BUILDS ONLY (proof the image
+# cloud_run_services (#1432 agy, #1433 finterminal-api, #1434 migration, #1429 scrappers-api). On push it BUILDS ONLY (proof the image
 # builds); it pushes to GHCR only on a manual dispatch with push=true. It never deploys: Cloud Run pulls through the
 # declared Artifact Registry remote repo, and the Terraform apply is a separate, owner-approved step.
 on:
@@ -12,13 +12,14 @@ on:
       - 'user-ai_antigravity/src/**'
       - 'user-fin_capital-stack-finterminal-api/src/code/**'
       - 'user-fin_capital-stack-finterminal-web/dist/code/**'
+      - 'user-data_scrappers-api/src/**'
       - '.github/workflows/cloud-run-images.yml'
   workflow_dispatch:
     inputs:
       service:
         description: "Service to build (all = every entry below)"
         type: choice
-        options: [all, agy, capital-stack-finterminal-api, capital-stack-finterminal-web]
+        options: [all, agy, capital-stack-finterminal-api, capital-stack-finterminal-web, scrappers-api]
         default: all
       push:
         description: "Push the image to ghcr.io (owner approval)"
@@ -53,6 +54,10 @@ jobs:
             context: user-fin_capital-stack-finterminal-web/dist/code/arm64
             dockerfile: user-fin_capital-stack-finterminal-web/dist/code/arm64/Dockerfile
             image: ghcr.io/diegonmarcos/capital-stack-finterminal-web-cloudrun
+          - name: scrappers-api
+            context: user-data_scrappers-api/src
+            dockerfile: user-data_scrappers-api/src/Dockerfile.cloudrun
+            image: ghcr.io/diegonmarcos/scrappers-api-cloudrun
     steps:
       - name: Selected?
         id: sel
