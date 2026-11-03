@@ -7,6 +7,7 @@
 pub mod normalise;
 pub mod routes;
 pub mod scheduler;
+pub mod freestack;
 pub mod fxmatrix;
 pub mod g20bonds;
 pub mod store;
@@ -87,12 +88,12 @@ impl Finterm {
             .iter()
             .map(|j| (j.id.clone(), JobStatus { id: j.id.clone(), source: j.source.clone(), status: "pending".into(), ..Default::default() }))
             .collect();
-        // SEC asks for a contact in the User-Agent; the deployment sets it (FINTERM_CONTACT), nothing personal is typed here.
-        let ua = format!(
-            "Capital-Stack-FinTerminal/{} {}",
-            env!("CARGO_PKG_VERSION"),
-            std::env::var("FINTERM_CONTACT").unwrap_or_else(|_| "(+https://github.com/diegonmarcos)".into())
-        );
+        // SEC asks for a contact in the User-Agent: the generic fleet contact declared in universe.json free_stack.contact (#1416,
+        // a role mailbox, nothing personal), or the deployment's FINTERM_CONTACT. Our own name, never a browser's.
+        let contact = std::env::var("FINTERM_CONTACT").ok().filter(|c| !c.trim().is_empty()).unwrap_or_else(|| {
+            doc.pointer("/declared/universe.json/free_stack/contact").and_then(Value::as_str).unwrap_or_default().to_string()
+        });
+        let ua = format!("Capital-Stack-FinTerminal/{} ({contact})", env!("CARGO_PKG_VERSION"));
         let client = reqwest::Client::builder().user_agent(ua).http1_only().timeout(std::time::Duration::from_secs(45)).build()?;
         Ok(Self {
             declaration_sha: doc.get("declaration_sha").and_then(Value::as_str).unwrap_or_default().to_string(),

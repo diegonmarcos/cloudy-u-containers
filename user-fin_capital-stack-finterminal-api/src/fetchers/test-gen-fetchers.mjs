@@ -78,5 +78,14 @@ const rust = () => Object.fromEntries(readdirSync(RS).map((f) => [f, readFileSyn
 { const d = clone(); d.universe.curves.feeds[0].map.SR_10Y = 'curve:ZZ:10Y'; mutant('a curve cell outside the matrix', { d }, 'not a declared country x tenor'); }
 { const d = clone(); d.universe.history.years = 5; mutant('history shorter than 10 years', { d }, 'fewer than 10 years'); }
 { const d = clone(); d.universe.sources.boe.endpoint = 'http://insecure.example'; mutant('a plain-http store source', { d }, 'no https endpoint'); }
+// #1416 the free stack
+const fsrc = (d, id) => d.universe.free_stack.sources.find((s) => s.id === id);
+{ const d = clone(); fsrc(d, 'sec_edgar').per_min = 1200; mutant('SEC paced over 10 a second', { d }, 'per_min budget in 1..600'); }
+{ const d = clone(); fsrc(d, 'yahoo').flag.default = true; mutant('Yahoo on by default', { d }, 'flag must default off'); }
+{ const d = clone(); fsrc(d, 'yahoo').flag.after = ['fred', 'cboe', 'coinbase']; mutant('Yahoo not the last fallback', { d }, 'after cboe,fred,coinbase'); }
+{ const d = clone(); delete fsrc(d, 'fmp').key; mutant('FMP without its key', { d }, 'fmp must declare its key'); }
+{ const d = clone(); delete fsrc(d, 'fmp').key.reason; mutant('a key without its needs-key reason', { d }, 'key needs env, slot, header and reason'); }
+{ const d = clone(); fsrc(d, 'openfigi').format = 'figi_xml'; mutant('a free-stack format the store cannot parse', { d }, 'format figi_xml has no store parser'); }
+{ const d = clone(); d.universe.free_stack.contact = 'https://example.org/me'; mutant('no contact address for the User-Agent', { d }, 'free_stack.contact is not a contact address'); }
 console.log(fails ? `${fails} FAILED` : 'ALL GREEN');
 process.exit(fails ? 1 : 0);

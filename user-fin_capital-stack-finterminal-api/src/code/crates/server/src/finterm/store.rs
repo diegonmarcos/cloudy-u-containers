@@ -7,6 +7,7 @@
 //! declared `per_min`, and records each feed's last try / last success in `fin_feed`, so a restart does not refetch.
 //! A matrix cell without a free source is null, never a value made up.
 
+use super::freestack;
 use super::normalise::Ev;
 use super::scheduler::collect;
 use super::{enc, today};
@@ -23,7 +24,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::time::{Duration, Instant};
 
 /// The formats `parse` implements (gen-fetchers.mjs STORE_FORMATS is the same set: guard F5).
-pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics", "riksbank", "bigmac_csv", "cbr_xml"];
+pub const STORE_FORMATS: &[&str] = &["cboe_chart", "fred_csv", "coinbase_candles", "csv_long", "csv_wide", "valet", "dbnomics", "riksbank", "bigmac_csv", "cbr_xml", "openfigi_map", "fmp_ratios", "sec_filings", "sec_facts", "yahoo_chart"];
 
 /// One observation: a daily close (`px:<symbol>`, with open/high/low when the source has them), a curve point
 /// (`curve:<CC>:<tenor>`), a GDP (`gdp:<CC>`) or a rate (`fx:USD<CCY>`). `date` is YYYY-MM-DD, or YYYY-MM for a monthly series.
@@ -56,6 +57,10 @@ pub fn parse(format: &str, body: &str, decl: &Value, id: &str) -> Vec<Obs> {
         "riksbank" => riksbank(body, decl),
         "bigmac_csv" => bigmac_csv(body),
         "cbr_xml" => cbr_xml(body, id),
+        // #1416 the free stack: `id` is the symbol (FMP, Yahoo) or the CIK (SEC facts); OpenFIGI and SEC filings are documents (fin_doc)
+        "fmp_ratios" => freestack::fmp_ratios(body, id),
+        "yahoo_chart" => freestack::yahoo_chart(body, id),
+        "sec_facts" => freestack::sec_facts(body, id, &strs(&decl["concepts"]), &strs(&decl["forms"])),
         _ => Vec::new(),
     }
 }
@@ -471,7 +476,7 @@ struct Pacer(HashMap<String, Instant>);
 
 impl Pacer {
     async fn wait(&mut self, source: &str, per_min: u64) {
-        let gap = Duration::from_millis(60_000 / per_min.max(1));
+        let gap = freestack::gap(per_min);
         if let Some(t) = self.0.get(source) {
             let e = t.elapsed();
             if e < gap {
@@ -490,6 +495,8 @@ enum Task {
     Wb(String, String),
     Earn(String, String),
     Feed(Value),
+    /// #1416 one request of the free stack: the source, its store format, the item (FRED id, symbol, CIK; "" = OpenFIGI's jobs).
+    Free(Value, String, String),
 }
 
 fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
@@ -522,6 +529,32 @@ fn tasks(u: &Value) -> Vec<(String, i64, Task)> {
     for (sym, cik) in u.pointer("/earnings/companies").and_then(Value::as_object).cloned().unwrap_or_default() {
         t.push((format!("earn:{sym}"), e_every, Task::Earn(sym, cik.as_str().unwrap_or_default().to_string())));
     }
+    t.extend(free_tasks(u));
+    t
+}
+
+/// #1416 the free stack's tasks: every FRED series of every group, the OpenFIGI jobs (one task, batched), each FMP symbol, each
+/// earnings company's filings and facts (SEC), and each history symbol for Yahoo (which runs only as the flagged last fallback).
+fn free_tasks(u: &Value) -> Vec<(String, i64, Task)> {
+    let mut t = Vec::new();
+    for s in u.pointer("/free_stack/sources").and_then(Value::as_array).cloned().unwrap_or_default() {
+        let id = s["id"].as_str().unwrap_or_default().to_string();
+        let every = s["every_s"].as_i64().unwrap_or(86_400);
+        let format = s["format"].as_str().unwrap_or_default().to_string();
+        let mut add = |fmt: &str, item: String| t.push((format!("fs:{id}:{fmt}:{item}"), every, Task::Free(s.clone(), fmt.to_string(), item)));
+        match id.as_str() {
+            "fred" => s["groups"].as_object().into_iter().flat_map(|g| g.values()).flat_map(strs).for_each(|x| add(&format, x)),
+            "openfigi" => add(&format, String::new()),
+            "sec_edgar" => {
+                let ciks: Vec<String> = u.pointer("/earnings/companies").and_then(Value::as_object).map(|m| m.values().filter_map(Value::as_str).map(String::from).collect()).unwrap_or_default();
+                for fmt in s["formats"].as_object().map(|m| m.keys().cloned().collect::<Vec<_>>()).unwrap_or_default() {
+                    ciks.iter().for_each(|c| add(&fmt, c.clone()));
+                }
+            }
+            "yahoo" => u.pointer("/history/symbols").and_then(Value::as_array).into_iter().flatten().filter_map(|h| h["symbol"].as_str()).for_each(|x| add(&format, x.to_string())),
+            _ => strs(&s["items"]).into_iter().for_each(|x| add(&format, x)),
+        }
+    }
     t
 }
 
@@ -548,6 +581,7 @@ async fn run_due(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer) {
             Task::Wb(prefix, code) => run_wb(st, pool, pacer, &u, prefix, code).await,
             Task::Earn(sym, cik) => run_earn(st, pool, pacer, &u, sym, cik).await,
             Task::Feed(f) => run_feed(st, pool, pacer, &u, f).await,
+            Task::Free(s, fmt, item) => run_free(st, pool, pacer, &u, s, fmt, item).await,
         };
         let (ok, rows, err) = match res {
             Ok(n) => (Some(now), n as i64, None),
@@ -804,6 +838,95 @@ async fn run_earn(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value
     Ok(1)
 }
 
+/// The declared key of a keyed source, read from the fleet secret store (env, or the file `<env>_FILE` names); never printed.
+fn free_key(s: &Value) -> Option<String> {
+    let env = s.pointer("/key/env").and_then(Value::as_str)?;
+    freestack::key(env, |k| std::env::var(k).ok(), |p| std::fs::read_to_string(p).ok())
+}
+
+fn free_flag(s: &Value) -> bool {
+    let env = s.pointer("/flag/env").and_then(Value::as_str).unwrap_or_default();
+    freestack::flag_on(s.pointer("/flag/default").and_then(Value::as_bool).unwrap_or(false), std::env::var(env).ok().as_deref())
+}
+
+async fn put_doc(pool: &SqlitePool, id: &str, v: &Value) -> anyhow::Result<()> {
+    sqlx::query("INSERT INTO fin_doc (id, value, at) VALUES (?1, ?2, ?3) ON CONFLICT(id) DO UPDATE SET value = excluded.value, at = excluded.at")
+        .bind(id)
+        .bind(v.to_string())
+        .bind(chrono::Utc::now().timestamp())
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+/// One free-stack request: paced by the source's per_min (SEC shares the earnings pacer: at most 10 a second), the fleet
+/// User-Agent (the client's), a keyed source's key in its declared header, an error never carrying the key.
+async fn free_fetch(st: &AppState, pacer: &mut Pacer, s: &Value, link: &str, key: Option<&str>, body: Option<String>) -> anyhow::Result<String> {
+    if !link.starts_with("https://") {
+        anyhow::bail!("refusing a non-https source address");
+    }
+    pacer.wait(s["id"].as_str().unwrap_or_default(), per_min(s)).await;
+    let c = &st.finterm.client;
+    let mut rq = match body {
+        Some(b) => c.post(link).header("Content-Type", "application/json").body(b),
+        None => c.get(link),
+    };
+    rq = rq.header("Accept", "application/json, text/csv, */*");
+    if let (Some(h), Some(k)) = (s.pointer("/key/header").and_then(Value::as_str), key) {
+        rq = rq.header(h, k);
+    }
+    let r = rq.send().await.map_err(|e| anyhow::anyhow!(freestack::redact(&e.without_url().to_string(), key)))?;
+    if !r.status().is_success() {
+        anyhow::bail!("answered {}", r.status().as_u16());
+    }
+    r.text().await.map_err(|e| anyhow::anyhow!(freestack::redact(&e.without_url().to_string(), key)))
+}
+
+async fn run_free(st: &AppState, pool: &SqlitePool, pacer: &mut Pacer, u: &Value, s: &Value, fmt: &str, item: &str) -> anyhow::Result<usize> {
+    let key = free_key(s);
+    let flag = free_flag(s);
+    match freestack::state(s, key.is_some(), flag) {
+        "needs_key" => anyhow::bail!("needs key: {}", s.pointer("/key/reason").and_then(Value::as_str).unwrap_or_default()),
+        "flag_off" => return Ok(0),
+        _ => {}
+    }
+    if fmt == "yahoo_chart" {
+        let declared = find_symbol(u, item).is_some_and(|h| !h["source"].is_null());
+        let has = declared && last_date(pool, &format!("px:{item}")).await.is_some();
+        if !freestack::yahoo_wanted(flag, has) {
+            return Ok(0);
+        }
+    }
+    let path = s.pointer(&format!("/formats/{fmt}")).and_then(Value::as_str).unwrap_or(s["path"].as_str().unwrap_or_default());
+    let link = url(s, path, &s["params"], &[("code", item.to_string()), ("cik", item.to_string())]);
+    match fmt {
+        "openfigi_map" => {
+            let jobs = s["jobs"].as_array().cloned().unwrap_or_default();
+            let mut all = Vec::new();
+            for chunk in jobs.chunks(s["batch"].as_u64().unwrap_or(10).max(1) as usize) {
+                let text = free_fetch(st, pacer, s, &link, None, Some(Value::Array(chunk.to_vec()).to_string())).await?;
+                all.extend(freestack::openfigi_map(&text, chunk).as_array().cloned().unwrap_or_default());
+            }
+            put_doc(pool, "figi", &Value::Array(all.clone())).await?;
+            Ok(all.len())
+        }
+        "sec_filings" => {
+            let text = free_fetch(st, pacer, s, &link, None, None).await?;
+            let doc = freestack::sec_filings(&text, &strs(&s["forms"]), s["filings_keep"].as_u64().unwrap_or(40) as usize);
+            put_doc(pool, &format!("filings:{item}"), &doc).await?;
+            Ok(doc["filings"].as_array().map(Vec::len).unwrap_or(0))
+        }
+        _ => {
+            let text = free_fetch(st, pacer, s, &link, key.as_deref(), None).await?;
+            let obs = if fmt == "fred_csv" { fred_csv(&text, &format!("fred:{item}")) } else { parse(fmt, &text, s, item) };
+            if obs.is_empty() {
+                anyhow::bail!("the answer parsed to nothing");
+            }
+            put(pool, &obs).await
+        }
+    }
+}
+
 // ---------------------------------------------------------------- routes
 
 pub fn router() -> Router<AppState> {
@@ -815,6 +938,68 @@ pub fn router() -> Router<AppState> {
         .route("/v1/fx/ppp-matrix", get(fx_matrix))
         .route("/v1/bonds/g20-real", get(g20_real))
         .route("/v1/store/status", get(status))
+        .route("/v1/sources", get(free_sources))
+        .route("/v1/free/{kind}/{item}", get(free_item))
+}
+
+/// #1416 About > Data sources: every free-stack source with its coverage, licence / terms, rate limit, key need and live status
+/// (ready, needs_key with the reason, flag_off; the last success and error of its feeds when the store runs). Never a key.
+async fn free_sources(State(s): State<AppState>) -> Response {
+    let u = &s.finterm.universe;
+    let feeds: Vec<(String, Option<i64>, Option<String>)> = match pool(&s) {
+        Some(p) => sqlx::query_as("SELECT feed, last_ok, error FROM fin_feed WHERE feed LIKE 'fs:%'").fetch_all(p).await.unwrap_or_default(),
+        None => Vec::new(),
+    };
+    let rows: Vec<Value> = u
+        .pointer("/free_stack/sources")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .map(|src| {
+            let pre = format!("fs:{}:", src["id"].as_str().unwrap_or_default());
+            let mine: Vec<_> = feeds.iter().filter(|f| f.0.starts_with(&pre)).collect();
+            let last_ok = mine.iter().filter_map(|f| f.1).max();
+            let err = mine.iter().find_map(|f| f.2.as_deref());
+            freestack::row(src, freestack::state(src, free_key(src).is_some(), free_flag(src)), last_ok, err)
+        })
+        .collect();
+    ok(json!({ "contact": u.pointer("/free_stack/contact"), "sources": rows }), 300, "finterm-store")
+}
+
+/// #1416 one stored free-stack item: `figi/all`, `filings/<CIK>`, `facts/<CIK>`, `ratios/<SYM>`, `fred/<ID>`, `eod/<SYM>` (closes,
+/// dividends, splits).
+async fn free_item(State(s): State<AppState>, Path((kind, item)): Path<(String, String)>) -> Response {
+    let Some(p) = pool(&s) else { return unavailable("the store (FINTERM_DB unset)") };
+    let doc = |id: String| async move {
+        let v: Option<String> = sqlx::query_scalar("SELECT value FROM fin_doc WHERE id = ?1").bind(&id).fetch_optional(p).await.ok().flatten();
+        v.and_then(|t| serde_json::from_str::<Value>(&t).ok())
+    };
+    let series = |pre: Vec<String>| async move {
+        let mut out = Map::new();
+        for x in pre {
+            let rows: Vec<(String, String, f64)> =
+                sqlx::query_as("SELECT id, date, value FROM fin_series WHERE id LIKE ?1 ORDER BY id, date").bind(x).fetch_all(p).await.unwrap_or_default();
+            for (id, d, v) in rows {
+                if let Some(a) = out.entry(id).or_insert_with(|| json!([])).as_array_mut() {
+                    a.push(json!([d, v]));
+                }
+            }
+        }
+        Value::Object(out)
+    };
+    let v = match kind.as_str() {
+        "figi" => doc("figi".into()).await,
+        "filings" => doc(format!("filings:{item}")).await,
+        "facts" => Some(series(vec![format!("fact:{item}:%")]).await),
+        "ratios" => Some(series(vec![format!("ratio:{item}:%")]).await),
+        "fred" => Some(series(vec![format!("fred:{item}")]).await),
+        "eod" => Some(series(vec![format!("px:{item}"), format!("div:{item}"), format!("split:{item}")]).await),
+        _ => return (StatusCode::NOT_FOUND, Json(json!({ "error": format!("unknown free-stack kind {kind}") }))).into_response(),
+    };
+    match v {
+        Some(v) if !matches!(v.as_object(), Some(m) if m.is_empty()) => ok(json!({ "kind": kind, "item": item, "data": v }), 3600, "finterm-store"),
+        _ => unavailable(&format!("{kind}/{item}")),
+    }
 }
 
 fn ok(body: Value, ttl: u64, source: &str) -> Response {

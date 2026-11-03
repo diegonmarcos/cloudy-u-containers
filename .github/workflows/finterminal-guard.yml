@@ -22,7 +22,7 @@ on:
         type: boolean
         default: false
       mutants_file:
-        description: 'the finterm/*.rs file cargo-mutants mutates (normalise.rs, fxmatrix.rs, g20bonds.rs)'
+        description: 'the finterm/*.rs file cargo-mutants mutates (normalise.rs, fxmatrix.rs, g20bonds.rs, freestack.rs)'
         type: string
         default: 'normalise.rs'
 
@@ -66,6 +66,6 @@ jobs:
         env:
           FILE: ${{ inputs.mutants_file }}
         run: |
-          case "$FILE" in normalise.rs|fxmatrix.rs|g20bonds.rs) ;; *) echo "::error::unknown mutants_file $FILE"; exit 2 ;; esac
+          case "$FILE" in normalise.rs|fxmatrix.rs|g20bonds.rs|freestack.rs) ;; *) echo "::error::unknown mutants_file $FILE"; exit 2 ;; esac
           cargo install cargo-mutants --locked
           cargo mutants -p fin-api --file "crates/server/src/finterm/$FILE" --test-tool cargo -- --lib
