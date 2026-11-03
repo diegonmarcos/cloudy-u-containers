@@ -10,8 +10,8 @@ RUN xcaddy build \
 # Geo-fence country database (#1102): baked at BUILD time, checksum pinned; nothing is
 # downloaded at runtime. URL and SHA-256 must equal _shared/geo-fence.json db.* (guard:
 # _shared/test/geo-fence-guard.sh). IP Geolocation by DB-IP (db-ip.com), CC BY 4.0.
-ARG GEOIP_URL=https://download.db-ip.com/free/dbip-country-lite-2026-10.mmdb.gz
-ARG GEOIP_SHA256=4cd44536ddfd40fec7eca94a233f7d19f38d470e6522e653cb8d27001f5fe177
+ARG GEOIP_URL=https://download.db-ip.com/free/dbip-country-lite-2026-11.mmdb.gz
+ARG GEOIP_SHA256=75fe430010f6d38a8c4331c202bf0df6ce3221a6e6d823b9e5a6d951e4cf9758
 RUN wget -q -O /tmp/country.mmdb.gz "$GEOIP_URL" \
  && echo "$GEOIP_SHA256  /tmp/country.mmdb.gz" | sha256sum -c - \
  && mkdir -p /out/GeoIP && gunzip -c /tmp/country.mmdb.gz > /out/GeoIP/country.mmdb \
