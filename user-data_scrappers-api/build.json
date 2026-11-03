@@ -1,7 +1,7 @@
 {
   "name": "scrappers-api",
   "taxonomy": {"group": "Project Apps", "category": "Data"},
-  "description": "Unified scrapers API (Instagram / Pinterest / LinkedIn / generic crawl) — retires crawlee-cloud. Lean single-container FastAPI, on-demand, flat-JSON output.",
+  "description": "Unified scrapers API (Instagram / Pinterest / LinkedIn / generic crawl / YouTube download) — retires crawlee-cloud. Lean single-container FastAPI, on-demand, flat-JSON output.",
   "deploy": {
     "host": "oci-apps",
     "remote_path": "/opt/containers/scrappers-api",
@@ -16,7 +16,7 @@
       "cmd": "pip install --no-cache-dir -r requirements.txt",
       "entrypoint": "python main.py",
       "base_image": "python:3.13-slim-bookworm",
-      "apt": "curl ca-certificates git",
+      "apt": "curl ca-certificates git ffmpeg",
       "app_dir": "./code"
     },
     "labels": {
@@ -92,6 +92,10 @@
     },
     "prices": {
       "cmd": "python3 test_prices.py",
+      "cwd": "src/code"
+    },
+    "ytdl": {
+      "cmd": "python3 test_ytdl.py",
       "cwd": "src/code"
     }
   }

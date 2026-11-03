@@ -13,7 +13,10 @@ import importlib
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from starlette.background import BackgroundTask
+import shutil
+import ytdl
 from pydantic import BaseModel
 
 BASE_PATH = os.environ.get("BASE_PATH", "/scrappers").rstrip("/")
@@ -152,6 +155,27 @@ async def linkedin_export(file: UploadFile = File(...)):
         raise HTTPException(422, f"linkedin export parse failed: {e}")
     path = _persist("linkedin-export", data)
     return {"ok": True, "written": path, "summary": data.get("_summary", {})}
+
+
+class YtDownloadReq(BaseModel):
+    url: str
+    mode: str = "video"               # video | audio | audio_extract
+    quality: int | None = None        # video: max height (p); audio: max kbps
+
+
+@app.post(f"{BASE_PATH}/download/youtube")
+@app.post("/download/youtube")  # unprefixed twin (Caddy strips /scrappers)
+def download_youtube(req: YtDownloadReq):
+    """#1429 Cloud Browser Scrap Tools > YouTube Download. Streams the file back and deletes it.
+    Only for content the caller has rights to (YouTube ToS)."""
+    try:
+        f = ytdl.download(req.url, req.mode, req.quality)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(422, f"youtube download failed: {e}")
+    return FileResponse(f, filename=f.name,
+                        background=BackgroundTask(shutil.rmtree, f.parent, ignore_errors=True))
 
 
 if __name__ == "__main__":
