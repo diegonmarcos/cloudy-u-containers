@@ -1,0 +1,22 @@
+{
+  "cloudy-c3-api": "c3-infra-api",
+  "cloudy-all-api": "c3-services-api",
+  "cloudy-mail-http-to-smtp-api": "http-to-smtp-proxy-api",
+  "cloudy-browser-scrapper-api": "scrappers-api",
+  "cloudy-drive-git-proxy-api": "git-proxy-api",
+  "cloudy-cgc-pub-graph-api": "kg-store-pub",
+  "cloud-me-cgc-pvt-graph-api": "kg-store",
+  "capital-stack-finterm-api": "capital-stack-finterminal-api",
+  "capital-stack-news-gdelt-api": "news-gdelt",
+  "cloudy-ai-tokens-api": "tokens-api",
+  "cloudy-ai-embeddings-api": "embeddings-api",
+  "cloudy-ai-agents-api": "my-ai-api",
+  "cloudy-ai-claude-api": "my-ai_claude-api",
+  "cloudy-ai-memory-api": "session-memory",
+  "cloudy-auth-google-api": "auth-broker-google",
+  "cloudy-auth-github-api": "auth-broker-github",
+  "cloudy-auth-email-api": "auth-broker-email",
+  "cloudy-auth-cloudflare-api": "auth-broker-cloudflare",
+  "capital-stack-news-rss-api": "rss-gateway",
+  "capital-stack-news-github-rss-api": "github-rss"
+}

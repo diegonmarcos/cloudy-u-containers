@@ -1,0 +1,10 @@
+# API rebrand #1450: old public paths keep working for one release (internal rewrite, POST/streaming safe).
+# Include inside the api.diegonmarcos.com site block, BEFORE the generated handle blocks (uri runs before handle).
+uri path_regexp ^/c3-infra-api(/|$) /cloudy-c3-api$1
+uri path_regexp ^/c3-services-api(/|$) /cloudy-all-api$1
+uri path_regexp ^/capital-stack-finterminal-api(/|$) /capital-stack-finterm-api$1
+uri path_regexp ^/git(/|$) /cloudy-drive-git-proxy-api$1
+uri path_regexp ^/http-to-smtp-proxy-api(/|$) /cloudy-mail-http-to-smtp-api$1
+uri path_regexp ^/scrappers(/|$) /cloudy-browser-scrapper-api$1
+# AI gateway: one public prefix, five backends (bearer enforced here as for the old routes)
+# handle /ai/* { reverse_proxy 127.0.0.1:4185 }

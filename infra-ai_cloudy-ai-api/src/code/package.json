@@ -1,0 +1,8 @@
+{
+  "name": "cloudy-ai-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI gateway: /ai/{tokens,embeddings,agents,claude,memory} -> separate backend containers",
+  "scripts": { "start": "node index.ts", "test": "node --test gateway.test.ts" }
+}

@@ -1,0 +1,71 @@
+{
+  "name": "cloudy-ai-memory-api",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "AGI"
+  },
+  "description": "Central SQLite store of all Claude Code session transcripts \u2014 push/list/fetch so a session started on one device can be resumed from any other. WG-only sidecar on oci-apps; Node 22 built-in node:sqlite (phone-portable, no native deps).",
+  "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 3108
+  },
+  "category": "agi",
+  "agent": {
+    "_comment": "Explicit opt-OUT, required by 9_others/test/test_agent_git_tree_declared.sh in cloud-infra. session-memory is a SQLite transcript store, not a code-reading agent: it never opens a repository, so mounting the shared tree would widen its blast radius for nothing. This key exists so the decision is recorded rather than forgotten, which is how #416 happened.",
+    "git_tree": false
+  },
+  "docker": {
+    "image": "cloudy-ai-memory-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "platform": "linux/arm64",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "user": "appuser",
+      "apt": "curl ca-certificates",
+      "cmd": "curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y --no-install-recommends nodejs && npm install --omit=dev && useradd -r -m -u 10001 appuser && mkdir -p /data && chown -R appuser:appuser /data",
+      "entrypoint": "node --experimental-sqlite server.mjs",
+      "base_image": "debian:bookworm-slim",
+      "app_dir": "code"
+    }
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-ai-memory-api",
+    "compose_flags": "--build"
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-ai-memory-api",
+      "image": "ghcr.io/diegonmarcos/cloudy-ai-memory-api:latest",
+      "port": 3108,
+      "port_env": "MEM_PORT",
+      "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com",
+      "public": false,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": false,
+      "protocol": "http"
+    }
+  },
+  "legacy_aliases": {
+    "names": [
+      "session-memory"
+    ],
+    "dns_aliases": [
+      "session-memory.mesh.diegonmarcos.com"
+    ],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": [
+    "session-memory.mesh.diegonmarcos.com"
+  ]
+}

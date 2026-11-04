@@ -1,0 +1,111 @@
+{
+  "name": "cloudy-ai-embeddings-api",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "AGI"
+  },
+  "description": "Fleet embeddings + rerank + PDF text server, CPU, mesh-only on oci-apps. OpenAI-compatible POST /embeddings (BAAI/bge-m3) and POST /rerank (BAAI/bge-reranker-v2-m3) served by Infinity, plus POST /pdf (raw application/pdf body to plain text, pypdf), GET /models and GET /health. Consumers: Cloud SuperIntel Notebook retrieval and Cloud Tools Retrieval steps. Mesh address http://embeddings-api.mesh.diegonmarcos.com:7997 (direct, plain HTTP inside WireGuard); no public route.",
+  "dns": "cloudy-ai-embeddings-api.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 7997
+  },
+  "category": "agi",
+  "timezone": "Europe/Madrid",
+  "build": {
+    "include_cloud_data": "false",
+    "headers_enforced": false
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-ai-embeddings-api"
+  },
+  "agent": {
+    "_comment": "Explicit opt-OUT, required by 9_others/test/test_agent_git_tree_declared.sh in cloud-infra. embeddings-api is a stateless model server (embeddings, rerank, pdf-to-text over HTTP); it never reads or commits a repository, so the shared tree would widen its blast radius for nothing.",
+    "git_tree": false
+  },
+  "runtime": {
+    "wg_bind": "10.0.0.6",
+    "_doc": "The container (host network) listens on 7997 on oci-apps' WireGuard address only (never 0.0.0.0): the mesh direct-dial rule (#1104), Hickory row embeddings-api -> 10.0.0.6 in infra-net_hickory-dns/build.json."
+  },
+  "models": {
+    "embed": "BAAI/bge-m3",
+    "rerank": "BAAI/bge-reranker-v2-m3",
+    "batch_size": 8,
+    "_doc": "Downloaded from Hugging Face on first start into the embeddings_api_hf volume (about 4.6 GB for both, fp32 on CPU; resident about 5 GB, hence mem_limit 6G). gate.py answers /health at once (liveness) and /ready only once both are loaded; until then every other path is 503."
+  },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": false,
+    "dns_check": true,
+    "endpoint_check": false,
+    "_doc": "Mesh-only plain HTTP on a direct-dial port, like c3-infra-api: no TLS and no hub route to probe."
+  },
+  "docker": {
+    "image": "cloudy-ai-embeddings-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "pip install --no-cache-dir -r requirements.txt",
+      "entrypoint": "uvicorn main:app --host 127.0.0.1 --port 7997",
+      "base_image": "python:3.11-slim",
+      "app_dir": "code",
+      "user": "root"
+    }
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-ai-embeddings-api",
+      "image": "ghcr.io/diegonmarcos/embeddings-api-binaries:latest",
+      "port": 7997,
+      "port_env": null,
+      "dns": "cloudy-ai-embeddings-api.mesh.diegonmarcos.com",
+      "public": false,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [
+        "embeddings_api_hf:/root/.cache/huggingface"
+      ],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": false,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_reservation": "3G",
+    "mem_limit": "6G"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "python3 -m pip install -q pypdf==5.1.0 fastapi==0.115.6 && python3 -B -m unittest discover -s test",
+      "cwd": "src/code"
+    }
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 5,
+    "display_name": "Fleet Embeddings, Rerank and PDF",
+    "description": "OpenAI-compatible embeddings, rerank, PDF to text; mesh-only, no auth (WireGuard is the gate).",
+    "auth": "none"
+  },
+  "legacy_aliases": {
+    "names": [
+      "embeddings-api"
+    ],
+    "dns_aliases": [
+      "embeddings-api.mesh.diegonmarcos.com"
+    ],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": [
+    "embeddings-api.mesh.diegonmarcos.com"
+  ],
+  "_gateway": "Reached publicly only through cloudy-ai-api at /ai/<name> (old /<name>-api path is a gateway legacy route)."
+}

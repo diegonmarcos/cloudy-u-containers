@@ -1,0 +1,202 @@
+{
+  "name": "cloudy-ai-agents-api",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "AGI"
+  },
+  "description": "my-ai API on oci-apps \u2014 one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by OpenRouter (no Claude subscription, no metered Anthropic key), with a vendored Headroom (Apache-2.0) compression hop and a savings dashboard. Sibling of claude-superset-api; the agent face for this stack is goose (my-ai wraps goose, claude-superset keeps claude-cli). Internal WG-only sidecar, never public.",
+  "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 3217,
+    "ollama": 12436,
+    "headroom": 8890,
+    "goosed": 3227,
+    "_goosed_doc": "goosed = goose agent ACP/REST+SSE server (goose serve, X-Secret-Key auth, WireGuard-only)"
+  },
+  "category": "agi",
+  "agent": {
+    "_comment": "The shared checkout (docker volume cloud-git-gh) mounts at ONE canonical path in EVERY agent container \u2014 /home/appuser/git \u2014 declared once in _shared/engine.nix and published to the container as AGENT_GIT_TREE. The per-container git_tree_mount field is GONE and setting it is now a build error. It used to claim to be 'this container's own $HOME/git' with nothing checking, and the three agent containers drifted to three different answers; hermes ended up with the tree at /opt/data/git while its running HOME was /root, so `ls $HOME/git` found nothing and the agent reported the repositories as missing. Read-write: an agent that can read the code but not commit it cannot do the job it exists for. #359: only the goose agent pushes. cloud-agi-bots (the Telegram gateway, #542) is in this compose project too and was getting the writable tree AND GH_TOKEN, a classic PAT with admin:org/delete_repo/admin:enterprise, while it only makes HTTP calls. Services not listed here get neither (see _shared/agent-credential.nix).",
+    "git_tree": true,
+    "git_tree_writable": true,
+    "services": [
+      "my-ai-api"
+    ]
+  },
+  "_upstream_image_doc": "Top-level upstream_image marks this as a Type-B vendored-Dockerfile build: the ship engine builds src/code/Dockerfile (staged to dist/code/arm64/) natively on the arm64 cloud-builder. It is NOT injected as a FROM-override build-arg \u2014 it only selects BUILD_CONTEXT=dist/code/arch. The real multi-stage Dockerfile (builder compiles Headroom, runtime installs node) is preserved. The old docker.native_build:image-wrapper was WRONG: image-wrapper with no cmd made the native block skip AND blocked Type-B auto-detect, so CI silently built nothing and only recreated the stale image.",
+  "upstream_image": "python:3.13-slim",
+  "docker": {
+    "image": "cloudy-ai-agents-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "platform": "linux/arm64",
+    "arch": "arm64"
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-ai-agents-api",
+    "compose_flags": "--pull always --force-recreate"
+  },
+  "secrets": {
+    "escape_dollars": "false",
+    "_required": [
+      "OPENROUTER_API_KEY",
+      "TELEGRAM_BOT_TOKEN",
+      "GOOSE_SERVER__SECRET_KEY"
+    ],
+    "_hermes_api_key_doc": "HERMES_API_KEY = the same value as hermes-agent's API_SERVER_KEY (>= 16 chars), provisioned 2026-10-13 in the sops fragment src/secrets.hermes-api.yaml (needs only the public age recipient; the build engine merges secrets.*.yaml into .secrets). With it, X-Agent-Mode: hermes reaches the real Hermes Agent API on 127.0.0.1:8642 (skills, memory, sessions, toolsets, jobs; GET /agents/hermes/<fn>); without it, the hermes mode stays the Hermes model behind this gateway's MCP loop and /health.modes[hermes].native is false. Not in _required: the gateway is correct either way and says which.",
+    "_goose_server_secret_key_doc": "X-Secret-Key header required by all goosed ACP requests. Comes from .secrets env_file (src/secrets.yaml). If unset the goosed process is skipped at startup."
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "runtime": {
+    "model": "deepseek/deepseek-v4-flash-0731",
+    "claude_model": "claude-opus-5",
+    "_model_aliases_comment": "requested-id \u2192 OpenRouter slug. Callers pick a model per request; unknown/absent ids fall back to `model` (passthrough also works \u2014 OpenRouter accepts arbitrary slugs, so goose can send any OpenRouter model id directly). No Claude aliases here: this stack does not route Claude.",
+    "model_aliases": {
+      "glm": "z-ai/glm-5",
+      "gpt-4": "openai/gpt-4o",
+      "gpt-4o": "openai/gpt-4o",
+      "gemini": "google/gemini-2.5-pro",
+      "llama": "meta-llama/llama-3.3-70b-instruct",
+      "deepseek": "deepseek/deepseek-chat"
+    },
+    "max_concurrency": 12,
+    "call_timeout_ms": 860000,
+    "_upstream_comment": "OpenRouter is the single upstream (start here). The Node front forwards compressed OpenAI-shaped chat requests to https://openrouter.ai/api/v1/chat/completions with the container's OPENROUTER_API_KEY (from src/secrets.yaml). The Anthropic /v1/messages face is a shape-translation shim so ANTHROPIC_BASE_URL=<my-ai-api> clients also land on OpenRouter \u2014 NOT Claude.",
+    "upstream": {
+      "provider": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "chat_path": "/chat/completions",
+      "models_path": "/models",
+      "auth_env": "OPENROUTER_API_KEY",
+      "passthrough_auth": false,
+      "_passthrough_auth_comment": "false = the container injects OPENROUTER_API_KEY; clients may send any placeholder Authorization (ignored). true = forward the client's own key (transparent, like claude-superset-api's anthropic proxy face)."
+    },
+    "_sessions_comment": "Cross-device session store for goose sessions (WG-only). Devices push recent goose session .jsonl here; any device can list/GET them to restore. dir is under container HOME; keep = max sessions retained per device.",
+    "sessions": {
+      "dir": ".goose-sessions",
+      "keep": 20,
+      "_resume_comment": "Ticket #513: /resume resumes the TAIL of a session, never the whole file. The live store holds a 127 MB Claude Code transcript; reading it whole is an OOM in the bot and an unusable context upstream. max_bytes bounds what server.mjs reads off the end of the file, max_messages bounds how many of the messages in that window land in the chat's history, and max_listed bounds the /resume listing. max_listed must cover the WHOLE store (keep x devices, today 20 x 2 = 40): the listing was hardcoded to 10 and Diego's live session sits at rank 18 by mtime, so the one session the ticket is about was invisible in the very listing meant to offer it. Consumed via compose.nix -> BRIDGE_RESUME_MAX_BYTES / BRIDGE_RESUME_MAX_MESSAGES / BRIDGE_RESUME_MAX_LISTED, read once in sessions-store.mjs.",
+      "resume": {
+        "max_bytes": 1048576,
+        "max_messages": 120,
+        "max_listed": 40
+      },
+      "_name_comment": "Ticket #516: /resume listed 40 bare UUIDs and Diego could not pick one (\"add the namee!!!!!!\"). Every listed session now carries a name, derived in sessions-store.mjs's deriveSessionName and served by server.mjs's /sessions so both Telegram bots (which share bots/commands.mjs) get it from ONE declaration. Deriving must never READ a session: the store holds a 127,487,011-byte transcript plus two more over 100 MB, and /sessions walks every device directory on every call, so naming-by-reading would make the listing an OOM on exactly the sessions worth resuming. head_bytes bounds the positional read off the FRONT (custom-title, cwd, first message) and tail_bytes the read off the END (last-prompt, the field holding the most recent prompt); max_chars is the row width a phone can scan before wrapping. Measured over all 40 real sessions on 2026-09-19 these bounds name 40/40, with 34 distinct labels: 9 by custom-title, 26 by last-prompt, 4 by the cwd fallback and 1 (a 146-byte bridge-session stub with nothing in it) as \"(unnamed)\". The first-message rung scores 0 on this store and exists for the bot's own flat {role,content} telegram NDJSON, which carries neither of the other two records. Consumed via compose.nix -> BRIDGE_NAME_HEAD_BYTES / BRIDGE_NAME_TAIL_BYTES / BRIDGE_NAME_MAX_CHARS, read once in sessions-store.mjs.",
+      "name": {
+        "head_bytes": 65536,
+        "tail_bytes": 32768,
+        "max_chars": 60
+      }
+    },
+    "headroom": {
+      "enabled": true,
+      "savings_profile": "agent-90",
+      "min_tokens_to_compress": 250
+    },
+    "gateway": {
+      "_comment": "Non-secret gateway env vars. Secrets (TELEGRAM_BOT_TOKEN, MATTERMOST_TOKEN) come from .secrets env_file via secrets.yaml.",
+      "mattermost_url": "http://10.0.0.6:8065",
+      "mattermost_enabled": "true",
+      "telegram_allow_from": "6431508617"
+    }
+  },
+  "tests": {
+    "jev-gate": {
+      "cmd": "python3 test-jev-gate.py",
+      "cwd": "../_shared"
+    },
+    "session-model-routing": {
+      "cmd": "node test-my-ai-telegram-session-model.ts",
+      "cwd": "src/code"
+    },
+    "resume-cross-device": {
+      "cmd": "node test-my-ai-resume-cross-device.mjs",
+      "cwd": "src/code"
+    },
+    "resume-session-names": {
+      "cmd": "node test-my-ai-resume-session-names.mjs",
+      "cwd": "src/code"
+    },
+    "resume-by-name": {
+      "cmd": "node test-my-ai-resume-by-name.mjs",
+      "cwd": "src/code"
+    },
+    "jev-tier": {
+      "cmd": "node test-my-ai-jev-tier.mjs",
+      "cwd": "src/code"
+    },
+    "src-dist-parity": {
+      "cmd": "node test-my-ai-src-dist-parity.mjs",
+      "cwd": "src/code"
+    },
+    "gateway-fail-loud": {
+      "cmd": "node test-my-ai-gateway-fail-loud.mjs",
+      "cwd": "src/code"
+    },
+    "declarative-supervision": {
+      "cmd": "node test-my-ai-declarative-supervision.mjs",
+      "cwd": "src/code"
+    },
+    "telegram-sendfile": {
+      "cmd": "node test-my-ai-telegram-sendfile.mjs",
+      "cwd": "src/code"
+    },
+    "flake-copies-complete": {
+      "cmd": "node test-my-ai-flake-copies-complete.mjs",
+      "cwd": "src/code"
+    },
+    "bots-lifetime-split": {
+      "cmd": "node test-bots-lifetime-split.mjs",
+      "cwd": "src/code"
+    },
+    "bot-auth-required-workflow": {
+      "cmd": "node test-bot-auth-required-workflow.mjs",
+      "cwd": "src/code"
+    },
+    "agi-container-naming": {
+      "cmd": "node test-agi-container-naming.mjs",
+      "cwd": "../_shared"
+    },
+    "native-agents": {
+      "cmd": "node test-my-ai-native-agents.mjs",
+      "cwd": "src/code"
+    },
+    "agent-credential-scope": {
+      "cmd": "node test-agent-credential-scope.mjs",
+      "cwd": "../_shared"
+    }
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloud-agi-goose",
+      "image": "ghcr.io/diegonmarcos/cloudy-ai-agents-api:latest",
+      "port": 3217,
+      "port_env": "BRIDGE_PORT",
+      "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com",
+      "public": false,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "env_file": true,
+      "depends_on": [],
+      "resources": null,
+      "read_only": false,
+      "protocol": "http"
+    }
+  },
+  "version": "1.1.1",
+  "legacy_aliases": {
+    "names": [
+      "my-ai-api"
+    ],
+    "dns_aliases": [
+      "my-ai-api.mesh.diegonmarcos.com"
+    ],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": [
+    "my-ai-api.mesh.diegonmarcos.com"
+  ]
+}

@@ -1,6 +1,9 @@
 {
   "name": "auth-broker",
-  "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Net-Routing & Security"
+  },
   "description": "Identity broker for the multi-SSO sign-in: GitHub (device flow + web), Google (web code flow + PKCE) and Cloudflare One (Access JWT) and Email code (one-time code), owner only (#1066, #1083, #1118)",
   "category": "sec",
   "dns": "auth-broker.mesh.diegonmarcos.com",
@@ -164,7 +167,7 @@
   },
   "containers": {
     "google": {
-      "container_name": "auth-broker-google",
+      "container_name": "cloudy-auth-google-api",
       "image": "ghcr.io/diegonmarcos/auth-broker-binaries:latest",
       "port": 4180,
       "public": false,
@@ -178,7 +181,7 @@
       "protocol": "http"
     },
     "github": {
-      "container_name": "auth-broker-github",
+      "container_name": "cloudy-auth-github-api",
       "image": "ghcr.io/diegonmarcos/auth-broker-binaries:latest",
       "port": 4181,
       "public": false,
@@ -192,7 +195,7 @@
       "protocol": "http"
     },
     "cloudflare": {
-      "container_name": "auth-broker-cloudflare",
+      "container_name": "cloudy-auth-cloudflare-api",
       "image": "ghcr.io/diegonmarcos/auth-broker-binaries:latest",
       "port": 4182,
       "public": false,
@@ -206,7 +209,7 @@
       "protocol": "http"
     },
     "email": {
-      "container_name": "auth-broker-email",
+      "container_name": "cloudy-auth-email-api",
       "image": "ghcr.io/diegonmarcos/auth-broker-binaries:latest",
       "port": 4183,
       "public": false,
@@ -236,5 +239,17 @@
       "cmd": "python3 -I test/test-broker-email.py",
       "cwd": "src"
     }
-  }
+  },
+  "legacy_aliases": {
+    "names": [
+      "auth-broker-cloudflare",
+      "auth-broker-email",
+      "auth-broker-github",
+      "auth-broker-google"
+    ],
+    "dns_aliases": [],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": []
 }

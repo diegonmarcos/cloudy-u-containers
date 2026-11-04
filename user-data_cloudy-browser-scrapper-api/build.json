@@ -1,0 +1,120 @@
+{
+  "name": "cloudy-browser-scrapper-api",
+  "taxonomy": {
+    "group": "Project Apps",
+    "category": "Data"
+  },
+  "description": "Unified scrapers API (Instagram / Pinterest / LinkedIn / generic crawl) \u2014 retires crawlee-cloud. Lean single-container FastAPI, on-demand, flat-JSON output.",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-browser-scrapper-api",
+    "compose_flags": "--build"
+  },
+  "docker": {
+    "registry": "ghcr.io/diegonmarcos",
+    "image": "cloudy-browser-scrapper-api",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "pip install --no-cache-dir -r requirements.txt",
+      "entrypoint": "python main.py",
+      "base_image": "python:3.13-slim-bookworm",
+      "apt": "curl ca-certificates git ffmpeg",
+      "app_dir": "./code"
+    },
+    "labels": {
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/user-data_scrappers-api",
+      "org.opencontainers.image.licenses": "LicenseRef-NoLicenseGranted AND GPL-2.0-only",
+      "io.diegonmarcos.upstream.source": "https://github.com/mikf/gallery-dl",
+      "io.diegonmarcos.source-offer": "https://github.com/diegonmarcos/cloudy-u-containers/blob/main/LICENSING.md#6a-source-offers-839"
+    }
+  },
+  "ports": {
+    "app": 3020
+  },
+  "timezone": "Europe/Paris",
+  "category": "data",
+  "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+  "domain": "api.diegonmarcos.com/scrappers",
+  "proxy": {
+    "primary": {
+      "type": "path",
+      "parent_domain": "api.diegonmarcos.com",
+      "base_path": "/cloudy-browser-scrapper-api",
+      "auth": "two_factor",
+      "public_paths": [
+        "/scrappers/health",
+        "/scrappers/openapi.json"
+      ]
+    }
+  },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": true,
+    "dns_check": true,
+    "endpoint_check": true
+  },
+  "backup": {
+    "enabled": true
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-browser-scrapper-api",
+      "image": "ghcr.io/diegonmarcos/cloudy-browser-scrapper-api:latest",
+      "port": 3020,
+      "port_env": "PORT",
+      "protocol": "http",
+      "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+      "public": true,
+      "proxy": {
+        "domain": "api.diegonmarcos.com",
+        "base_path": "/cloudy-browser-scrapper-api",
+        "auth": "two_factor"
+      },
+      "healthcheck": "curl -fsS http://127.0.0.1:3020/health >/dev/null 2>&1 || exit 1",
+      "env_file": true
+    }
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "openapi",
+    "spec_path": "/openapi.json",
+    "base_path": "/cloudy-browser-scrapper-api",
+    "display_name": "Scrapers API",
+    "description": "Unified profile-scrape + generic-crawl API. Replaces crawlee-cloud.",
+    "auth": "two_factor"
+  },
+  "tests": {
+    "robots": {
+      "cmd": "python3 test_robots.py",
+      "cwd": "src/code"
+    },
+    "prices": {
+      "cmd": "python3 test_prices.py",
+      "cwd": "src/code"
+    },
+    "ytdl": {
+      "cmd": "python3 test_ytdl.py",
+      "cwd": "src/code"
+    }
+  },
+  "legacy_aliases": {
+    "names": [
+      "scrappers-api"
+    ],
+    "dns_aliases": [
+      "scrappers-api.mesh.diegonmarcos.com"
+    ],
+    "base_paths": [
+      "/scrappers"
+    ],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": [
+    "scrappers-api.mesh.diegonmarcos.com"
+  ]
+}

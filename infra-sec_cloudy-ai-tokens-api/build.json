@@ -1,0 +1,100 @@
+{
+  "name": "cloudy-ai-tokens-api",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Net-Routing & Security"
+  },
+  "description": "Fleet token engine: lists, generates, reveals and revokes every fleet bearer token (fleet ft_ tokens and adopted Authelia JWTs); introspect-proxy asks it before accepting a Bearer, so a revoked token stops working within 60 seconds. Public address: c3-pvt.diegonmarcos.com/tokens-api (shared gate, #1104); mesh tokens-api.mesh.diegonmarcos.com",
+  "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 4184
+  },
+  "category": "sec",
+  "timezone": "Europe/Madrid",
+  "build": {
+    "include_cloud_data": "true",
+    "headers_enforced": true
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-ai-tokens-api",
+    "compose_flags": "--build"
+  },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": false,
+    "dns_check": true,
+    "endpoint_check": true
+  },
+  "docker": {
+    "image": "cloudy-ai-tokens-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "pip install --no-cache-dir -r requirements.txt",
+      "entrypoint": "gunicorn --bind 127.0.0.1:4184 --workers 1 --threads 4 --timeout 30 main:app",
+      "base_image": "python:3.11-slim",
+      "app_dir": "code"
+    }
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-ai-tokens-api",
+      "image": "ghcr.io/diegonmarcos/tokens-api-binaries:latest",
+      "port": 4184,
+      "port_env": null,
+      "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
+      "public": true,
+      "healthcheck": "/health",
+      "monitoring": {
+        "tls_check": false,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "volumes": [
+        "tokens_api_data:/data"
+      ],
+      "env_file": true,
+      "depends_on": [],
+      "resources": null,
+      "read_only": false,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_reservation": "16M",
+    "mem_limit": "128M"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "python3 -m pip install -q flask==3.0.0 'PyJWT[crypto]==2.9.0' cryptography==43.0.3 pytest && python3 -m pytest -q -p no:cacheprovider test",
+      "cwd": "src"
+    }
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 8,
+    "display_name": "Fleet Token Engine",
+    "description": "Owner-only token manager (list, reveal, generate, import, revoke, audit) and the mesh-only /v1/verify that introspect-proxy calls.",
+    "auth": "bearer"
+  },
+  "legacy_aliases": {
+    "names": [
+      "tokens-api"
+    ],
+    "dns_aliases": [
+      "tokens-api.mesh.diegonmarcos.com"
+    ],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": [
+    "tokens-api.mesh.diegonmarcos.com"
+  ],
+  "_gateway": "Reached publicly only through cloudy-ai-api at /ai/<name> (old /<name>-api path is a gateway legacy route)."
+}

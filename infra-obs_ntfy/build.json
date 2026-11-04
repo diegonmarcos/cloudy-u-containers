@@ -1,6 +1,9 @@
 {
   "name": "ntfy",
-  "taxonomy": {"group": "Infra Apps", "category": "Ops-Observability"},
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-Observability"
+  },
   "description": "Push notification server",
   "dns": "ntfy.mesh.diegonmarcos.com",
   "category": "tools",
@@ -21,7 +24,7 @@
       "domain": "rss.diegonmarcos.com",
       "auth": "ntfy-3tier",
       "wg_only": true,
-      "_feed_auth_comment": "The /feed/* RSS routes (rss-gateway) are served with NO Authelia/bearer — the whole rss.diegonmarcos.com site is already wg0-gated (wg_only), so on-mesh is the only way in. Cloud Mail (SUPER RSS READER) polls channels.json + per-topic Atom feeds over wg0 without a token. The ntfy app itself (publish/web UI) keeps ntfy-3tier.",
+      "_feed_auth_comment": "The /feed/* RSS routes (rss-gateway) are served with NO Authelia/bearer \u2014 the whole rss.diegonmarcos.com site is already wg0-gated (wg_only), so on-mesh is the only way in. Cloud Mail (SUPER RSS READER) polls channels.json + per-topic Atom feeds over wg0 without a token. The ntfy app itself (publish/web UI) keeps ntfy-3tier.",
       "feed_auth": "none"
     }
   },
@@ -38,7 +41,7 @@
     "rss_gateway": 8091
   },
   "timezone": "Europe/Paris",
-  "_topics_comment": "Source of truth for ntfy topics. Consumed by: (a) bc-obs_ntfy/src/code/topic-scanner.py (its own runtime topic list), (b) 9_others/src/engine/parsers/ntfy.ts (publishes configs.ntfy.topics — incl. path/title — into _cloud-data-consolidated.json), (c) 9_others/src/engine/cloud-data-config-derive.ts (emits topics into build-mattermost.json AND the RSS taxonomy build-ntfy-rss-channels.json consumed by the Cloud Mail SUPER RSS READER). 'path' = parent folder in the Cloud Mail feed tree (leaf = the topic itself, display = 'title'); topics sharing a 'path' become siblings under that folder, so e.g. the three dev_* topics form a nested CICD/GH group. Adding a topic = edit this array + rebuild.",
+  "_topics_comment": "Source of truth for ntfy topics. Consumed by: (a) bc-obs_ntfy/src/code/topic-scanner.py (its own runtime topic list), (b) 9_others/src/engine/parsers/ntfy.ts (publishes configs.ntfy.topics \u2014 incl. path/title \u2014 into _cloud-data-consolidated.json), (c) 9_others/src/engine/cloud-data-config-derive.ts (emits topics into build-mattermost.json AND the RSS taxonomy build-ntfy-rss-channels.json consumed by the Cloud Mail SUPER RSS READER). 'path' = parent folder in the Cloud Mail feed tree (leaf = the topic itself, display = 'title'); topics sharing a 'path' become siblings under that folder, so e.g. the three dev_* topics form a nested CICD/GH group. Adding a topic = edit this array + rebuild.",
   "topics": [
     {
       "name": "all",
@@ -168,14 +171,14 @@
     {
       "name": "health_report_cloud-health-full-daily",
       "category": "health",
-      "title": "Health — Daily Full",
+      "title": "Health \u2014 Daily Full",
       "path": "Cloud-Infra/Health/Reports",
       "desc": "Daily full cloud health report"
     },
     {
       "name": "health_report_cloud-health-full-2",
       "category": "health",
-      "title": "Health — Full #2",
+      "title": "Health \u2014 Full #2",
       "path": "Cloud-Infra/Health/Reports",
       "desc": "Secondary full cloud health report"
     },
@@ -189,19 +192,19 @@
     {
       "name": "health_report_cloud-sec-data-report",
       "category": "health",
-      "title": "Security — Data",
+      "title": "Security \u2014 Data",
       "path": "Cloud-Infra/Health/Reports",
       "desc": "Security data report"
     },
     {
       "name": "health_report_cloud-sec-network-report",
       "category": "health",
-      "title": "Security — Network",
+      "title": "Security \u2014 Network",
       "path": "Cloud-Infra/Health/Reports",
       "desc": "Security network report"
     }
   ],
-  "_profiles_comment": "RSS profile groups — each profile is a named set of topic categories resolved at build time by the Nix flake into profiles-config.json. Cloud Mail and any RSS reader subscribe to ONE profile URL instead of N individual topic feeds. Categories: 'topics' key = explicit topic list; 'categories' key = all topics whose category field matches. Add a profile = edit here + rebuild; consumers (rss-gateway sidecar + Cloud Mail app) auto-pick up changes.",
+  "_profiles_comment": "RSS profile groups \u2014 each profile is a named set of topic categories resolved at build time by the Nix flake into profiles-config.json. Cloud Mail and any RSS reader subscribe to ONE profile URL instead of N individual topic feeds. Categories: 'topics' key = explicit topic list; 'categories' key = all topics whose category field matches. Add a profile = edit here + rebuild; consumers (rss-gateway sidecar + Cloud Mail app) auto-pick up changes.",
   "profiles": [
     {
       "id": "security",
@@ -309,7 +312,7 @@
       "read_only": false
     },
     "rss-gateway": {
-      "container_name": "rss-gateway",
+      "container_name": "capital-stack-news-rss-api",
       "image": "python:3.11-slim",
       "port": 8091,
       "protocol": "http",
@@ -336,7 +339,7 @@
       "read_only": false
     },
     "github-rss": {
-      "container_name": "github-rss",
+      "container_name": "capital-stack-news-github-rss-api",
       "image": "python:3.11-slim",
       "port": null,
       "port_env": null,
@@ -377,5 +380,15 @@
     "display_name": "ntfy Push Notifications",
     "description": "Push notification server with HTTP POST interface for sending messages to topics.",
     "auth": "bearer"
-  }
+  },
+  "legacy_aliases": {
+    "names": [
+      "github-rss",
+      "rss-gateway"
+    ],
+    "dns_aliases": [],
+    "base_paths": [],
+    "_doc": "API rebrand #1450: the old names stay served for one release (DNS alias, Caddy path rewrite from _rebrand-1450/caddy-legacy-redirects.caddy, old image tag). Remove after the alias release."
+  },
+  "dns_aliases": []
 }
