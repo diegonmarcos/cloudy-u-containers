@@ -1,0 +1,97 @@
+{
+  "name": "cloudy-all-mcp",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Fleet MCP router: list_servers, list_tools(server), call(server, tool, args)",
+  "dns": "cloudy-all-mcp.mesh.diegonmarcos.com",
+  "dns_aliases": [],
+  "ports": {
+    "app": 3112
+  },
+  "category": "obs",
+  "build": {
+    "include_cloud_data": "true",
+    "headers_enforced": true
+  },
+  "docker": {
+    "registry": "ghcr.io/diegonmarcos",
+    "image": "cloudy-all-mcp",
+    "dockerfile": "Dockerfile",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "npm ci --omit=dev && npm install tsx",
+      "entrypoint": "node /app/node_modules/tsx/dist/cli.mjs mcp/index.ts --http",
+      "base_image": "node:22-bookworm-slim",
+      "apt": "ca-certificates curl",
+      "app_dir": "code"
+    }
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-all-mcp",
+    "compose_flags": "--build"
+  },
+  "proxy": {
+    "primary": {
+      "streaming": true,
+      "type": "path",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "base_path": "/cloudy-all-mcp",
+      "wg_only": true
+    },
+    "app_hub": false
+  },
+  "runtime": {
+    "init": true,
+    "pids_limit": 512,
+    "_why_init": "proxy-mcp spawns no children, but tini is cheap insurance against future regressions and unblocks Node SIGTERM handling."
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-all-mcp",
+      "image": "ghcr.io/diegonmarcos/cloudy-all-mcp:latest",
+      "port": 3112,
+      "port_env": "MCP_HTTP_PORT",
+      "dns": "cloudy-all-mcp.mesh.diegonmarcos.com",
+      "public": true,
+      "proxy": {
+        "streaming": true,
+        "type": "path",
+        "parent_domain": "mcp.diegonmarcos.com",
+        "base_path": "/cloudy-all-mcp"
+      },
+      "healthcheck": "/mcp",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": true,
+      "depends_on": [],
+      "resources": {
+        "mem_reservation": "256M",
+        "pids_limit": 256
+      },
+      "restart_policy": "unless-stopped",
+      "read_only": false,
+      "protocol": "http"
+    }
+  },
+  "mcp": {
+    "transport": "streamable-http",
+    "endpoint_path": "/mcp",
+    "tools_count": 3,
+    "resources_count": 0,
+    "prompts_count": 0,
+    "display_name": "Cloudy All MCP",
+    "description": "Fleet MCP router (3 tools).",
+    "auth": "none",
+    "sdk": "@modelcontextprotocol/sdk@^1.12.0"
+  },
+  "_draft": "MCP rebrand #1450: pending owner deploy; the real build.json is generated from the cloudy-t-infra declaration, mirror this there.",
+  "_env_note": "env: ROUTER_BEARER (public-route fallback, from the secrets file, never committed); ROUTER_SERVERS optional override.",
+  "_dns_aliases_at_cutover": [
+    "cloud-services-mcp.mesh.diegonmarcos.com"
+  ],
+  "_dns_doc": "The old container keeps these DNS names during the alias release; move them here (dns_aliases) at cutover when the old container is removed."
+}

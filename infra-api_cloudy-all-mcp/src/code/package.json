@@ -1,0 +1,16 @@
+{
+  "name": "cloudy-all-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fleet MCP router: list_servers, list_tools(server), call(server, tool, args)",
+  "scripts": {
+    "start": "tsx mcp/index.ts --http",
+    "test": "node --test mcp/router.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "tsx": "^4.19.0",
+    "zod": "^3.25.0"
+  }
+}

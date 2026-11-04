@@ -1,0 +1,129 @@
+{
+  "name": "cloudy-apps-communication-mcp",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Mail MCP server \u2014 IMAP/SMTP/Admin via Stalwart REST API",
+  "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+  "dns_aliases": [],
+  "category": "app",
+  "build": {
+    "include_cloud_data": "true",
+    "headers_enforced": true
+  },
+  "ssh": {
+    "uid": 0,
+    "ssh_dir": "/root/.ssh",
+    "keys": [
+      "vault_id_rsa",
+      "vault_id_rsa.pub"
+    ]
+  },
+  "docker": {
+    "image": "cloudy-apps-communication-mcp",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "npm ci --omit=dev",
+      "entrypoint": "node /app/node_modules/tsx/dist/cli.mjs mcp/index.ts --http",
+      "base_image": "node:22-slim",
+      "apt": "dnsutils openssh-client",
+      "app_dir": "code"
+    }
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-apps-communication-mcp",
+    "compose_flags": "--build"
+  },
+  "proxy": {
+    "primary": {
+      "streaming": true,
+      "type": "path",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "base_path": "/cloudy-apps-communication-mcp",
+      "wg_only": true
+    },
+    "app_hub": false
+  },
+  "ports": {
+    "app": 3103
+  },
+  "domain": "mcp.diegonmarcos.com",
+  "proxied_mcps": {
+    "_note": "URLs resolved at flake build time from cloud-data services{}. Bridge mode \u2192 WG IPs only. Same retry/LRU pattern as cloud-services-mcp.",
+    "children": [
+      {
+        "name": "google-personal-mcp",
+        "service": "google-personal-mcp",
+        "path": "/mcp"
+      }
+    ],
+    "retry": {
+      "initial_ms": 10000,
+      "max_ms": 120000,
+      "max_retry_state_entries": 16
+    }
+  },
+  "mail_hosts": {
+    "maddy": "mail.diegonmarcos.com",
+    "stalwart": "jmap.diegonmarcos.com"
+  },
+  "mail_ports": {
+    "maddy_imap": 993,
+    "maddy_smtp": 465,
+    "stalwart_imap": 2993,
+    "stalwart_smtp": 2465,
+    "stalwart_jmap_https": 2443
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-apps-communication-mcp",
+      "image": "ghcr.io/diegonmarcos/cloudy-apps-communication-mcp:latest",
+      "port": 3103,
+      "port_env": "PORT",
+      "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+      "public": true,
+      "proxy": {
+        "streaming": true,
+        "type": "path",
+        "parent_domain": "mcp.diegonmarcos.com",
+        "base_path": "/cloudy-apps-communication-mcp"
+      },
+      "healthcheck": null,
+      "monitoring": null,
+      "volumes": [],
+      "env_file": true,
+      "depends_on": [],
+      "resources": {
+        "mem_reservation": "256M",
+        "pids_limit": 256
+      },
+      "read_only": false,
+      "protocol": "http",
+      "restart_policy": "unless-stopped"
+    }
+  },
+  "mcp": {
+    "transport": "streamable-http",
+    "endpoint_path": "/mcp",
+    "tools_count": 29,
+    "resources_count": 0,
+    "prompts_count": 0,
+    "display_name": "Mail MCP",
+    "description": "Mail (IMAP/SMTP/Stalwart/Resend) + Mattermost; proxies google-personal-mcp tools.",
+    "auth": "none",
+    "sdk": "@modelcontextprotocol/sdk@^1.12.0"
+  },
+  "_draft": "MCP rebrand #1450: pending owner deploy; the real build.json is generated from the cloudy-t-infra declaration, mirror this there.",
+  "_env_note": "env_file must carry the mail vars (MADDY_ME_*/MAIL_*, RESEND, STALWART) AND the mattermost vars (MM_URL, MM_CLAUDE_PASSWORD, MM_TEAM_ID, MM_ADMIN_USERNAME).",
+  "_dns_aliases_at_cutover": [
+    "cloud-mail-mcp.mesh.diegonmarcos.com",
+    "cloud-mattermost-mcp.mesh.diegonmarcos.com",
+    "mattermost-mcp.mesh.diegonmarcos.com"
+  ],
+  "_dns_doc": "The old container keeps these DNS names during the alias release; move them here (dns_aliases) at cutover when the old container is removed."
+}
