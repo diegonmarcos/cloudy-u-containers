@@ -4947,7 +4947,6 @@ import edge_auth /.well-known/acme-challenge/*
     uri path_regexp ^/c3-infra-api(/|$) /cloudy-c3-api$1
     uri path_regexp ^/c3-services-api(/|$) /cloudy-all-api$1
     uri path_regexp ^/capital-stack-finterminal-api(/|$) /capital-stack-finterm-api$1
-    uri path_regexp ^/git(/|$) /cloudy-drive-git-proxy-api$1
     uri path_regexp ^/http-to-smtp-proxy-api(/|$) /cloudy-mail-http-to-smtp-api$1
     uri path_regexp ^/scrappers(/|$) /cloudy-browser-scrapper-api$1
     # AI gateway: one public prefix, five backends (bearer enforced here as for the old routes)
@@ -5353,14 +5352,14 @@ handle_path /cloudy-c3-api/* {
 handle /git/health {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
-          uri strip_prefix /cloudy-drive-git-proxy-api
+          uri strip_prefix /git
         reverse_proxy 10.0.0.4:8123
         }
         handle {
           error "Forbidden" 403
         }
 }
-handle_path /cloudy-drive-git-proxy-api/* {
+handle_path /git/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
               @bearer header Authorization Bearer*
