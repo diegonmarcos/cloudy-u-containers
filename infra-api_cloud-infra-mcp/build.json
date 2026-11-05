@@ -3,10 +3,11 @@
   "taxonomy": {"group": "Infra Apps", "category": "Ops-API-MCP"},
   "description": "C3 MCP Server \u2014 Cloud Control Center MCP transport (stdio + HTTP)",
   "dns": "c3-infra-mcp.mesh.diegonmarcos.com",
-  "dns_aliases": ["cloud-infra-mcp.mesh.diegonmarcos.com", "superapp-mcp.mesh.diegonmarcos.com", "cloud-superapp-mcp.mesh.diegonmarcos.com"],
+  "dns_aliases": ["cloud-infra-mcp.mesh.diegonmarcos.com"],
   "legacy_aliases": {
     "names": ["cloud-infra-mcp", "cloud-superapp-mcp", "cloudy-android-mcp"],
-    "dns_aliases": ["superapp-mcp.mesh.diegonmarcos.com", "cloud-superapp-mcp.mesh.diegonmarcos.com"],
+    "dns_aliases": [],
+    "_dns_aliases_deferred": "superapp-mcp.mesh and cloud-superapp-mcp.mesh stay with the old cloud-superapp-mcp container until the merged peers-control tools are verified (needs SUPERAPP_FLEET_TOKEN in this service secrets); claiming them earlier rendered two Caddy sites for one host (ambiguous site definition).",
     "base_paths": ["/c3-infra-mcp", "/cloud-superapp-mcp", "/cloudy-android-mcp"],
     "android_endpoint": "/mcp-android",
     "_doc": "#1495 cloudy-android-mcp (cloud-superapp-mcp) is merged into this server as the peers-control tool group. Its old names stay as aliases for one release (#1450 alias policy): the old DNS names and the base paths /cloud-superapp-mcp and /cloudy-android-mcp are rewritten by the edge to this container's /mcp-android endpoint, which serves the same server plus the old `superapp` + `superapp_help` dispatchers so a client keeps its tool names. Remove with the other #1450 aliases and delete infra-api_cloud-superapp-mcp."
