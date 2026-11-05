@@ -1,0 +1,100 @@
+{
+  "name": "cloudy-browser-headless",
+  "taxonomy": {
+    "group": "Project Apps",
+    "category": "Data"
+  },
+  "description": "Headless browser for agents: official Playwright image (Apache-2.0, not browserless/SSPL) plus a small Node server implementing the shared headless-api JSON command API (open/wait/eval/click/type/scroll/html/text/readable/screenshot/cookies/storage/network, run(steps), sessions). Bearer-gated, mesh-only.",
+  "dns": "cloudy-browser-headless.mesh.diegonmarcos.com",
+  "dns_aliases": [],
+  "category": "data",
+  "build": {
+    "headers_enforced": true
+  },
+  "docker": {
+    "image": "cloudy-browser-headless",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "npm install --omit=dev --no-audit --no-fund",
+      "entrypoint": "node /app/server.js",
+      "base_image": "mcr.microsoft.com/playwright:v1.55.0-noble",
+      "app_dir": "code",
+      "user": "pwuser"
+    },
+    "labels": {
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/user-data_cloudy-browser-headless",
+      "org.opencontainers.image.licenses": "LicenseRef-NoLicenseGranted AND Apache-2.0",
+      "io.diegonmarcos.upstream.source": "https://github.com/microsoft/playwright"
+    }
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-browser-headless",
+    "compose_flags": "--build"
+  },
+  "ports": {
+    "app": 3118
+  },
+  "timezone": "Europe/Paris",
+  "domain": "mcp.diegonmarcos.com/cloudy-browser-headless",
+  "proxy": {
+    "primary": {
+      "streaming": false,
+      "type": "path",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "base_path": "/cloudy-browser-headless",
+      "wg_only": true
+    },
+    "app_hub": false
+  },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": true,
+    "dns_check": true,
+    "endpoint_check": true
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-browser-headless",
+      "image": "ghcr.io/diegonmarcos/cloudy-browser-headless:latest",
+      "port": 3118,
+      "port_env": "PORT",
+      "protocol": "http",
+      "dns": "cloudy-browser-headless.mesh.diegonmarcos.com",
+      "public": true,
+      "proxy": {
+        "domain": "mcp.diegonmarcos.com",
+        "base_path": "/cloudy-browser-headless"
+      },
+      "healthcheck": "node -e \"fetch('http://'+(process.env.HTTP_HOST||'127.0.0.1')+':3118/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+      "env_file": true,
+      "resources": {
+        "mem_limit": "2G",
+        "mem_reservation": "512m",
+        "pids_limit": 1024
+      },
+      "limits": {
+        "max_sessions": 4,
+        "idle_close_ms": 300000,
+        "call_timeout_ms": 30000
+      }
+    }
+  },
+  "api": {
+    "type": "rest",
+    "base_path": "/cloudy-browser-headless",
+    "display_name": "Headless Browser",
+    "description": "Agent headless browser (headless-api v1 command API, sessions, run(steps)).",
+    "auth": "bearer"
+  },
+  "tests": {
+    "api": {
+      "cmd": "node --test test/api.test.js",
+      "cwd": "src/code"
+    }
+  }
+}
