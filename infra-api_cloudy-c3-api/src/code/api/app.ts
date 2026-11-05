@@ -22,11 +22,18 @@ import { registerReportsRoutes } from "./routes/reports.js";
 import { registerWorkflowsRoutes } from "./routes/workflows.js";
 import { registerConfigsSyncRoutes } from "./routes/configsSync.js";
 import { registerAiUsageRoutes } from "./routes/aiUsage.js";
+import { registerTreeRoutes } from "./routes/tree.js";
+import { loadHierarchy, rewriteTreeUrl, leaves } from "./hierarchy.js";
 import { startPoller } from "../shared/libs/poller.js";
 
 export async function buildApp() {
+  // #1495 every route is also served under its place in the Cloud-C3 app hierarchy (/<section>/<group>/<page>/<legacy path>): the tree
+  // URL is rewritten to the legacy one before routing, so auth, schemas and handlers see the legacy route (api/hierarchy.ts).
+  const hier = loadHierarchy();
+  const hierLeaves = leaves(hier);
   const app = Fastify({
     logger: { level: "info" },
+    rewriteUrl: (req) => rewriteTreeUrl(hier, req.url ?? "/", hierLeaves),
   });
 
   // CORS
@@ -84,6 +91,7 @@ export async function buildApp() {
   await app.register(registerWorkflowsRoutes);
   await app.register(registerConfigsSyncRoutes);
   await app.register(registerAiUsageRoutes);
+  await app.register(registerTreeRoutes);
 
   // Background poller tick (metrics sampler + alert evaluator + SSE health
   // broadcast all hook onto this single tick — see shared/libs/poller.ts).

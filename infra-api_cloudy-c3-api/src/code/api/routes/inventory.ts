@@ -7,6 +7,7 @@ import type { FastifyInstance } from "fastify";
 import { listServices, getService, probeSpec, getAllSpecs } from "../../shared/libs/discovery.js";
 import { getDriftReport, getConfig, getServiceFolder } from "../../shared/libs/config.js";
 import { getConfigFile } from "../../shared/libs/files.js";
+import { filterServices, loadHierarchy } from "../hierarchy.js";
 // 2026-04-27 migrated: cloud-data-{topology,configs,deps}.json -> _cloud-data-consolidated.json[.{configs,deps}]
 // getConfigPath() now resolves to _cloud-data-consolidated.json (topology shape is a subset).
 // CONFIGS_PATH / DEPS_PATH also point to the consolidated file; use the slice helpers
@@ -74,8 +75,14 @@ export async function registerInventoryRoutes(app: FastifyInstance) {
   });
   // ── Services (from services.ts) ──
 
-  app.get("/services", { schema: { tags: ["Inventory"] } }, async () => {
-    return listServices();
+  // #1495 `?project=<id>&kind=<id>`: the Containers project tabs and Filters row of the Cloud-C3 app (api/hierarchy.ts), also reached as
+  // /containers/<project>/table/services?kind=<id>.
+  app.get<{ Querystring: { project?: string; kind?: string } }>("/services", { schema: { tags: ["Inventory"] } }, async (req) => {
+    const { project, kind } = req.query ?? {};
+    const list = listServices();
+    if (!project && !kind) return list;
+    const folderOf = (n: string) => { try { return getServiceFolder(n); } catch { return ""; } };
+    return filterServices(loadHierarchy().containers, list, { project, kind }, folderOf);
   });
 
   app.get<{ Params: { service: string } }>(

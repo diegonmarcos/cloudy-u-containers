@@ -74,6 +74,10 @@
     "ai-usage": {
       "cmd": "node test-ai-usage.ts",
       "cwd": "src"
+    },
+    "hierarchy": {
+      "cmd": "node test-hierarchy.ts",
+      "cwd": "src"
     }
   },
   "monitoring": {
