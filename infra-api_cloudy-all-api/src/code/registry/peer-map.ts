@@ -6,7 +6,7 @@
  * image carries that file at `/app/build-<name>.json`.
  *
  * Both consumers of this module used to restate that filename as the literal
- * "build-c3-services-api.json". When the container was renamed to
+ * "build-cloudy-all-api.json". When the container was renamed to
  * cloud-services-mcp its image began carrying `build-cloud-services-mcp.json`,
  * the literal stopped matching, and the loaders fell straight through to their
  * "no file found" branch. The result was not a loud failure: the registry held

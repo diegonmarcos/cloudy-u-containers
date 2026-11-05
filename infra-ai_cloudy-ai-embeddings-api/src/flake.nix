@@ -8,7 +8,7 @@
 
     # ── Data sources (declarative JSON) ────────────────────────────
     buildJson = builtins.fromJSON (builtins.readFile ../build.json);
-    container = builtins.fromJSON (builtins.readFile ./build-embeddings-api.json);
+    container = builtins.fromJSON (builtins.readFile ./build-cloudy-ai-embeddings-api.json);
 
     engine = import ../../_shared/engine.nix;
     nb = buildJson.docker.native_build;

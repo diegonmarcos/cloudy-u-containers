@@ -7,7 +7,7 @@
     forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
 
     buildJson = builtins.fromJSON (builtins.readFile ../build.json);
-    container = builtins.fromJSON (builtins.readFile ./build-git-proxy-api.json);
+    container = builtins.fromJSON (builtins.readFile ./build-cloudy-drive-git-proxy-api.json);
 
     engine = import ../../_shared/engine.nix;
     nb = buildJson.docker.native_build;

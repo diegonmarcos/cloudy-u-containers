@@ -102,7 +102,7 @@ export async function registerRegistryRoutes(app: FastifyInstance) {
     },
   }, async (req, reply) => {
     // Probe ANY container (not just API/MCP services) via its declared healthcheck
-    // path on the WG mesh. Reach targets are data-driven from build-c3-services-api.json
+    // path on the WG mesh. Reach targets are data-driven from build-cloudy-all-api.json
     // (.services.<name>.healthcheck, stamped by the derive). null = unknown or no healthcheck.
     const url = getReachUrl(req.params.service);
     if (!url) {

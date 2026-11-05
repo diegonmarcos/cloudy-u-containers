@@ -8,7 +8,7 @@
 
     # ── Data sources (declarative JSON) ────────────────────────────
     buildJson = builtins.fromJSON (builtins.readFile ../build.json);
-    container = builtins.fromJSON (builtins.readFile ./build-surrealdb.json);
+    container = builtins.fromJSON (builtins.readFile ./build-cloud-me-cgc-pvt-graph-api.json);
 
     # build-kg-graph_schema.json — emitted by 9_others/build.sh derive,
     # symlinked into ./build-kg-graph_schema.json. SoT for embedder config

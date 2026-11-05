@@ -116,7 +116,7 @@ export { resolveConfigPath as getConfigPath, resolveCloudDataPath };
 export const getConsolidatedPath = () => resolveCloudDataPath("_cloud-data-consolidated.json");
 export const getConfigsPath = () => getConsolidatedPath();
 export const getDepsPath = () => getConsolidatedPath();
-export const getOwnBuildPath = () => resolveCloudDataPath("build-c3-infra-api.json");
+export const getOwnBuildPath = () => resolveCloudDataPath("build-cloudy-c3-api.json");
 // Back-compat exports — call sites can still treat these as path strings.
 // 2026-04-27 migrated: now resolve to _cloud-data-consolidated.json. Existing
 // call sites that JSON.parse(readFileSync(CONFIGS_PATH))/(DEPS_PATH) and read a

@@ -11,7 +11,7 @@
     ntfyJson     = builtins.fromJSON (builtins.readFile ./build-ntfy.json);
     cNtfy        = ntfyJson.container;
     cSyslog      = (builtins.fromJSON (builtins.readFile ./build-syslog-bridge.json)).container;
-    cGithubRss   = (builtins.fromJSON (builtins.readFile ./build-github-rss.json)).container;
+    cGithubRss   = (builtins.fromJSON (builtins.readFile ./build-capital-stack-news-github-rss-api.json)).container;
     cRssGateway  = buildJson.containers."rss-gateway";
     usersJson    = (builtins.fromJSON (builtins.readFile ./users.json)).users;
 
