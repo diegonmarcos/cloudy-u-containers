@@ -8,7 +8,7 @@ import { z } from "zod";
 import { createMcpServer, buildRegistry } from "./mcp/factory.ts";
 import { ToolRegistry, GROUPS, methodsOf, registerGrouped, registerLegacy } from "./mcp/registry.ts";
 
-const MAX_LIST_BYTES = 12 * 1024; // guard: total tools/list JSON must stay under this
+const MAX_LIST_BYTES = 20 * 1024; // guard: total tools/list JSON must stay under this (#1495: + the peers group and the c3_* tree dispatchers)
 
 async function connect(server: McpServer) {
   const [a, b] = InMemoryTransport.createLinkedPair();
@@ -24,9 +24,38 @@ const reg = buildRegistry();
 const all = methodsOf(reg);
 const client = await connect(createMcpServer({} as any));
 
-await t("default exposes only group tools + infra_help (no legacy names)", async () => {
+const TREE = ["c3_infra", "c3_containers", "c3_home", "c3_ops", "c3_observ", "c3_configs", "c3_tree", "c3_help"];
+
+await t("default exposes only group tools + infra_help + the c3_* tree tools (no legacy names, no superapp)", async () => {
   const names = (await client.listTools()).tools.map((x) => x.name).sort();
-  assert.deepEqual(names, [...GROUPS.map((g) => `infra_${g}`), "infra_help"].sort());
+  assert.deepEqual(names, [...GROUPS.map((g) => `infra_${g}`), "infra_help", ...TREE].sort());
+});
+
+await t("the tree: every tool is reachable as c3_<section> <group>.<page>.<tool>, the legacy dispatcher still works, c3_tree lists it (#1495)", async () => {
+  const sections = JSON.parse(txt(await client.callTool({ name: "c3_tree", arguments: {} })));
+  assert.deepEqual(sections.map((x: any) => x.id), ["infra", "containers", "home", "ops", "observ", "configs"]);
+  const ops = JSON.parse(txt(await client.callTool({ name: "c3_tree", arguments: { section: "ops" } })));
+  assert.ok(ops.methods.some((m: any) => m.method === "orch.flow.devops_workflows_gha_trigger" && m.legacy === "devops.workflows.gha_trigger"));
+  const h = await client.callTool({ name: "c3_help", arguments: { method: "ops:orch.flow.devops_workflows_gha_trigger" } });
+  assert.ok(!h.isError && JSON.parse(txt(h)).legacy_name === "devops.workflows.gha_trigger", txt(h));
+  const bad: any = await client.callTool({ name: "c3_ops", arguments: { method: "nope" } });
+  assert.ok(bad.isError && /c3_tree/.test(txt(bad)));
+  const badp: any = await client.callTool({ name: "c3_infra", arguments: { method: "personal.control.peers_shell", params: {} } });
+  assert.ok(badp.isError && /cmd: Required/.test(txt(badp)), txt(badp));
+});
+
+await t("peers-control: the merged phone tools are the peers group; the superapp alias endpoint serves the old dispatcher only there (#1495)", async () => {
+  const peers = all.filter((x) => x.group === "peers").map((x) => x.method).sort();
+  assert.deepEqual(peers, ["adb_autoconnect", "adb_pair", "adb_status", "apps", "call", "crashes", "docs", "force_stop", "grant", "input", "logcat", "logcat_full", "screencap", "shell", "wake"]);
+  const main = (await client.listTools()).tools.map((x) => x.name);
+  assert.ok(!main.includes("superapp") && !main.includes("superapp_help"));
+  const alias = await connect(createMcpServer({} as any, "android"));
+  const names = (await alias.listTools()).tools.map((x) => x.name);
+  assert.ok(names.includes("superapp") && names.includes("superapp_help") && names.includes("infra_peers"));
+  const sh: any = await alias.callTool({ name: "superapp", arguments: { method: "shell", params: { cmd: "rm -rf /" } } });
+  assert.ok(sh.isError && /allowlist/.test(txt(sh)), txt(sh));
+  const hp = JSON.parse(txt(await alias.callTool({ name: "superapp_help", arguments: { method: "logcat_full" } })));
+  assert.equal(hp.legacy_name, "superapp_logcat_full");
 });
 
 await t("registry is non-trivial and method names are unique per group", () => {
@@ -108,7 +137,7 @@ await t("the phone mesh-endpoint methods (public, mesh, apps logs) are registere
   assert.ok(r.isError && /PHONE_MESH_URL/.test(txt(r)), txt(r));
 });
 
-await t("SIZE GUARD: tools/list JSON < 12 KB (report before/after)", async () => {
+await t("SIZE GUARD: tools/list JSON < 20 KB (report before/after)", async () => {
   const after = JSON.stringify(await client.listTools()).length;
   const lg = new McpServer({ name: "old", version: "1" });
   registerLegacy(lg, reg);

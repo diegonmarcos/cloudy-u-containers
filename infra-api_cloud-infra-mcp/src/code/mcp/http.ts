@@ -13,18 +13,28 @@ import { bindHost } from "../shared/libs/binds.js";
 import { createMcpServer } from "./factory.js";
 
 const log = (msg: string) => process.stderr.write(`[mcp-http] ${msg}\n`);
-const SESSION_ID = "c3-infra-mcp-session";
+// #1495 two endpoints, one persistent session each: /mcp (cloudy-c3-mcp) and /mcp-android (the cloudy-android-mcp / cloud-superapp-mcp
+// alias, which adds the old `superapp` dispatchers). Caddy rewrites the alias paths to /mcp-android.
+type Variant = "main" | "android";
+const ENDPOINTS: Record<Variant, { path: string; sid: string }> = {
+  main: { path: "/mcp", sid: "c3-infra-mcp-session" },
+  android: { path: "/mcp-android", sid: "c3-infra-mcp-android-session" },
+};
 
 // ── Single persistent session ────────────────────────────────────────
-let session: { transport: StreamableHTTPServerTransport; server: McpServer } | null = null;
+type Session = { transport: StreamableHTTPServerTransport; server: McpServer };
+const sessions: Record<Variant, Session | null> = { main: null, android: null };
 
 async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
   const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-  if (url.pathname !== "/mcp") {
+  const variant = (Object.keys(ENDPOINTS) as Variant[]).find((v) => ENDPOINTS[v].path === url.pathname);
+  if (!variant) {
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Not Found" }));
     return;
   }
+  const SESSION_ID = ENDPOINTS[variant].sid;
+  let session = sessions[variant];
 
   if (req.method === "DELETE") {
     // Client wants to close session — acknowledge but don't destroy (persist across reconnects)
@@ -46,9 +56,10 @@ async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Prom
     // This handles /mcp reconnect: Claude Code sends initialize without session ID
     log(`New client initialize — recreating session`);
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => SESSION_ID });
-    const server = createMcpServer();
+    const server = createMcpServer(process.env, variant);
     await server.connect(transport);
     session = { transport, server };
+    sessions[variant] = session;
     await session.transport.handleRequest(req, res);
   } else if (clientSessionId === SESSION_ID) {
     // Existing client with correct session ID
@@ -65,14 +76,15 @@ async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Prom
 }
 
 // ── Self-initialize session at startup ───────────────────────────────
-async function initSession(port: number): Promise<void> {
+async function initSession(port: number, variant: Variant): Promise<void> {
+  const { path, sid: SESSION_ID } = ENDPOINTS[variant];
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => SESSION_ID,
   });
-  const server = createMcpServer();
+  const server = createMcpServer(process.env, variant);
   await server.connect(transport);
 
-  session = { transport, server };
+  sessions[variant] = { transport, server };
 
   // Self-initialize via localhost request
   await new Promise<void>((resolve) => {
@@ -81,7 +93,7 @@ async function initSession(port: number): Promise<void> {
       params: { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "self", version: "1.0" } },
     });
     const req = httpRequest({
-      hostname: "127.0.0.1", port, path: "/mcp", method: "POST",
+      hostname: "127.0.0.1", port, path, method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "Content-Length": Buffer.byteLength(body) },
     }, (res) => {
       res.on("data", () => {});
@@ -89,7 +101,7 @@ async function initSession(port: number): Promise<void> {
         // Send initialized notification
         const notif = JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" });
         const nr = httpRequest({
-          hostname: "127.0.0.1", port, path: "/mcp", method: "POST",
+          hostname: "127.0.0.1", port, path, method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream",
             "Mcp-Session-Id": SESSION_ID, "Content-Length": Buffer.byteLength(notif) },
         });
@@ -104,7 +116,7 @@ async function initSession(port: number): Promise<void> {
     req.end();
   });
 
-  log(`Persistent session ready: ${SESSION_ID}`);
+  log(`Persistent session ready: ${SESSION_ID} (${path})`);
 }
 
 // ── Start server ─────────────────────────────────────────────────────
@@ -125,7 +137,7 @@ export function startMcpHttpServer(port: number = 3100): Promise<void> {
     const host = bindHost();
     httpServer.listen(port, host, async () => {
       log(`MCP Streamable HTTP server listening on ${host}:${port}`);
-      await initSession(port);
+      for (const v of Object.keys(ENDPOINTS) as Variant[]) await initSession(port, v);
       resolve();
     });
   });

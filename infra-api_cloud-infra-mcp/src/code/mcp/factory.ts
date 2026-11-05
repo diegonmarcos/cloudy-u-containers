@@ -1,6 +1,6 @@
 /** Builds the tool registry and the MCP server (no side effects on import). */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ToolRegistry, registerGrouped, registerLegacy } from "./registry.js";
+import { ToolRegistry, registerGrouped, registerLegacy, registerSuperappAlias, registerTree } from "./registry.js";
 
 // A) Observability
 import { registerHealthCloudTools } from "./tools/health_cloud.js";
@@ -23,6 +23,8 @@ import { registerTelegramTools } from "./tools/telegram.js";
 // C) Security
 import { registerSecurityExecTools } from "./tools/security.js";
 import { registerPluginTools } from "./tools/plugin.js";
+// D) Peers control (#1495): the phone tools merged from cloudy-android-mcp
+import { registerPeersControlTools } from "./tools/peers-control.js";
 // Resources
 import { registerResources } from "./resources/index.js";
 
@@ -48,13 +50,20 @@ export function buildRegistry(): ToolRegistry {
   registerTelegramTools(s);
   registerSecurityExecTools(s);
   registerPluginTools(s);
+  registerPeersControlTools(s); // #1495 peers-control: the phones' shell, logcat, crashes, apps, wake, call, grant, input, screencap, adb_*
   return reg;
 }
 
-export function createMcpServer(env: NodeJS.ProcessEnv = process.env): McpServer {
-  const server = new McpServer({ name: "cloud-infra", version: "6.0.0" });
+/**
+ * `variant` "android" is the cloudy-android-mcp / cloud-superapp-mcp alias endpoint (one release, #1450 alias policy, #1495): the same
+ * server plus the old `superapp` + `superapp_help` dispatchers, so a client still configured under the old name keeps its tool names.
+ */
+export function createMcpServer(env: NodeJS.ProcessEnv = process.env, variant: "main" | "android" = "main"): McpServer {
+  const server = new McpServer({ name: "cloud-infra", version: "7.0.0" });
   const reg = buildRegistry();
   registerGrouped(server, reg);
+  registerTree(server, reg); // #1495 c3_<section> dispatchers + c3_tree + c3_help: the Cloud-C3 app's hierarchy
+  if (variant === "android") registerSuperappAlias(server, reg);
   // Deprecated: old per-tool names, default OFF, remove after 2026-11-22 (30 days).
   if (env.MCP_LEGACY_TOOLS === "1") registerLegacy(server, reg);
   registerResources(server);
