@@ -1,0 +1,12 @@
+# API rebrand #1450: old c3-pvt.diegonmarcos.com/<old-name> paths keep working for one release (internal rewrite, POST/streaming safe).
+# Included in the c3-pvt site block of infra-sec_caddy/src/caddyfile.nix BEFORE the generated handle_path blocks (uri runs before handle).
+# The six api.diegonmarcos.com rewrites live in caddy-legacy-redirects.caddy.
+uri path_regexp ^/c3-infra-api(/|$) /cloudy-c3-api$1
+uri path_regexp ^/c3-services-api(/|$) /cloudy-all-api$1
+uri path_regexp ^/capital-stack-finterminal-api(/|$) /capital-stack-finterm-api$1
+uri path_regexp ^/git-proxy-api(/|$) /cloudy-drive-git-proxy-api$1
+uri path_regexp ^/kg-store-pub(/|$) /cloudy-cgc-pub-graph-api$1
+uri path_regexp ^/kg-store(/|$) /cloud-me-cgc-pvt-graph-api$1
+uri path_regexp ^/news-gdelt(/|$) /capital-stack-news-gdelt-api$1
+uri path_regexp ^/scrappers-api(/|$) /cloudy-browser-scrapper-api$1
+uri path_regexp ^/tokens-api(/|$) /cloudy-ai-tokens-api$1

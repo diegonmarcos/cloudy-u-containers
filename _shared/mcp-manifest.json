@@ -68,6 +68,33 @@
       "public": false
     },
     {
+      "name": "cloudy-all-mcp",
+      "folder": "infra-api_cloudy-all-mcp",
+      "base_path": "/cloudy-all-mcp",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "source": "proxy.primary",
+      "auth": "token",
+      "public": true
+    },
+    {
+      "name": "cloudy-apps-communication-mcp",
+      "folder": "infra-api_cloudy-apps-communication-mcp",
+      "base_path": "/cloudy-apps-communication-mcp",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "source": "proxy.primary",
+      "auth": "token",
+      "public": true
+    },
+    {
+      "name": "cloudy-apps-drive-mcp",
+      "folder": "infra-api_cloudy-apps-drive-mcp",
+      "base_path": "/cloudy-apps-drive-mcp",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "source": "proxy.primary",
+      "auth": "token",
+      "public": true
+    },
+    {
       "name": "google-personal-mcp",
       "folder": "infra-api_google-personal-mcp",
       "base_path": "/g-personal",

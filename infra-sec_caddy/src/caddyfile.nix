@@ -777,7 +777,21 @@ ${plainOut}${sniMuxBlock}
     }
   '';
 
-  mkPathRouteGroup = group:
+  # #1450: legacy path rewrites (old API names -> renamed), one release. The files live in the
+  # containers repo (_rebrand-1450/) and are included, verbatim, in the matching site block.
+  legacyRedirectsApi = builtins.readFile ../../_rebrand-1450/caddy-legacy-redirects.caddy;
+  legacyRedirectsPvt = builtins.readFile ../../_rebrand-1450/caddy-legacy-redirects-pvt.caddy;
+  indentLines = text: lib.concatMapStringsSep "\n" (l: if l == "" then l else "    " + l) (lib.splitString "\n" (lib.removeSuffix "\n" text));
+  legacyRedirectsFor = domain:
+    if domain == "api.diegonmarcos.com" then (indentLines (lib.concatStringsSep "\n" (lib.filter (l: !(lib.hasPrefix "# handle" l)) (lib.splitString "\n" legacyRedirectsApi))) + "\n")
+    else "";
+
+  mcpHosts = map (g: g.parent_domain) (caddyRoutes.mcp_routes or []);
+
+  # #1450: parts = { blocks (the handle blocks of the group); site (the standalone site) }, so a
+  # REST path group declared on an MCP host (mcp.diegonmarcos.com/cloudy-browser-headless) can be
+  # merged into that host's single site block. Two site blocks for one host fail `caddy adapt`.
+  mkPathRouteParts = group:
     let
       hasLandingPage = (group.landing_page or null) != null;
       hasFallback = (group.fallback or null) != null;
@@ -842,17 +856,20 @@ ${plainOut}${sniMuxBlock}
         ${mkGithubProxy group.landing_page}
       }'' else "";
 
-    in ''
+      siteText = ''
     # ${group.comment or group.parent_domain}
     ${group.parent_domain} {
   ${publicBindLine}
   ${sec}
   ${ea.gate group.parent_domain}
-  ${landingRootBlock}${pathBlocks}
+  ${legacyRedirectsFor group.parent_domain}${landingRootBlock}${pathBlocks}
   ${fallbackBlock}
       ${handleErrors}
     }
   '';
+    in { blocks = pathBlocks; site = siteText; };
+
+  mkPathRouteGroup = group: (mkPathRouteParts group).site;
 
   mkMcpRouteGroup = group:
     let
@@ -915,7 +932,10 @@ ${denyBlock}'';
       handle_path ${ep.base_path}/* {
         ${inner}
       }'';
-      endpointBlocks = lib.concatMapStringsSep "\n" mkEndpoint group.endpoints;
+      # #1450: REST path groups declared on this same host (cloudy-browser-headless) join this site.
+      mergedPathBlocks = lib.concatMapStringsSep "\n" (g: (mkPathRouteParts g).blocks)
+        (lib.filter (g: g.parent_domain == group.parent_domain) caddyRoutes.path_routes);
+      endpointBlocks = (lib.concatMapStringsSep "\n" mkEndpoint group.endpoints) + "\n" + mergedPathBlocks;
       fallbackMsg = group.fallback_message or "MCP Hub";
     in ''
     # ${group.comment or group.parent_domain}
@@ -976,13 +996,28 @@ ${denyBlock}'';
 ${flush}        }
       }'';
 
+  # #1450: the AI gateway answers on ONE public prefix, /ai/{tokens,embeddings,agents,claude,memory},
+  # behind the same shared gate (cookie or bearer) as every other c3-pvt container path.
+  c3PvtAliases = [ { path = "/ai"; container = "cloudy-ai-api"; } ];
+  c3PvtAliasHandles = lib.concatMapStringsSep "\n" (a:
+    let r = lib.findFirst (x: x.container == a.container) null c3PvtRoutes;
+    in if r == null then throw "c3-pvt alias ${a.path}: no route for container ${a.container}"
+       else ''
+      handle_path ${a.path}/* {
+        reverse_proxy ${r.upstream} {
+          header_up X-Real-IP {http.request.remote.host}
+        }
+      }'') c3PvtAliases;
+
   mkC3PvtSite = ''
     # Routing tier pvt (#1104): path per container behind the shared gate (cookie or bearer)
     ${c3PvtHost} {
   ${publicBindLine}
   ${sec}
   ${ea.gate c3PvtHost}
+${indentLines legacyRedirectsPvt}
 ${lib.concatMapStringsSep "\n" mkC3PvtHandle c3PvtRoutes}
+${c3PvtAliasHandles}
       handle {
         error "Not Found" 404
       }
@@ -1462,7 +1497,7 @@ ${lib.concatMapStringsSep "\n" mkGithubPagesRoute caddyRoutes.github_pages_proxi
   # PATH-BASED ROUTES (from path_routes[])
   # ════════════════════════════════════════════════════════════
 
-${lib.concatMapStringsSep "\n" mkPathRouteGroup caddyRoutes.path_routes}
+${lib.concatMapStringsSep "\n" mkPathRouteGroup (lib.filter (g: !(builtins.elem g.parent_domain mcpHosts)) caddyRoutes.path_routes)}
 
   # ════════════════════════════════════════════════════════════
   # MCP ROUTES (from mcp_routes[])
