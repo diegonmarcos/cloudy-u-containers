@@ -23,7 +23,7 @@ let
   # WG IP from cloud-data (same source as kg-bridge/cgc). Falls back to oci-apps WG IP.
   # New name first; the pre-rename key stays as a fallback so this keeps resolving
   # on any consolidated config generated before the 2026-09-05 rebrand.
-  wgIp = svc."my-ai_claude-api".ip or svc."claude-superset-api".ip
+  wgIp = svc."cloudy-ai-claude-api".ip or svc."my-ai_claude-api".ip or svc."claude-superset-api".ip
          or svc."kg-bridge".ip or "10.0.0.6";
   home = "/home/appuser";
   # HARDCODED, NOT derived from buildJson.name — deliberate, do not "fix".
