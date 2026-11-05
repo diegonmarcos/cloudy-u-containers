@@ -1145,6 +1145,96 @@ handle {
   respond "Forbidden" 403
 }
 }
+handle_path /cloudy-all-mcp/* {
+  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
+        handle @wg {
+          reverse_proxy 10.0.0.6:3112 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+        @bearer header Authorization Bearer*
+        handle @bearer {
+    forward_auth 10.0.0.1:4182 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      method GET
+      uri /auth
+      copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+    }
+          reverse_proxy 10.0.0.6:3112 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+handle {
+  respond "Forbidden" 403
+}
+}
+handle_path /cloudy-apps-communication-mcp/* {
+  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
+        handle @wg {
+          reverse_proxy 10.0.0.6:3103 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+        @bearer header Authorization Bearer*
+        handle @bearer {
+    forward_auth 10.0.0.1:4182 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      method GET
+      uri /auth
+      copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+    }
+          reverse_proxy 10.0.0.6:3103 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+handle {
+  respond "Forbidden" 403
+}
+}
+handle_path /cloudy-apps-drive-mcp/* {
+  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
+        handle @wg {
+          reverse_proxy 10.0.0.6:3109 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+        @bearer header Authorization Bearer*
+        handle @bearer {
+    forward_auth 10.0.0.1:4182 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      method GET
+      uri /auth
+      copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+    }
+          reverse_proxy 10.0.0.6:3109 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+handle {
+  respond "Forbidden" 403
+}
+}
 handle_path /g-personal/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
@@ -1269,11 +1359,11 @@ handle {
   # (mesh-only / wg_only, or unknown): answer 404 JSON so MCP clients
   # report "not found" instead of a 200 text/plain "Unexpected content type".
   handle / {
-    respond "MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
+    respond "MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
   }
   handle {
     header Content-Type application/json
-    respond `{"jsonrpc":"2.0","id":null,"error":{"code":-32004,"message":"No public MCP route at this path (mesh-only or unknown). MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp"}}` 404
+    respond `{"jsonrpc":"2.0","id":null,"error":{"code":-32004,"message":"No public MCP route at this path (mesh-only or unknown). MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp"}}` 404
   }
     handle_errors {
       # Geo-fence refusal (#1102): HTML clients get the explanation page, everyone else plain 403.
