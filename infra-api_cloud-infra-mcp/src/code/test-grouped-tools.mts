@@ -97,6 +97,17 @@ await t("MCP_LEGACY_TOOLS=1 exposes every old name plus the groups; default OFF"
   assert.ok(names.has("infra_devops") && names.has("infra_help"));
 });
 
+await t("the phone mesh-endpoint methods (public, mesh, apps logs) are registered in the obs group (#1490)", async () => {
+  for (const m of ["phone_public", "phone_mesh", "phone_logs"]) assert.ok(all.some((x) => x.group === "obs" && x.method === m), `obs.${m} missing`);
+  const tool = (await client.listTools()).tools.find((x) => x.name === "infra_obs")!;
+  const h = await client.callTool({ name: "infra_help", arguments: { method: "obs.phone_logs" } });
+  assert.ok(!h.isError && JSON.parse(txt(h)).params_schema.properties.app, txt(h));
+  assert.ok(tool.description!.includes("phone_logs: "));
+  // without PHONE_MESH_URL / PHONE_FLEET_TOKEN the methods answer an error, they never reach out
+  const r: any = await client.callTool({ name: "infra_obs", arguments: { method: "phone_public" } });
+  assert.ok(r.isError && /PHONE_MESH_URL/.test(txt(r)), txt(r));
+});
+
 await t("SIZE GUARD: tools/list JSON < 12 KB (report before/after)", async () => {
   const after = JSON.stringify(await client.listTools()).length;
   const lg = new McpServer({ name: "old", version: "1" });

@@ -125,6 +125,10 @@
       "cmd": "node --experimental-strip-types test-gha-policy.mjs",
       "cwd": "src/code"
     },
+    "phone-api": {
+      "cmd": "node --experimental-strip-types test-phone-api.mts",
+      "cwd": "src/code"
+    },
     "jev-flake": {
       "cmd": "node --experimental-strip-types test-jev-flake.mjs",
       "cwd": "src/code"

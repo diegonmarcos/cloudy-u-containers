@@ -9,6 +9,7 @@ import { registerObservabilityReadTools } from "./tools/observability-read.js";
 import { registerFinOpsTools } from "./tools/finops.js";
 import { registerFinOpsCloudTools } from "./tools/finops-cloud.js";
 import { registerObservabilityExecTools } from "./tools/observability.js";
+import { registerPhoneApiTools } from "./tools/phone-api.js";
 // B) DevOps
 import { registerWorkflowTools } from "./tools/workflows.js";
 import { registerVpsOpsTools } from "./tools/vps-ops.js";
@@ -35,6 +36,7 @@ export function buildRegistry(): ToolRegistry {
   registerFinOpsTools(s);
   registerFinOpsCloudTools(s);
   registerObservabilityExecTools(s);
+  registerPhoneApiTools(s); // #1490 the phone's Cloud-Webserver mesh endpoint: public, mesh, apps logs
   registerWorkflowTools(s);
   registerVpsOpsTools(s);
   registerCloudflareTools(s);
