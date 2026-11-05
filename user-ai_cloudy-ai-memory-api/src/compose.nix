@@ -9,7 +9,7 @@
 let
   app = buildJson.containers.app;
   svc = container.services or {};
-  wgIp = svc."session-memory".ip or "10.0.0.6";
+  wgIp = svc."cloudy-ai-memory-api".ip or svc."session-memory".ip or "10.0.0.6";
   binariesImage = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
 in
 {

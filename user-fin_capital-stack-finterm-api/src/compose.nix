@@ -9,7 +9,7 @@ let
   # WG IP from cloud-data — bound by source (defensive default 127.0.0.1
   # in main.rs; we override via FIN_API_HOST). Host network mode means the
   # service stays on the WG mesh only.
-  vmIp = svc."capital-stack-finterminal-api".ip or "10.0.0.6";
+  vmIp = svc."capital-stack-finterm-api".ip or svc."capital-stack-finterminal-api".ip or "10.0.0.6";
   binariesImage = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
 in
 {

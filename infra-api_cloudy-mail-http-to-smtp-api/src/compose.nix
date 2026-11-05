@@ -23,7 +23,7 @@ in
         # IMAP/SMTPS for legacy clients and historical mail.
         SMTP_HOST = "10.0.0.3";
         SMTP_PORT = "25";
-        LISTEN_HOST = svc."http-to-smtp-proxy-api".ip;
+        LISTEN_HOST = svc."cloudy-mail-http-to-smtp-api".ip or svc."http-to-smtp-proxy-api".ip; # #1450: keyed by the renamed service
         LISTEN_PORT = toString buildJson.ports.app;
         # Shadow (parallel) delivery: Stalwart on :2025. Stalwart is the
         # JMAP backend — receives the same email in parallel so JMAP

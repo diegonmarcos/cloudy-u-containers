@@ -21,7 +21,7 @@ let
   # first ship, before 9_others has emitted this service's entry — the same
   # fallback c3-public-api uses on this VM. 0.0.0.0 is forbidden by the wg0-only
   # bind policy and 127.0.0.1 is unreachable from Caddy, so neither is an option.
-  myIp = svc."git-proxy-api".ip or "10.0.0.4";
+  myIp = svc."cloudy-drive-git-proxy-api".ip or svc."git-proxy-api".ip or "10.0.0.4";
   port = toString buildJson.ports.app;
 in
 {

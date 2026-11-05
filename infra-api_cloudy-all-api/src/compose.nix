@@ -7,7 +7,7 @@ let
   svc = container.services;
   app = buildJson.containers.app;
   binariesImage = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
-  vmIp = svc."c3-services-api".ip or "10.0.0.6";  # oci-apps WG IP
+  vmIp = svc."cloudy-all-api".ip or svc."c3-services-api".ip or "10.0.0.6";  # oci-apps WG IP
   port = toString buildJson.ports.app;
 in
 {
