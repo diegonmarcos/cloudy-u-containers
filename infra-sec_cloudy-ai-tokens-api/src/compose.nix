@@ -9,14 +9,14 @@
 
 let
   svc  = container.services;
-  self = svc."tokens-api";
+  self = svc."cloudy-ai-tokens-api";
   port = toString buildJson.ports.app;
   bind = "${self.ip}:${port}";
   binariesImage = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
 in
 {
   services = {
-    tokens-api = {
+    "cloudy-ai-tokens-api" = {
       image = binariesImage;
       container_name = buildJson.containers.app.container_name;
       network_mode = "host";
