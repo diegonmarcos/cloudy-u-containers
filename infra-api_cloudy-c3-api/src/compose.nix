@@ -33,7 +33,7 @@ in
         NODE_ENV = "production";
         GIT_BASE = "/root/git";
         AUTHELIA_OIDC_CLIENT_ID = "c3-infra-api"; # #1450: the Authelia OIDC client keeps its pre-rebrand id
-        AUTHELIA_OIDC_CLIENT_SECRET = "\${AUTHELIA_OIDC_C3_INFRA_MCP_SECRET}";
+        AUTHELIA_OIDC_CLIENT_SECRET = "\${AUTHELIA_OIDC_C3_MCP_SECRET}";
         AUTHELIA_TOKEN_URL = auth_token_url;
         RESEND_API_KEY = "\${RESEND_API_KEY}";
         CF_API_KEY = "\${CF_API_KEY}";
