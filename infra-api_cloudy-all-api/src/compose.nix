@@ -16,7 +16,8 @@ in
       image = binariesImage;
       container_name = app.container_name;
       network_mode = "host";
-      env_file = [ ".secrets" ];
+      # #1450: no env_file. The service has no secrets (no secrets.yaml in the vault, the old host .secrets was an
+      # empty file): a renamed deploy dir has no .secrets, and compose refuses to start on a missing env_file.
       environment = {
         HOST = vmIp;
         PORT = port;
