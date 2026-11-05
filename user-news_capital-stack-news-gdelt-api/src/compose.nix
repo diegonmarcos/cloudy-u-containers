@@ -43,6 +43,6 @@ in
     };
   };
   volumes = {
-    news_gdelt_cache = {};
+    news_gdelt_cache = { name = "news-gdelt_news_gdelt_cache"; }; # #1450: pinned to the existing VM volume
   };
 }

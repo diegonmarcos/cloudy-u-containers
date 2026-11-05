@@ -51,6 +51,6 @@ in
     };
   };
   volumes = {
-    embeddings_api_hf = {};
+    embeddings_api_hf = { name = "embeddings-api_embeddings_api_hf"; }; # #1450: pinned to the existing VM volume
   };
 }

@@ -60,7 +60,7 @@ in
     };
   };
   volumes = {
-    scrappers_data = {};
-    scrappers_session = {};
+    scrappers_data = { name = "scrappers-api_scrappers_data"; }; # #1450: pinned to the existing VM volume
+    scrappers_session = { name = "scrappers-api_scrappers_session"; }; # #1450: pinned to the existing VM volume
   };
 }

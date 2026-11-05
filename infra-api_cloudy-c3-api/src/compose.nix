@@ -32,7 +32,7 @@ in
         PORT = port;
         NODE_ENV = "production";
         GIT_BASE = "/root/git";
-        AUTHELIA_OIDC_CLIENT_ID = app.container_name;
+        AUTHELIA_OIDC_CLIENT_ID = "c3-infra-api"; # #1450: the Authelia OIDC client keeps its pre-rebrand id
         AUTHELIA_OIDC_CLIENT_SECRET = "\${AUTHELIA_OIDC_C3_INFRA_MCP_SECRET}";
         AUTHELIA_TOKEN_URL = auth_token_url;
         RESEND_API_KEY = "\${RESEND_API_KEY}";
@@ -42,7 +42,7 @@ in
         REPO_SYNC = "off";
       };
       volumes = [
-        "/opt/ssh-keys/${app.container_name}:/root/.ssh:ro"
+        "/opt/ssh-keys/c3-infra-api:/root/.ssh:ro" # #1450: the host state dir keeps its old name
         "/nix/store:/nix/store:ro"
         "/home/ubuntu/.nix-profile/bin:/usr/local/nix-bin:ro"
         "~/.config/gcloud:/root/.config/gcloud"
@@ -67,7 +67,7 @@ in
   };
   volumes = {
     octocode_repos = { name = "octocode_repos"; };
-    c3_public_logs = { };
-    c3_fleet_profiles = { };
+    c3_public_logs = { name = "c3-infra-api_c3_public_logs"; }; # #1450: pinned to the existing VM volume
+    c3_fleet_profiles = { name = "c3-infra-api_c3_fleet_profiles"; }; # #1450: pinned to the existing VM volume
   };
 }

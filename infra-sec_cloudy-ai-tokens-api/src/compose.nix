@@ -53,6 +53,6 @@ in
     };
   };
   volumes = {
-    tokens_api_data = {};
+    tokens_api_data = { name = "tokens-api_tokens_api_data"; }; # #1450: pinned to the existing VM volume
   };
 }
