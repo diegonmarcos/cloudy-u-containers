@@ -6765,86 +6765,9 @@ handle {
 handle_path /cloudy-browser-headless/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
-              @bearer header Authorization Bearer*
-    handle @bearer {
-      forward_auth 10.0.0.1:4182 {
-      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
-      # backend that gets Connection: Upgrade never answers and the edge hangs.
-      header_up -Connection
-      header_up -Upgrade
-      method GET
-      uri /auth
-      copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
-    }
-      reverse_proxy 10.0.0.6:3118 {
-        header_up X-Real-IP {http.request.remote.host}
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
+          reverse_proxy 10.0.0.6:3118 {
+          header_up X-Real-IP {http.request.remote.host}
         }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-    handle {
-      forward_auth 172.18.0.3:9091 {
-      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
-      # backend that gets Connection: Upgrade never answers and the edge hangs.
-      header_up -Connection
-      header_up -Upgrade
-      uri /api/authz/forward-auth
-      header_up X-Forwarded-Uri {http.request.orig_uri}
-      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-    }
-      reverse_proxy 10.0.0.6:3118 {
-        header_up X-Real-IP {http.request.remote.host}
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-
         }
         handle {
           error "Forbidden" 403
