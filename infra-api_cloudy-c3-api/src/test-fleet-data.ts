@@ -1,39 +1,55 @@
-// The fleet data read side (shared/libs/fleet-data-core.ts + api/routes/fleetData.ts): only validated names are fetched, only from the PRIVATE
-// source with the server token, a body must parse and carry a schemaVersion, ETag / 304, a stale copy survives an outage, tier 1 needs an
-// authenticated caller, the route is registered. Usage: node test-fleet-data.ts   (exit 0 = PASS)
+// The fleet data read side (shared/libs/fleet-data-core.ts + api/routes/fleetData.ts): only validated names are read, only from the PRIVATE
+// source over git+SSH with a read-only deploy key, a body must parse and carry a schemaVersion, the ETag is the checkout commit sha with 304,
+// a stale checkout survives an outage, no deploy key -> 503, tier 1 needs an authenticated caller, the route is registered.
+// The git/ssh transport is replaced with an in-memory FleetRepo, so this runs with node alone and no network. Usage: node test-fleet-data.ts (exit 0 = PASS)
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { isDatasetPath, readFleetData, clearFleetDataCache, etagOf, validBody, TTL_MS, PVT_RAW } from "./code/shared/libs/fleet-data-core.ts";
+import { isDatasetPath, readFleetData, validBody, PVT_SOURCE, type FleetRepo } from "./code/shared/libs/fleet-data-core.ts";
 
 for (const ok of ["fleet/probes", "personal/wallet", "a", "app/com.diegonmarcos.cloudtoolssmallllms/tools-models"]) assert.ok(isDatasetPath(ok), ok);
 for (const bad of ["../x", "a/../b", "A", "a//b", "", "app/notapackage/x", "app/com.x/", "a b", ".env"]) assert.ok(!isDatasetPath(bad), bad);
 assert.ok(validBody('{"schemaVersion":1}') && !validBody("{}") && !validBody("[1]") && !validBody("{ half") && !validBody('{"schemaVersion":"1"}'));
-assert.ok(PVT_RAW.includes("cloud-me-pvt-configs"), "the source is the private repo, never a public one");
+assert.ok(PVT_SOURCE.includes("cloud-me-pvt-configs"), "the source is the private repo, never a public one");
+assert.ok(PVT_SOURCE.startsWith("git@"), "the source is read over SSH, never an HTTPS token URL");
 
-const env = { FLEET_DATA_TOKEN: "t" } as NodeJS.ProcessEnv;
-let calls = 0; let urls: string[] = []; let hdrs: Record<string, string> = {}; let mode: "ok" | "half" | "down" | "404" = "ok";
-const f = async (u: string, h: Record<string, string>) => {
-  calls++; urls.push(u); hdrs = h;
-  if (mode === "down") throw new Error("down");
-  if (mode === "404") return { ok: false, status: 404, text: async () => "" };
-  return { ok: true, status: 200, text: async () => (mode === "half" ? '{"schemaVersion":' : '{"schemaVersion":1,"v":1}') };
+// A fake checkout: `commit` is the HEAD the transport reports (null = unreachable with no prior checkout); `files` is the current checkout.
+let heads = 0;
+let commit: string | null = "c0ffee";
+let files: Record<string, string> = { "2/fleet/probes": '{"schemaVersion":1,"v":1}', "manifest": '{"schemaVersion":1}' };
+const repo: FleetRepo = {
+  async head() { heads++; return commit; },
+  readDataset(file) { return file in files ? files[file] : null; },
 };
-clearFleetDataCache();
-const a = await readFleetData("2/fleet/probes", undefined, f, env, 1000);
-assert.equal(a.status, 200); assert.equal(a.body, '{"schemaVersion":1,"v":1}'); assert.equal(a.etag, etagOf(a.body!));
-assert.equal(urls[0], PVT_RAW + "2/fleet/probes.json"); assert.equal(hdrs.Authorization, "token t");
-assert.equal((await readFleetData("2/fleet/probes", a.etag, f, env, 2000)).status, 304, "If-None-Match -> 304");
-assert.equal(calls, 1, "second read inside the TTL is cached");
-mode = "down";
-assert.equal((await readFleetData("2/fleet/probes", undefined, f, env, 1000 + TTL_MS + 1)).status, 200, "stale copy served while the source is down");
-clearFleetDataCache(); mode = "half";
-assert.equal((await readFleetData("1/personal/wallet", undefined, f, env, 5)).status, 502, "a half-written file is never served");
-clearFleetDataCache(); mode = "404";
-assert.equal((await readFleetData("2/nope", undefined, f, env, 5)).status, 404);
-for (const bad of ["3/x", "2/../x", "2/A", "x", ""]) assert.equal((await readFleetData(bad, undefined, f, env, 5)).status, 400, bad);
-assert.equal((await readFleetData("manifest", undefined, f, {} as NodeJS.ProcessEnv, 5)).status, 503, "no server token, no answer");
-mode = "ok"; clearFleetDataCache();
-assert.equal((await readFleetData("manifest", undefined, f, env, 5)).status, 200);
+
+// 200 with the commit-sha ETag, then If-None-Match -> 304
+const a = await readFleetData("2/fleet/probes", undefined, repo, {}, 1000);
+assert.equal(a.status, 200); assert.equal(a.body, '{"schemaVersion":1,"v":1}'); assert.equal(a.etag, '"c0ffee"');
+assert.equal((await readFleetData("2/fleet/probes", '"c0ffee"', repo, {}, 2000)).status, 304, "If-None-Match -> 304");
+
+// A stale checkout is still served while the source is down (head keeps returning the last good commit).
+commit = "c0ffee"; // transport reports the stale HEAD rather than null
+assert.equal((await readFleetData("2/fleet/probes", undefined, repo, {}, 3000)).status, 200, "stale copy served while the source is down");
+
+// The source is unreachable and there is no prior checkout -> 502.
+commit = null;
+assert.equal((await readFleetData("2/fleet/probes", undefined, repo, {}, 4000)).status, 502, "no checkout, source down -> 502");
+commit = "c0ffee";
+
+// A half-written file is never served.
+files = { ...files, "1/personal/wallet": '{"schemaVersion":' };
+assert.equal((await readFleetData("1/personal/wallet", undefined, repo, {}, 5000)).status, 502, "a half-written file is never served");
+
+// A missing dataset -> 404 (the checkout is good, the file is absent).
+assert.equal((await readFleetData("2/nope", undefined, repo, {}, 6000)).status, 404);
+
+// Bad names never reach the transport -> 400.
+for (const bad of ["3/x", "2/../x", "2/A", "x", ""]) assert.equal((await readFleetData(bad, undefined, repo, {}, 7000)).status, 400, bad);
+
+// No deploy key configured -> a clean 503, with no transport built (repoArg omitted, empty env).
+assert.equal((await readFleetData("manifest", undefined, undefined, {}, 8000)).status, 503, "no deploy key, no answer");
+
+// manifest is served like any dataset.
+assert.equal((await readFleetData("manifest", undefined, repo, {}, 9000)).status, 200);
 
 const app = readFileSync(new URL("./code/api/app.ts", import.meta.url), "utf8");
 assert.match(app, /registerFleetDataRoutes\)/, "the route is registered");
