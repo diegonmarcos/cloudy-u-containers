@@ -1,7 +1,10 @@
 // headless-api v1: contract validation, bearer gate, session manager. Pure (engine injected), unit-tested.
 import { timingSafeEqual } from 'node:crypto';
+import { OCR_ENGINES, OCR_LANGS, LANG_RE } from './ocr.js';
 
 export const CMDS = ['open', 'close', 'wait', 'eval', 'click', 'type', 'scroll', 'html', 'text', 'readable', 'screenshot', 'cookies', 'storage', 'network', 'content', 'pdf', 'links', 'scrape', 'snapshot'];
+// Container-only extension commands: NOT in the shared headless-api schema (the phone engine does not implement them), so CMDS stays equal to it.
+export const EXT_CMDS = ['ocr'];
 export const MAX_TIMEOUT_MS = 120000;
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
@@ -20,7 +23,7 @@ export function checkBearer(header, token) {
 
 export function validate(c) {
   if (!c || typeof c !== 'object' || Array.isArray(c)) throw new ApiError('bad_request', 'command must be an object');
-  if (!CMDS.includes(c.cmd)) throw new ApiError('bad_request', `unknown cmd ${c.cmd}`);
+  if (!CMDS.includes(c.cmd) && !EXT_CMDS.includes(c.cmd)) throw new ApiError('bad_request', `unknown cmd ${c.cmd}`);
   if (c.session !== undefined && !ID_RE.test(String(c.session))) throw new ApiError('bad_request', 'bad session id');
   if (c.timeoutMs !== undefined && !(Number.isInteger(c.timeoutMs) && c.timeoutMs >= 1 && c.timeoutMs <= MAX_TIMEOUT_MS)) throw new ApiError('bad_request', 'bad timeoutMs');
   const need = (k) => { if (typeof c[k] !== 'string' || !c[k]) throw new ApiError('bad_request', `${c.cmd} needs ${k}`); };
@@ -36,6 +39,14 @@ export function validate(c) {
   if (c.cmd === 'screenshot' || c.cmd === 'snapshot') {
     if (c.format !== undefined && !['png', 'jpeg'].includes(c.format)) throw new ApiError('bad_request', 'format png|jpeg');
     if (c.quality !== undefined && !(Number.isInteger(c.quality) && c.quality >= 1 && c.quality <= 100)) throw new ApiError('bad_request', 'quality 1..100');
+  }
+  if (c.cmd === 'ocr') {
+    const int = (k, lo, hi) => { if (c[k] !== undefined && !(Number.isInteger(c[k]) && c[k] >= lo && c[k] <= hi)) throw new ApiError('bad_request', `${k} ${lo}..${hi}`); };
+    if (c.engine !== undefined && !OCR_ENGINES.includes(c.engine)) throw new ApiError('bad_request', `engine ${OCR_ENGINES.join('|')}`);
+    int('minWidth', 1, 10000); int('minHeight', 1, 10000); int('maxImages', 1, 50);
+    if (c.lang !== undefined && !(typeof c.lang === 'string' && LANG_RE.test(c.lang) && c.lang.split('+').every((l) => OCR_LANGS.includes(l)))) throw new ApiError('bad_request', `lang ${OCR_LANGS.join('|')} (join with + for up to 3)`);
+    for (const k of ['includeScreenshot', 'fullPage']) if (c[k] !== undefined && typeof c[k] !== 'boolean') throw new ApiError('bad_request', `${k} boolean`);
+    for (const k of ['escalateBelow', 'lowConfidence']) if (c[k] !== undefined && !(typeof c[k] === 'number' && c[k] >= 0 && c[k] <= 100)) throw new ApiError('bad_request', `${k} 0..100`);
   }
   if (c.cmd === 'scrape') {
     if (!Array.isArray(c.elements) || c.elements.length < 1 || c.elements.length > 20 || !c.elements.every((e) => e && typeof e.selector === 'string' && e.selector)) throw new ApiError('bad_request', 'scrape needs elements[1..20] with selector');

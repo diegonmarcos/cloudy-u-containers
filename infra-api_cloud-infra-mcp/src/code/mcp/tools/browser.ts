@@ -9,7 +9,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import { target, call, readUrl, gateway, defaultState, SUPPORT } from "./browser-core.js";
+import { target, call, readUrl, gateway, defaultState, SUPPORT, OCR_TIMEOUT_MS } from "./browser-core.js";
 import type { Backend, GwOp } from "./browser-core.js";
 export { target, call, readUrl, gateway };
 export type { Backend };
@@ -108,6 +108,29 @@ export function registerBrowserTools(server: McpServer, f: typeof fetch = fetch)
   urlTool("links", "Headless browser: all absolute http(s) links of a page (deduplicated).", { visibleOnly: z.boolean().optional().describe("only links visible on the page"), sameOrigin: z.boolean().optional().describe("only links to the same origin") }, "links");
   urlTool("scrape", "Headless browser: CSS selectors to text/html/attrs per matching element.", { elements: ELEMENTS, limit: z.number().int().min(1).max(1000).optional().describe("max items per selector (default 100)") }, "scrape");
   urlTool("snapshot", "Headless browser: rendered HTML and a screenshot of the same moment (Browser Run /snapshot).", SHOT, "snapshot");
+
+  server.tool("browser.ocr", "Headless browser: render a page, find every <img> above a size threshold, download each and OCR it with ML OCR (Tesseract LSTM in the container, language data bundled), returning [{kind, src, alt, width, height, ocr_text, confidence 0-100, engine, low_confidence?, error?}] plus the concatenated `text`. One bad image only gets its own `error`. includeScreenshot also OCRs the rendered page (text baked into canvas/WebGL, CSS or video posters); the screenshot is an entry with kind screenshot. engine tesseract (default) | paddle (opt-in, needs the PaddleOCR sidecar PADDLE_OCR_URL; otherwise a per-image unsupported error). escalateBelow N (default off) retries images with confidence < N on paddle. Give url for a one-shot call or session for an open page. Container only (the phone and Cloudflare have no OCR); CPU work, a few seconds per image, so keep maxImages small and raise timeoutMs for many images.", {
+    ...common,
+    url: URL_PARAM.optional(), profile: z.string().optional(),
+    engine: z.enum(["tesseract", "paddle"]).default("tesseract").describe("OCR engine (default tesseract; paddle is opt-in)"),
+    minWidth: z.number().int().min(1).max(10000).default(150).describe("skip images narrower than this (natural px, default 150)"),
+    minHeight: z.number().int().min(1).max(10000).default(150).describe("skip images shorter than this (natural px, default 150)"),
+    includeScreenshot: z.boolean().default(false).describe("also OCR the rendered page screenshot (catches text drawn on canvas/WebGL)"),
+    fullPage: z.boolean().optional().describe("screenshot the full page (default true, cropped to 6000 px) instead of the viewport"),
+    lang: z.string().regex(/^[a-z]{3}(\+[a-z]{3}){0,2}$/).default("eng").describe("tesseract language: eng fra deu spa ita por, join up to 3 with + (default eng)"),
+    maxImages: z.number().int().min(1).max(50).default(12).describe("cap on OCR'd images (document order; the rest is reported as truncated)"),
+    escalateBelow: z.number().min(0).max(100).optional().describe("re-run images with confidence below this on paddle when configured (default off, 0)"),
+  }, async (args: any) => {
+    try {
+      if (!args.url) {
+        if (!args.session) return asText({ ok: false, error: { code: "bad_request", message: "browser.ocr needs url, or session of an open page" } }, true);
+        const { url, profile, ...rest } = args;
+        return await sessionTool("ocr", { timeoutMs: OCR_TIMEOUT_MS, ...rest }, f);
+      }
+      const r = await gateway("ocr", args, { f });
+      return asText(r, r?.ok === false);
+    } catch (e) { return fail(e); }
+  });
 
   server.tool("browser.json", "Headless browser: structured extraction. Give url, a prompt and/or a JSON schema; returns {data}. cloudflare backend uses Browser Run /json (Workers AI, billed); container/phone fetch the page as markdown and ask our own model through OpenRouter (key OPENROUTER_API_KEY from the private store, model C3_BROWSER_JSON_MODEL); auto = container path, Cloudflare on a bot wall. With a schema the result is checked and schema_errors lists mismatches.", {
     ...common, url: URL_PARAM, profile: z.string().optional(), prompt: z.string().max(4000).optional(), schema: z.record(z.unknown()).optional().describe("JSON schema of the wanted output"),

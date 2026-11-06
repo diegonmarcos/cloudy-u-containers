@@ -24,3 +24,22 @@ export const scrapeFn = (o) => {
     return { selector: el.selector, count: nodes.length, items };
   }) };
 };
+
+// In-page enumeration of the <img> elements for the ocr command: absolute src (currentSrc, lazy data-src fallback), alt, natural and rendered size,
+// kept when at least minWidth x minHeight (natural size, the rendered size when the image is not decoded yet), deduplicated by src, document order.
+export const imagesFn = (o) => {
+  const items = []; const seen = new Set(); let total = 0;
+  for (const im of document.images) {
+    total++;
+    let src = im.currentSrc || im.src || '';
+    const lazy = im.getAttribute('data-src') || im.getAttribute('data-lazy-src') || im.getAttribute('data-original') || '';
+    if (lazy && (!src || /^data:image\/(gif|svg)/.test(src) && src.length < 400)) { try { src = new URL(lazy, document.baseURI).href; } catch { /* keep src */ } }
+    if (!src || seen.has(src)) continue;
+    const r = im.getBoundingClientRect();
+    const w = im.naturalWidth || Math.round(r.width); const h = im.naturalHeight || Math.round(r.height);
+    if (w < o.minWidth || h < o.minHeight) continue;
+    seen.add(src);
+    items.push({ src, alt: (im.getAttribute('alt') || '').trim().slice(0, 300), width: w, height: h });
+  }
+  return { total, items };
+};

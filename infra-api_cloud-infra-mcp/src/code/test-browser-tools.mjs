@@ -84,6 +84,26 @@ const mk = (containerReply, cfReplies = {}) => {
 };
 const st = (over = {}, t0 = Date.parse("2026-11-06T10:00:00Z")) => { const clock = { t: t0 }; const s = new BrowserState({ ...configFromEnv({}), ...over }, () => clock.t); return { s, clock }; };
 
+// ocr: container only, options reach the container's ocr step with a 90 s budget; never falls back to cloudflare; unsupported elsewhere
+{
+  const ocrRes = { url: "https://example.com/", results: [{ kind: "img", src: "https://example.com/a.png", ocr_text: "Contents", confidence: 93, engine: "tesseract" }], text: "Contents" };
+  const { fn, seen } = mk(okRun(ocrRes));
+  const { s } = st();
+  const r = await gateway("ocr", { url: "https://example.com/", minWidth: 200, includeScreenshot: true, lang: "eng", maxImages: 3 }, { f: fn, env: ENV, state: s });
+  assert.equal(r.ok, true); assert.equal(r.backend_used, "container"); assert.equal(r.text, "Contents"); assert.equal(seen.cf.length, 0);
+  assert.deepEqual(seen.container[0].steps.map((x) => x.cmd), ["open", "eval", "ocr"]);
+  assert.deepEqual(seen.container[0].steps[2], { cmd: "ocr", minWidth: 200, includeScreenshot: true, lang: "eng", maxImages: 3, timeoutMs: 90000 });
+  const cf = await gateway("ocr", { url: "https://example.com/", backend: "cloudflare" }, { f: fn, env: ENV, state: s });
+  assert.equal(cf.ok, false); assert.equal(cf.error.code, "unsupported");
+  const ph = await gateway("ocr", { url: "https://example.com/", backend: "phone" }, { f: fn, env: ENV, state: s });
+  assert.equal(ph.error.code, "unsupported");
+  // a bot wall on an ocr call is reported, not handed to cloudflare
+  const wall = mk(okRun({ results: [], text: "" }));
+  const w = await gateway("ocr", { url: "https://example.com/" }, { f: wall.fn, env: ENV, state: s });
+  assert.equal(w.ok, true); assert.equal(wall.seen.cf.length, 0);
+}
+console.log("ok - ocr");
+
 // auto: the container serves example.com, Cloudflare is not called
 {
   const { fn, seen } = mk(okRun({ format: "markdown", title: "Example Domain", url: "https://example.com/", content: "# Example Domain", truncated: false }));
@@ -168,7 +188,7 @@ const st = (over = {}, t0 = Date.parse("2026-11-06T10:00:00Z")) => { const clock
   assert.equal(r.backend_used, "container"); assert.equal(r.bot_wall, true); assert.equal(seen.cf.length, 0);
   const p = await gateway("pdf", { url: "https://a.test", backend: "phone" }, { f: fn, env: ENV, state: st().s });
   assert.equal(p.ok, false); assert.equal(p.error.code, "unsupported");
-  assert.equal(SUPPORT.pdf.phone, false); assert.deepEqual(GW_OPS.length, 8);
+  assert.equal(SUPPORT.pdf.phone, false); assert.deepEqual(GW_OPS.length, 9); assert.deepEqual(SUPPORT.ocr, { container: true, phone: false, cloudflare: false });
 }
 // daily cap: calls and estimated spend
 {

@@ -170,8 +170,8 @@ export class BrowserState {
 // (Cloudflare's own sanctioned rendering service, which identifies itself as a bot). Nothing here solves CAPTCHAs, spoofs a fingerprint
 // or rotates a proxy; when Cloudflare is refused too the challenge result is returned honestly (bot_wall: true).
 export type GwBackend = "auto" | "container" | "phone" | "cloudflare";
-export type GwOp = "read" | "content" | "screenshot" | "pdf" | "links" | "scrape" | "json" | "snapshot";
-export const GW_OPS: GwOp[] = ["read", "content", "screenshot", "pdf", "links", "scrape", "json", "snapshot"];
+export type GwOp = "read" | "content" | "screenshot" | "pdf" | "links" | "scrape" | "json" | "snapshot" | "ocr";
+export const GW_OPS: GwOp[] = ["read", "content", "screenshot", "pdf", "links", "scrape", "json", "snapshot", "ocr"];
 
 /** Per-backend support of each op ("no" entries answer with error.code unsupported; the phone has no PDF engine). */
 export const SUPPORT: Record<GwOp, Record<"container" | "phone" | "cloudflare", boolean>> = {
@@ -183,6 +183,8 @@ export const SUPPORT: Record<GwOp, Record<"container" | "phone" | "cloudflare", 
   scrape: { container: true, phone: true, cloudflare: true },
   json: { container: true, phone: true, cloudflare: true },
   snapshot: { container: true, phone: true, cloudflare: true },
+  // ocr: container only (Tesseract in cloudy-browser-headless); the phone engine and Browser Run have no OCR
+  ocr: { container: true, phone: false, cloudflare: false },
 };
 
 export const CF_API = "https://api.cloudflare.com/client/v4";
@@ -269,6 +271,7 @@ export function cfRequestFor(op: GwOp, a: any): { endpoint: string; body: any; b
     case "links": return { endpoint: "links", body: { ...base, ...(a.visibleOnly ? { visibleLinksOnly: true } : {}), ...(a.sameOrigin ? { excludeExternalLinks: true } : {}) }, binary: false };
     case "scrape": return { endpoint: "scrape", body: { ...base, elements: (a.elements ?? []).map((e: any) => ({ selector: e.selector })) }, binary: false };
     case "json": return { endpoint: "json", body: { ...base, ...(a.prompt ? { prompt: a.prompt } : {}), ...(a.schema ? { response_format: { type: "json_schema", json_schema: a.schema } } : {}) }, binary: false };
+    case "ocr": throw new Error("ocr has no Cloudflare endpoint");
     case "snapshot": return { endpoint: "snapshot", body: { ...base, ...(a.fullPage !== undefined || a.format || a.quality !== undefined ? { screenshotOptions: { ...(a.fullPage !== undefined ? { fullPage: !!a.fullPage } : {}), ...(a.format ? { type: a.format } : {}), ...(a.quality !== undefined ? { quality: a.quality } : {}) } } : {}) }, binary: false };
   }
 }
@@ -329,6 +332,9 @@ export function defaultState(env: Record<string, string | undefined> = process.e
   return (sharedState ||= new BrowserState(configFromEnv(env), Date.now, env.C3_BROWSER_STATE_FILE || "/tmp/c3-browser-state.json"));
 }
 
+/** Default per-call budget of browser.ocr (OCR is CPU work: seconds per image); the container stops starting new images at 85% of it. */
+export const OCR_TIMEOUT_MS = 90_000;
+
 /** One op through the session backends (container | phone): open (+probe) + the command, in a single run. */
 export async function viaSession(backend: "container" | "phone", op: GwOp, a: any, d: GwDeps): Promise<{ res: any; signals: WallSignals; error?: any; session?: string }> {
   const f = d.f ?? fetch; const env = d.env ?? process.env;
@@ -344,6 +350,7 @@ export async function viaSession(backend: "container" | "phone", op: GwOp, a: an
     case "pdf": last = { cmd: "pdf", ...(a.pdfFormat ? { format: a.pdfFormat } : {}), ...(a.landscape !== undefined ? { landscape: a.landscape } : {}), ...(a.printBackground !== undefined ? { printBackground: a.printBackground } : {}), ...common }; break;
     case "links": last = { cmd: "links", ...(a.visibleOnly ? { visibleOnly: true } : {}), ...(a.sameOrigin ? { sameOrigin: true } : {}), ...common }; break;
     case "scrape": last = { cmd: "scrape", elements: a.elements, ...(a.limit ? { limit: a.limit } : {}), ...common }; break;
+    case "ocr": last = { cmd: "ocr", ...(a.engine ? { engine: a.engine } : {}), ...(a.minWidth !== undefined ? { minWidth: a.minWidth } : {}), ...(a.minHeight !== undefined ? { minHeight: a.minHeight } : {}), ...(a.includeScreenshot !== undefined ? { includeScreenshot: a.includeScreenshot } : {}), ...(a.fullPage !== undefined ? { fullPage: a.fullPage } : {}), ...(a.lang ? { lang: a.lang } : {}), ...(a.maxImages !== undefined ? { maxImages: a.maxImages } : {}), ...(a.escalateBelow !== undefined ? { escalateBelow: a.escalateBelow } : {}), timeoutMs: a.timeoutMs ?? OCR_TIMEOUT_MS, ...(a.agent ? { agent: a.agent } : {}) }; break;
     case "snapshot": last = { cmd: "snapshot", ...(a.fullPage !== undefined ? { fullPage: a.fullPage } : {}), ...(a.format ? { format: a.format } : {}), ...(a.quality !== undefined ? { quality: a.quality } : {}), ...common }; break;
   }
   const r: any = await call(backend, "run", { ...(a.session ? { session: a.session } : {}), stopOnError: false, steps: [open, probe, last] }, f, env as any);
@@ -457,7 +464,7 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
     return shape(s.res, backend, null, { ...(s.session ? { session: s.session } : {}), ...(wall ? { bot_wall: true, bot_wall_reason: wall } : {}) });
   }
   // auto
-  if (host && state.needsCloudflare(host) && await cfConfResolve(d.env ?? process.env, d.f ?? fetch)) {
+  if (SUPPORT[op].cloudflare && host && state.needsCloudflare(host) && await cfConfResolve(d.env ?? process.env, d.f ?? fetch)) {
     const why = "domain_memory: needs cloudflare";
     const res = await viaCloudflare(op, a, d, state, why);
     if (!(res?.ok === false && (res.error.code === "limit" || res.error.code === "not_configured"))) return cfShape(res, why);
@@ -466,6 +473,7 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
   const wall = detectBotWall(s.signals);
   if (!wall) return shape(s.res, "container", null, s.session ? { session: s.session } : {});
   // bot wall: hand the same call to Cloudflare Browser Run (never solve, spoof or rotate)
+  if (!SUPPORT[op].cloudflare) return shape(s.res, "container", null, { bot_wall: true, bot_wall_reason: wall, fallback_skipped: `${op} is not available on cloudflare`, ...(s.session ? { session: s.session } : {}) });
   const reason = `bot_wall: ${wall}`;
   const conf = await cfConfResolve(d.env ?? process.env, d.f ?? fetch);
   if (!conf) return shape(s.res, "container", reason, { bot_wall: true, bot_wall_reason: wall, fallback_skipped: "cloudflare backend not configured" });

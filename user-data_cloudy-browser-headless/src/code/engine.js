@@ -4,6 +4,7 @@ import { ApiError } from './api.js';
 
 import { toReadable } from './readable.js';
 import { linksFn, scrapeFn } from './extract.js';
+import { runOcr } from './ocr.js';
 
 const shotOpts = (c, t) => ({ type: c.format === 'jpeg' ? 'jpeg' : 'png', ...(c.format === 'jpeg' && c.quality ? { quality: c.quality } : {}), timeout: t });
 const mimeOf = (c) => (c.format === 'jpeg' ? 'image/jpeg' : 'image/png');
@@ -65,6 +66,7 @@ export function createEngine({ executablePath } = {}) {
         case 'content': return page.content();
         case 'links': return page.evaluate(linksFn, { sameOrigin: !!c.sameOrigin, visibleOnly: !!c.visibleOnly });
         case 'scrape': return page.evaluate(scrapeFn, { elements: c.elements, limit: c.limit || 100 });
+        case 'ocr': return runOcr(h, c, t);
         case 'pdf': {
           const buf = await page.pdf({ format: c.format || 'A4', landscape: !!c.landscape, printBackground: c.printBackground !== false });
           return { mime: 'application/pdf', base64: buf.toString('base64') };
