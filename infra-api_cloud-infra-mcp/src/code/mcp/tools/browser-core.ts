@@ -422,6 +422,11 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
   if (!a.url) return err("bad_request", "url required");
   if (!/^https?:\/\//i.test(a.url)) return err("bad_request", "url must be http(s)");
   if (backend === "phone" && !SUPPORT[op].phone) return err("unsupported", `${op} is not supported by the phone backend; use container, cloudflare or auto`, { backend_used: "phone", fallback_reason: null });
+  // When the caller did not pass a.session, the gateway opened a fresh one for this single call: close it afterwards
+  // (unless a read was truncated, so the caller's cursor can continue it) to avoid leaking sessions up to the container's cap.
+  const closeIfOwned = async (b: "container" | "phone", session: string | undefined) => {
+    if (session && !a.session) { try { await call(b, "command", { cmd: "close", session }, d.f ?? fetch, d.env ?? process.env as any); } catch { /* best effort */ } }
+  };
   const runSession = async (b: "container" | "phone") => {
     const s = await viaSession(b, op, a, d);
     let res = s.res;
@@ -430,6 +435,8 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
       res = md;
       if (res.ok && a.schema) { const bad = validateAgainstSchema(res.result.data, a.schema); if (bad.length) res = { ...res, result: { ...res.result, schema_errors: bad } }; }
     }
+    const keepOpen = op === "read" && res?.ok && res.result?.truncated;
+    if (!keepOpen) { await closeIfOwned(b, s.session); return { ...s, res, session: a.session ? s.session : undefined }; }
     return { ...s, res };
   };
   const cfShape = (res: any, reason: string | null) => {

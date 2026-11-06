@@ -103,6 +103,8 @@ const st = (over = {}, t0 = Date.parse("2026-11-06T10:00:00Z")) => { const clock
   assert.deepEqual(seen.cf.map((c) => c.ep), ["markdown"]); assert.deepEqual(seen.cf[0].body, { url: "https://claude.ai/share/x" }); assert.equal(seen.cf[0].auth, "Bearer cft");
   assert.equal(r.bot_wall, undefined);
   // per-domain memory: the next call goes straight to cloudflare (the container is not asked again)
+  // one gateway-owned container session was opened (3-step run) and closed again (no leak)
+  assert.deepEqual(seen.container.map((c) => c.steps?.[0]?.cmd ?? c.cmd), ["open", "close"]);
   const before = seen.container.length;
   const r2 = await gateway("read", { url: "https://claude.ai/share/y" }, { f: fn, env: ENV, state: s });
   assert.equal(r2.backend_used, "cloudflare"); assert.match(r2.fallback_reason, /domain_memory/);
@@ -111,9 +113,23 @@ const st = (over = {}, t0 = Date.parse("2026-11-06T10:00:00Z")) => { const clock
   assert.equal(s.calls, 2);
   assert.ok(s.usd > 0, "usage cost logged from X-Browser-Ms-Used");
   assert.equal(s.log[0].op, "read"); assert.equal(s.log[0].backend, "cloudflare"); assert.equal(s.log[0].ms, 1200);
-  // other domains still try the container first
+  // other domains still try the container first, and its session is closed again afterwards
   const r3 = await gateway("read", { url: "https://other.test/" }, { f: fn, env: ENV, state: s });
-  assert.equal(seen.container.length, before + 1); assert.ok(r3.backend_used);
+  assert.equal(seen.container.length, before + 2); assert.ok(r3.backend_used);
+  assert.deepEqual(seen.container.slice(before).map((c) => c.steps?.[0]?.cmd ?? c.cmd), ["open", "close"]);
+}
+// a session the CALLER passed in is never auto-closed (it may still be wanted for follow-up calls)
+{
+  const { fn, seen } = mk(okRun({ mime: "image/png", base64: "QQ==" }));
+  await gateway("screenshot", { url: "https://example.com/", backend: "container", session: "mine" }, { f: fn, env: ENV, state: st().s });
+  assert.ok(!seen.container.some((c) => c.steps?.[0]?.cmd === "close" || c.cmd === "close"), "a caller-owned session is left open");
+}
+// a truncated browser.read keeps its session open so the caller's cursor can continue it
+{
+  const { fn, seen } = mk(okRun({ format: "markdown", content: "a".repeat(10), truncated: true, next: "10" }));
+  const r = await gateway("read", { url: "https://example.com/" }, { f: fn, env: ENV, state: st().s });
+  assert.equal(r.truncated, true); assert.ok(r.session);
+  assert.ok(!seen.container.some((c) => c.steps?.[0]?.cmd === "close"), "truncated read: session kept open for the cursor");
 }
 // the memory expires after 24 h and is dropped
 {
