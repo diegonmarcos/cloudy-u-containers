@@ -82,6 +82,10 @@
     "hierarchy": {
       "cmd": "node test-hierarchy.ts",
       "cwd": "src"
+    },
+    "fleet-data": {
+      "cmd": "node test-fleet-data.ts",
+      "cwd": "src"
     }
   },
   "monitoring": {
