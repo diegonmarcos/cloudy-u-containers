@@ -55,8 +55,11 @@ in
         # (No PROXY_URL, no *_CAPTCHA_* — opt-in features stay off.)
       };
       # No `ports:` — Steel is reachable ONLY via the auth sidecar over steelnet.
+      # Node is always present in the Steel image; any HTTP response (200/404)
+      # means the server is up, so the check does not depend on a specific path
+      # or on wget/curl being installed.
       healthcheck = {
-        test = [ "CMD-SHELL" "wget -qO /dev/null http://127.0.0.1:${steelPort}/health || exit 1" ];
+        test = [ "CMD-SHELL" "node -e 'require(\"http\").get(\"http://127.0.0.1:${steelPort}/\",r=>process.exit(0)).on(\"error\",()=>process.exit(1))'" ];
         interval = "30s";
         timeout  = "10s";
         retries  = 3;
@@ -78,7 +81,10 @@ in
       command = [ caddyEntry ];
       ports = [ "${wgIp}:${meshPort}:3000" ];
       volumes = [ "./configs/steel-auth.Caddyfile:/etc/caddy/Caddyfile:ro" ];
-      depends_on = { app = { condition = "service_healthy"; }; };
+      # service_started, not service_healthy: the proxy should come up as soon
+      # as Steel is running; it does not need Steel's healthcheck to pass first
+      # (the reverse_proxy simply 502s until Steel answers).
+      depends_on = { app = { condition = "service_started"; }; };
       healthcheck = {
         test = [ "CMD-SHELL" "wget -qO /dev/null http://127.0.0.1:3000/healthz || exit 1" ];
         interval = "30s";
