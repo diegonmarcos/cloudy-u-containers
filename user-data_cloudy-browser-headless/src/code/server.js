@@ -20,7 +20,7 @@ const sessions = new Sessions({
 });
 setInterval(() => sessions.sweep().catch(() => {}), 15000).unref();
 
-const STATUS = { bad_request: 400, unauthorized: 401, not_found: 404, timeout: 504, limit: 429, denied: 403 };
+const STATUS = { bad_request: 400, unauthorized: 401, not_found: 404, timeout: 504, limit: 429, denied: 403, unsupported: 501 };
 const send = (res, code, body) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
 const readBody = (req) => new Promise((ok, no) => {
   let b = '';

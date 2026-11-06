@@ -69,3 +69,13 @@ test('run steps: sequential, stops on error, reuses session', async () => {
   assert.equal(r.steps[2].error.code, 'not_found');
   assert.throws(() => validateRun({ steps: [] }), /steps/);
 });
+test('new commands (content pdf links scrape snapshot, screenshot options) are validated', () => {
+  for (const c of ['content', 'pdf', 'links', 'snapshot']) assert.ok(validate({ cmd: c }));
+  assert.ok(validate({ cmd: 'screenshot', format: 'jpeg', quality: 70, fullPage: true }));
+  assert.throws(() => validate({ cmd: 'screenshot', format: 'gif' }), /format/);
+  assert.throws(() => validate({ cmd: 'snapshot', quality: 0 }), /quality/);
+  assert.throws(() => validate({ cmd: 'scrape' }), /elements/);
+  assert.throws(() => validate({ cmd: 'scrape', elements: [{ selector: '' }] }), /elements/);
+  assert.throws(() => validate({ cmd: 'scrape', elements: [{ selector: 'a' }], limit: 0 }), /limit/);
+  assert.ok(validate({ cmd: 'scrape', elements: [{ selector: 'a', attrs: ['href'] }], limit: 5 }));
+});

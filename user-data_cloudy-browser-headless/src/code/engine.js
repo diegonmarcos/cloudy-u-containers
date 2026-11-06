@@ -3,6 +3,10 @@ import { chromium } from 'playwright-core';
 import { ApiError } from './api.js';
 
 import { toReadable } from './readable.js';
+import { linksFn, scrapeFn } from './extract.js';
+
+const shotOpts = (c, t) => ({ type: c.format === 'jpeg' ? 'jpeg' : 'png', ...(c.format === 'jpeg' && c.quality ? { quality: c.quality } : {}), timeout: t });
+const mimeOf = (c) => (c.format === 'jpeg' ? 'image/jpeg' : 'image/png');
 
 // Chromium aborts a navigation with net::ERR_NETWORK_CHANGED whenever the host network stack reports a change.
 // The container shares the VM network namespace (host mode: wg0 and the mesh listener need it), and the VM creates and
@@ -37,7 +41,12 @@ export function createEngine({ executablePath } = {}) {
       const { page, ctx } = h;
       const t = c.timeoutMs || 30000;
       switch (c.cmd) {
-        case 'open': await gotoWithRetry(page, c.url, { timeout: t, waitUntil: 'load' }); return { url: page.url(), title: await page.title() };
+        case 'open': {
+          const resp = await gotoWithRetry(page, c.url, { timeout: t, waitUntil: 'load' });
+          // status and the Cloudflare challenge header let the gateway detect a bot wall (it never evades one).
+          const hd = resp ? await resp.allHeaders().catch(() => ({})) : {};
+          return { url: page.url(), title: await page.title(), status: resp ? resp.status() : 0, ...(hd['cf-mitigated'] ? { cfMitigated: hd['cf-mitigated'] } : {}) };
+        }
         case 'wait':
           if (c.selector) await page.waitForSelector(c.selector, { timeout: t });
           else if (c.idle) await page.waitForLoadState('networkidle', { timeout: t });
@@ -53,12 +62,24 @@ export function createEngine({ executablePath } = {}) {
           if (c.selector) await page.locator(c.selector).scrollIntoViewIfNeeded({ timeout: t });
           else await page.evaluate(([x, y]) => window.scrollTo(x, y), [c.x || 0, c.y || 0]);
           return page.evaluate(() => ({ x: scrollX, y: scrollY }));
+        case 'content': return page.content();
+        case 'links': return page.evaluate(linksFn, { sameOrigin: !!c.sameOrigin, visibleOnly: !!c.visibleOnly });
+        case 'scrape': return page.evaluate(scrapeFn, { elements: c.elements, limit: c.limit || 100 });
+        case 'pdf': {
+          const buf = await page.pdf({ format: c.format || 'A4', landscape: !!c.landscape, printBackground: c.printBackground !== false });
+          return { mime: 'application/pdf', base64: buf.toString('base64') };
+        }
+        case 'snapshot': {
+          const html = await page.content();
+          const buf = await page.screenshot({ fullPage: !!c.fullPage, ...shotOpts(c, t) });
+          return { url: page.url(), title: await page.title(), html, screenshot: { mime: mimeOf(c), base64: buf.toString('base64') } };
+        }
         case 'html': return c.selector ? page.innerHTML(c.selector, { timeout: t }) : page.content();
         case 'text': return page.innerText(c.selector || 'body', { timeout: t });
         case 'readable': return toReadable(await page.content(), page.url(), { format: c.format, maxChars: c.maxChars, cursor: c.cursor });
         case 'screenshot': {
-          const buf = c.selector ? await page.locator(c.selector).screenshot({ timeout: t }) : await page.screenshot({ fullPage: !!c.fullPage, timeout: t });
-          return { mime: 'image/png', base64: buf.toString('base64') };
+          const buf = c.selector ? await page.locator(c.selector).screenshot(shotOpts(c, t)) : await page.screenshot({ fullPage: !!c.fullPage, ...shotOpts(c, t) });
+          return { mime: mimeOf(c), base64: buf.toString('base64') };
         }
         case 'cookies':
           if (c.action === 'set') { await ctx.addCookies(c.cookies || []); return await ctx.cookies(); }

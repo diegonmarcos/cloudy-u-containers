@@ -1,7 +1,7 @@
 // headless-api v1: contract validation, bearer gate, session manager. Pure (engine injected), unit-tested.
 import { timingSafeEqual } from 'node:crypto';
 
-export const CMDS = ['open', 'close', 'wait', 'eval', 'click', 'type', 'scroll', 'html', 'text', 'readable', 'screenshot', 'cookies', 'storage', 'network'];
+export const CMDS = ['open', 'close', 'wait', 'eval', 'click', 'type', 'scroll', 'html', 'text', 'readable', 'screenshot', 'cookies', 'storage', 'network', 'content', 'pdf', 'links', 'scrape', 'snapshot'];
 export const MAX_TIMEOUT_MS = 120000;
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
@@ -32,6 +32,14 @@ export function validate(c) {
     if (c.format !== undefined && !['markdown', 'json', 'xml'].includes(c.format)) throw new ApiError('bad_request', 'format markdown|json|xml');
     if (c.maxChars !== undefined && !(Number.isInteger(c.maxChars) && c.maxChars >= 500 && c.maxChars <= 200000)) throw new ApiError('bad_request', 'maxChars 500..200000');
     if (c.cursor !== undefined && !/^\d{1,9}$/.test(String(c.cursor))) throw new ApiError('bad_request', 'bad cursor');
+  }
+  if (c.cmd === 'screenshot' || c.cmd === 'snapshot') {
+    if (c.format !== undefined && !['png', 'jpeg'].includes(c.format)) throw new ApiError('bad_request', 'format png|jpeg');
+    if (c.quality !== undefined && !(Number.isInteger(c.quality) && c.quality >= 1 && c.quality <= 100)) throw new ApiError('bad_request', 'quality 1..100');
+  }
+  if (c.cmd === 'scrape') {
+    if (!Array.isArray(c.elements) || c.elements.length < 1 || c.elements.length > 20 || !c.elements.every((e) => e && typeof e.selector === 'string' && e.selector)) throw new ApiError('bad_request', 'scrape needs elements[1..20] with selector');
+    if (c.limit !== undefined && !(Number.isInteger(c.limit) && c.limit >= 1 && c.limit <= 1000)) throw new ApiError('bad_request', 'limit 1..1000');
   }
   if (c.cmd === 'eval') need('js');
   if (c.cmd === 'click') need('selector');
