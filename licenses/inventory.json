@@ -52,8 +52,8 @@
    "MIT": 1
   },
   "npm": {
-   "MIT": 77,
-   "Apache-2.0": 4,
+   "MIT": 83,
+   "Apache-2.0": 5,
    "ISC": 3,
    "BSD-3-Clause": 2,
    "MIT-0": 2,
@@ -63,7 +63,7 @@
    "MIT OR Apache-2.0": 1
   },
   "pypi": {
-   "Apache-2.0": 34,
+   "Apache-2.0": 36,
    "MIT": 28,
    "BSD-3-Clause": 10,
    "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND ISC AND MIT AND Zlib": 1,
@@ -4763,6 +4763,72 @@
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
+  "npm:@tesseract.js-data/deu": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@tesseract.js-data/eng": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@tesseract.js-data/fra": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@tesseract.js-data/ita": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@tesseract.js-data/por": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@tesseract.js-data/spa": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org latest (1.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "npm:@testing-library/dom": {
    "kind": "npm",
    "declared_in": [
@@ -5604,6 +5670,17 @@
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
+  "npm:tesseract.js": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "6.0.1",
+   "scope": "shipped",
+   "licence": "Apache-2.0",
+   "licence_source": "registry.npmjs.org latest (7.0.0)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "npm:tsx": {
    "kind": "npm",
    "declared_in": [
@@ -6328,6 +6405,28 @@
    "scope": "shipped",
    "licence": "Apache-2.0",
    "licence_source": "pypi.org 1.45.1 license_expression",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "pypi:paddleocr": {
+   "kind": "pypi",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt"
+   ],
+   "version": "paddleocr==2.8.1",
+   "scope": "shipped",
+   "licence": "Apache-2.0",
+   "licence_source": "pypi.org 3.7.0 license",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "pypi:paddlepaddle": {
+   "kind": "pypi",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt"
+   ],
+   "version": "paddlepaddle==2.6.2",
+   "scope": "shipped",
+   "licence": "Apache-2.0",
+   "licence_source": "pypi.org 3.3.1 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pillow": {
