@@ -28,6 +28,11 @@ export function validate(c) {
     need('url');
     if (!/^https?:\/\//i.test(c.url)) throw new ApiError('bad_request', 'url must be http(s)');
   }
+  if (c.cmd === 'readable') {
+    if (c.format !== undefined && !['markdown', 'json', 'xml'].includes(c.format)) throw new ApiError('bad_request', 'format markdown|json|xml');
+    if (c.maxChars !== undefined && !(Number.isInteger(c.maxChars) && c.maxChars >= 500 && c.maxChars <= 200000)) throw new ApiError('bad_request', 'maxChars 500..200000');
+    if (c.cursor !== undefined && !/^\d{1,9}$/.test(String(c.cursor))) throw new ApiError('bad_request', 'bad cursor');
+  }
   if (c.cmd === 'eval') need('js');
   if (c.cmd === 'click') need('selector');
   if (c.cmd === 'type') { need('selector'); if (typeof c.text !== 'string') throw new ApiError('bad_request', 'type needs text'); }

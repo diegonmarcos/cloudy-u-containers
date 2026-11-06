@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><title>Tide Tables Explained | Example Marine</title></head><body>
+<div id="cookie-banner" class="cookie-consent">We use cookies. <button>Accept</button></div>
+<nav><a href="/home">Home</a><a href="/about">About</a></nav>
+<div class="ad-slot">BUY NOW sponsored</div>
+<article>
+<h1>Tide Tables Explained</h1>
+<p>A tide table lists the predicted times and heights of high and low water for a place. Read the <a href="https://example.org/guide?utm_source=news&amp;id=7&amp;fbclid=abc">full guide</a> before sailing, because the numbers differ by harbour and by season, and a wrong guess can ground a boat.</p>
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="tide chart thumbnail">
+<h2>Reading the table</h2>
+<p>Each row gives a day. Heights are in metres above chart datum and times are local. The pattern repeats roughly every twelve hours and twenty-five minutes, which is why the times shift later each day.</p>
+<ul><li>Find your harbour</li><li>Find the date</li><li>Add the correction for your berth</li></ul>
+<table><tr><th>Day</th><th>High water</th><th>Height (m)</th></tr><tr><td>Mon</td><td>06:12</td><td>4.1</td></tr><tr><td>Tue</td><td>06:58</td><td>4.3</td></tr></table>
+<h2>A note on code</h2>
+<p>Harbour offices publish the same numbers as data. A small helper can convert them, for example:</p>
+<pre><code class="language-js">const h = rows.map(r => r.height);\nconsole.log(Math.max(...h));</code></pre>
+<p>Always cross-check against the local notice to mariners before you rely on any computed value for passage planning.</p>
+</article>
+<footer>Copyright 2026 Example Marine. Privacy. Terms.</footer>
+<script>window.track('pageview')</script><style>.x{color:red}</style>
+</body></html>

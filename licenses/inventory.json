@@ -2817,7 +2817,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-data_scrappers-api": {
+  "dir:user-data_cloudy-browser-headless": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2825,7 +2825,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-fin_crawlee-cloud": {
+  "dir:user-data_scrappers-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2841,6 +2841,22 @@
    "licence": "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial",
    "licence_source": "licenses/curated.json::directories",
    "note": "Rust port of FinceptTerminal (https://github.com/Fincept-Corporation/FinceptTerminal), vendored in src/code. Upstream is dual-licensed: AGPL-3.0 (personal use) OR the Fincept Commercial License (any business/internal/hosted use). LICENSE is upstream's text verbatim; NOTICE records the obligations (AGPL section 13 network source offer)."
+  },
+  "dir:user-fin_capital-stack-finterminal-web": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-fin_crawlee-cloud": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
   },
   "dir:user-media_photoprism": {
    "kind": "dir",
@@ -3316,6 +3332,42 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-fin_capital-stack-finterminal-api/build.json",
+    "user-fin_capital-stack-finterminal-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-web": {
+   "kind": "docker",
+   "declared_in": [
+    "user-fin_capital-stack-finterminal-web/build.json",
+    "user-fin_capital-stack-finterminal-web/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web:latest",
+   "scope": "base",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-web-binaries": {
+   "kind": "docker",
+   "declared_in": [
+    "user-fin_capital-stack-finterminal-web/build.json",
+    "user-fin_capital-stack-finterminal-web/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web-binaries:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/cgc-db-base": {
    "kind": "docker",
    "declared_in": [
@@ -3532,6 +3584,17 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/cloudy-browser-headless": {
+   "kind": "docker",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-browser-headless:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/crawlee-cloud-api": {
    "kind": "docker",
    "declared_in": [
@@ -3562,18 +3625,6 @@
     "infra-ai_embeddings-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/embeddings-api-binaries:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-api": {
-   "kind": "docker",
-   "declared_in": [
-    "user-fin_capital-stack-finterminal-api/build.json",
-    "user-fin_capital-stack-finterminal-api/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -4012,6 +4063,17 @@
    "scope": "base",
    "licence": "GPL-3.0-only",
    "licence_source": "licenses/curated.json::docker_licences[matomo]"
+  },
+  "docker:mcr.microsoft.com/playwright": {
+   "kind": "docker",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/build.json"
+   ],
+   "version": "mcr.microsoft.com/playwright:v1.55.0-noble",
+   "scope": "base",
+   "licence": "Apache-2.0 AND LicenseRef-OS-Distribution",
+   "licence_source": "licenses/curated.json::docker_licences[mcr.microsoft.com/playwright]",
+   "note": "Official Playwright image (Apache-2.0) on an Ubuntu rootfs; each package keeps its own licence."
   },
   "docker:myoung34/github-runner": {
    "kind": "docker",
@@ -4612,6 +4674,17 @@
    "scope": "shipped",
    "licence": "MIT",
    "licence_source": "registry.npmjs.org latest (1.32.2)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:@mozilla/readability": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "0.5.0",
+   "scope": "shipped",
+   "licence": "Apache-2.0",
+   "licence_source": "registry.npmjs.org (package licence field)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@playwright/test": {
@@ -5230,7 +5303,8 @@
   "npm:jsdom": {
    "kind": "npm",
    "declared_in": [
-    "user-comm_cloud-webmail/src/code/arm64/webapp/package.json"
+    "user-comm_cloud-webmail/src/code/arm64/webapp/package.json",
+    "user-data_cloudy-browser-headless/src/code/package.json"
    ],
    "version": "^28.1.0",
    "scope": "dev",
@@ -5371,6 +5445,17 @@
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
+  "npm:playwright-core": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.55.0",
+   "scope": "shipped",
+   "licence": "Apache-2.0",
+   "licence_source": "registry.npmjs.org (package licence field)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "npm:postal-mime": {
    "kind": "npm",
    "declared_in": [
@@ -5502,6 +5587,28 @@
    "scope": "dev",
    "licence": "MIT",
    "licence_source": "registry.npmjs.org latest (4.23.15)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:turndown": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "7.2.0",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org (package licence field)",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "npm:turndown-plugin-gfm": {
+   "kind": "npm",
+   "declared_in": [
+    "user-data_cloudy-browser-headless/src/code/package.json"
+   ],
+   "version": "1.0.2",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "registry.npmjs.org (package licence field)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:tw-animate-css": {
@@ -6692,38 +6799,6 @@
    "licence": "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial",
    "licence_source": "licenses/curated.json::directories",
    "note": "Rust port of FinceptTerminal (https://github.com/Fincept-Corporation/FinceptTerminal), vendored in src/code. Upstream is dual-licensed: AGPL-3.0 (personal use) OR the Fincept Commercial License (any business/internal/hosted use). LICENSE is upstream's text verbatim; NOTICE records the obligations (AGPL section 13 network source offer)."
-  },
-  "dir:user-fin_capital-stack-finterminal-web": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-web": {
-   "kind": "docker",
-   "declared_in": [
-    "user-fin_capital-stack-finterminal-web/build.json",
-    "user-fin_capital-stack-finterminal-web/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web:latest",
-   "scope": "base",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-web-binaries": {
-   "kind": "docker",
-   "declared_in": [
-    "user-fin_capital-stack-finterminal-web/build.json",
-    "user-fin_capital-stack-finterminal-web/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web-binaries:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   }
  }
 }

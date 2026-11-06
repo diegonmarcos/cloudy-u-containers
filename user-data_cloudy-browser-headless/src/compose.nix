@@ -17,9 +17,9 @@ in
       # Host network (dockerd runs iptables:false, published ports do not forward) and the
       # listener is confined to the WG IP: mesh-only, Caddy path route on top.
       network_mode = "host";
-      # BROWSER_TOKEN (bearer) comes from the sops .secrets file; optional so a missing secret
-      # leaves the server up but fail-closed (every non-health call answers 401).
-      env_file = [ { path = ".secrets"; required = false; } ];
+      # BROWSER_TOKEN (bearer) comes from the vault secret src/secrets.yaml (overlaid by the Ship); the engine
+      # auto-mounts .secrets as env_file whenever that file exists. No optional/empty fallback is declared here:
+      # server.js exits 78 when the token is empty, so a missing secret fails loudly at deploy.
       environment = {
         PORT = port;
         HTTP_HOST = vmIp;

@@ -2,28 +2,28 @@
 import { chromium } from 'playwright-core';
 import { ApiError } from './api.js';
 
-const READABLE = `(() => {
-  const root = document.querySelector('article,main,[role=main]') || document.body;
-  const out = [];
-  const walk = (n) => {
-    if (n.nodeType === 3) { const t = n.textContent.replace(/\\s+/g, ' '); if (t.trim()) out.push(t); return; }
-    if (n.nodeType !== 1) return;
-    const tag = n.tagName.toLowerCase();
-    if (['script','style','nav','footer','aside','noscript','svg','iframe'].includes(tag)) return;
-    const h = /^h([1-6])$/.exec(tag);
-    if (h) { out.push('\\n\\n' + '#'.repeat(+h[1]) + ' ' + n.innerText.trim() + '\\n\\n'); return; }
-    if (tag === 'a' && n.href) { out.push('[' + n.innerText.trim() + '](' + n.href + ')'); return; }
-    if (tag === 'li') out.push('\\n- ');
-    if (tag === 'p' || tag === 'br') out.push('\\n\\n');
-    n.childNodes.forEach(walk);
-  };
-  walk(root);
-  return { title: document.title, markdown: out.join('').replace(/\\n{3,}/g, '\\n\\n').trim() };
-})()`;
+import { toReadable } from './readable.js';
+
+// Chromium aborts a navigation with net::ERR_NETWORK_CHANGED whenever the host network stack reports a change.
+// The container shares the VM network namespace (host mode: wg0 and the mesh listener need it), and the VM creates and
+// destroys docker bridges/veths all the time, each with a link-local address, so a page load can be hit mid-flight.
+// Chromium's own guidance is to retry; the cause is transient, the retry is bounded and only for these errors.
+const TRANSIENT = /net::ERR_(NETWORK_CHANGED|NETWORK_IO_SUSPENDED|INTERNET_DISCONNECTED|ADDRESS_CHANGED)/;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export async function gotoWithRetry(page, url, opts, { tries = 4, delayMs = 400 } = {}) {
+  for (let i = 1; ; i++) {
+    try { return await page.goto(url, opts); } catch (e) {
+      if (i >= tries || !TRANSIENT.test(String(e && e.message))) throw e;
+      await sleep(delayMs * i);
+    }
+  }
+}
+
+export const LAUNCH_ARGS = ['--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--no-first-run', '--mute-audio'];
 
 export function createEngine({ executablePath } = {}) {
   let browser;
-  const get = async () => (browser ||= await chromium.launch({ headless: true, executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] }));
+  const get = async () => (browser ||= await chromium.launch({ headless: true, executablePath, args: LAUNCH_ARGS }));
   return {
     async newSession() {
       const ctx = await (await get()).newContext({ viewport: { width: 1280, height: 800 } });
@@ -37,7 +37,7 @@ export function createEngine({ executablePath } = {}) {
       const { page, ctx } = h;
       const t = c.timeoutMs || 30000;
       switch (c.cmd) {
-        case 'open': await page.goto(c.url, { timeout: t, waitUntil: 'load' }); return { url: page.url(), title: await page.title() };
+        case 'open': await gotoWithRetry(page, c.url, { timeout: t, waitUntil: 'load' }); return { url: page.url(), title: await page.title() };
         case 'wait':
           if (c.selector) await page.waitForSelector(c.selector, { timeout: t });
           else if (c.idle) await page.waitForLoadState('networkidle', { timeout: t });
@@ -55,7 +55,7 @@ export function createEngine({ executablePath } = {}) {
           return page.evaluate(() => ({ x: scrollX, y: scrollY }));
         case 'html': return c.selector ? page.innerHTML(c.selector, { timeout: t }) : page.content();
         case 'text': return page.innerText(c.selector || 'body', { timeout: t });
-        case 'readable': return page.evaluate(READABLE);
+        case 'readable': return toReadable(await page.content(), page.url(), { format: c.format, maxChars: c.maxChars, cursor: c.cursor });
         case 'screenshot': {
           const buf = c.selector ? await page.locator(c.selector).screenshot({ timeout: t }) : await page.screenshot({ fullPage: !!c.fullPage, timeout: t });
           return { mime: 'image/png', base64: buf.toString('base64') };

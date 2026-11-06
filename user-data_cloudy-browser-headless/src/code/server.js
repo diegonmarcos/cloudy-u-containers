@@ -7,6 +7,11 @@ const PORT = +(process.env.PORT || 3118);
 const HOST = process.env.HTTP_HOST || '127.0.0.1';
 const BASE = process.env.BASE_PATH || '/cloudy-browser-headless';
 const TOKEN = process.env.BROWSER_TOKEN || '';
+// Fail loudly: a missing secret must stop the container (health and Ship go red), never run with an empty token.
+if (!TOKEN) {
+  console.error('FATAL: BROWSER_TOKEN is not set (vault secret not mounted); refusing to start');
+  process.exit(78);
+}
 const sessions = new Sessions({
   engine: createEngine(),
   maxSessions: +(process.env.MAX_SESSIONS || 4),

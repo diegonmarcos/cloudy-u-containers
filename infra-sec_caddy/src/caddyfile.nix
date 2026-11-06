@@ -823,6 +823,13 @@ ${plainOut}${sniMuxBlock}
       }'') path.public_paths
           else "";
 
+          # build.json proxy.primary.auth "none" on a WG-only path: the app gates every call with its own
+          # bearer (cloudy-browser-headless BROWSER_TOKEN), so the fleet forward_auth (Authelia/introspection)
+          # is skipped; it would reject the app token. Honoured ONLY behind the WG gate (never on a public path).
+          selfAuthProxy = upstream: ''reverse_proxy ${upstream} {
+          header_up X-Real-IP {http.request.remote.host}
+        }'';
+
           mainBlock =
             if isGithubPages then ''
       handle_path ${path.base_path}/* {
@@ -833,7 +840,7 @@ ${plainOut}${sniMuxBlock}
       }''
             else ''
       handle_path ${path.base_path}/* {
-        ${wgGateBody isWg (mkProtected path.upstream)}
+        ${wgGateBody isWg (if isWg && (path.auth or null) == "none" then selfAuthProxy path.upstream else mkProtected path.upstream)}
       }'';
 
         in "${redirectBlock}${publicPathsBlock}\n${mainBlock}";

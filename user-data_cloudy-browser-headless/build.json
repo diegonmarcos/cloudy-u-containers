@@ -4,7 +4,7 @@
     "group": "Project Apps",
     "category": "Data"
   },
-  "description": "Headless browser for agents: official Playwright image (Apache-2.0, not browserless/SSPL) plus a small Node server implementing the shared headless-api JSON command API (open/wait/eval/click/type/scroll/html/text/readable/screenshot/cookies/storage/network, run(steps), sessions). Bearer-gated, mesh-only.",
+  "description": "Headless browser for agents: official Playwright image (Apache-2.0, not browserless/SSPL) plus a small Node server implementing the shared headless-api JSON command API (open/wait/eval/click/type/scroll/html/text/readable (markdown|json|xml)/screenshot/cookies/storage/network, run(steps), sessions). Bearer-gated, mesh-only.",
   "dns": "cloudy-browser-headless.mesh.diegonmarcos.com",
   "dns_aliases": [],
   "category": "data",
@@ -45,7 +45,9 @@
       "type": "path",
       "parent_domain": "mcp.diegonmarcos.com",
       "base_path": "/cloudy-browser-headless",
-      "wg_only": true
+      "wg_only": true,
+      "auth": "none",
+      "_auth_doc": "auth none: the app gates every call itself with its own bearer (BROWSER_TOKEN, 401 without it; /health is open). The fleet forward_auth (Authelia/introspection) is skipped because it would reject this token; the route stays WG-only."
     },
     "app_hub": false
   },
@@ -93,8 +95,16 @@
   },
   "tests": {
     "api": {
-      "cmd": "node --test test/api.test.js",
+      "cmd": "node --test test/",
       "cwd": "src/code"
     }
+  },
+  "secrets": {
+    "escape_dollars": false,
+    "container_readable": false,
+    "_doc": "BROWSER_TOKEN: 64-hex bearer of the headless API. Generated in CI by the sops-create workflow (cloudy-t-infra), encrypted to the public fleet recipient and stored in the private vault at Linux-Containers/user-data_cloudy-browser-headless/src/secrets.yaml; the Ship overlay copies it in and the engine mounts .secrets (env_file). The server exits 78 at start when it is empty, so a missing secret fails the deploy health check instead of running open or closed-by-accident.",
+    "required": [
+      "BROWSER_TOKEN"
+    ]
   }
 }

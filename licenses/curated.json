@@ -331,6 +331,9 @@
   "user-prod_etherpad": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "user-data_cloudy-browser-headless": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "user-prod_filebrowser": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
@@ -427,6 +430,10 @@
   }
  },
  "docker_licences": {
+  "mcr.microsoft.com/playwright": {
+   "licence": "Apache-2.0 AND LicenseRef-OS-Distribution",
+   "note": "Official Playwright image (Apache-2.0) on an Ubuntu rootfs; each package keeps its own licence."
+  },
   "alpine": {
    "licence": "LicenseRef-OS-Distribution",
    "note": "A distribution root filesystem: each package keeps its own licence (mostly GPL/LGPL/BSD/MIT); see the image's package copyright files."
