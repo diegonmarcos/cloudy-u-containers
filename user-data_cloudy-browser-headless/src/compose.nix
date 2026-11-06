@@ -22,6 +22,12 @@ in
       # is absent, and server.js exits 78 when BROWSER_TOKEN is empty, so a missing secret fails the deploy loudly
       # instead of running with an empty token. The explicit line also keeps the mount in the public render (render-dist).
       env_file = [ ".secrets" ];
+      # The Ship render (vault overlaid) auto-adds these two mounts; declaring them here makes the public render identical
+      # to the Ship render, so the committed dist/ never drifts (step_verify_committed_dist) and render-dist keeps them.
+      volumes = [
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
+      ];
       environment = {
         PORT = port;
         HTTP_HOST = vmIp;
