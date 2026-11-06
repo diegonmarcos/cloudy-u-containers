@@ -2664,7 +2664,23 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-sec_steel-browser": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-sec_tokens-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-sec_zap": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -3940,6 +3956,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/openclaw/openclaw]",
    "note": "OpenClaw (github.com/openclaw/openclaw), MIT, Copyright (c) 2026 OpenClaw Foundation; upstream's own release image, used unmodified (pinned tag). Bundled third-party components are listed in upstream THIRD_PARTY_NOTICES.md inside the image."
   },
+  "docker:ghcr.io/steel-dev/steel-browser": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_steel-browser/build.json",
+    "infra-sec_steel-browser/src/build.json"
+   ],
+   "version": "ghcr.io/steel-dev/steel-browser@sha256:c94f9ef7f18cf0a2c3c44e5b754119099488f62b4dea411e37459d6281c19799",
+   "scope": "runtime",
+   "licence": "Apache-2.0",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/steel-dev/steel-browser]",
+   "note": "Steel Browser (github.com/steel-dev/steel-browser), Apache-2.0; upstream's own release image, used unmodified (pinned by digest)."
+  },
   "docker:ghcr.io/umami-software/umami": {
    "kind": "docker",
    "declared_in": [
@@ -3952,6 +3980,18 @@
    "scope": "runtime",
    "licence": "MIT",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/umami-software/umami]"
+  },
+  "docker:ghcr.io/zaproxy/zaproxy": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_zap/build.json",
+    "infra-sec_zap/src/build.json"
+   ],
+   "version": "ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af",
+   "scope": "runtime",
+   "licence": "Apache-2.0",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/zaproxy/zaproxy]",
+   "note": "OWASP ZAP (github.com/zaproxy/zaproxy), Apache-2.0; upstream's own release image, used unmodified (pinned by digest)."
   },
   "docker:gitea/gitea": {
    "kind": "docker",

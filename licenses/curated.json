@@ -225,6 +225,12 @@
   "infra-sec_crowdsec": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-sec_steel-browser": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-sec_zap": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "infra-sec_introspect-proxy": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
@@ -507,6 +513,14 @@
   "ghcr.io/openclaw/openclaw": {
    "licence": "MIT",
    "note": "OpenClaw (github.com/openclaw/openclaw), MIT, Copyright (c) 2026 OpenClaw Foundation; upstream's own release image, used unmodified (pinned tag). Bundled third-party components are listed in upstream THIRD_PARTY_NOTICES.md inside the image."
+  },
+  "ghcr.io/steel-dev/steel-browser": {
+   "licence": "Apache-2.0",
+   "note": "Steel Browser (github.com/steel-dev/steel-browser), Apache-2.0; upstream's own release image, used unmodified (pinned by digest)."
+  },
+  "ghcr.io/zaproxy/zaproxy": {
+   "licence": "Apache-2.0",
+   "note": "OWASP ZAP (github.com/zaproxy/zaproxy), Apache-2.0; upstream's own release image, used unmodified (pinned by digest)."
   },
   "cloudflare/cloudflared": {
    "licence": "Apache-2.0",
