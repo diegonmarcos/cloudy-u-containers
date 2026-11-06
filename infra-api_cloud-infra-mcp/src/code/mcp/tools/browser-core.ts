@@ -2,6 +2,8 @@
 // dependency-free tester (node --experimental-strip-types test-browser-tools.mjs) runs it.
 export type Backend = "phone" | "container";
 
+export const DEFAULT_CONTAINER_URL = "http://10.0.0.6:3118";
+
 export interface Target { url: string; bearer: string }
 
 /** Where a call goes. Throws a clear message when the backend is not configured. */
@@ -12,9 +14,11 @@ export function target(backend: Backend, kind: "command" | "run", env: Record<st
     if (!base || !bearer) throw new Error("phone backend not configured (C3_PHONE_MESH_URL, C3_PHONE_FLEET_TOKEN)");
     return { url: `${base}/browser/${kind}`, bearer };
   }
-  const base = (env.C3_BROWSER_URL ?? "").replace(/\/+$/, "");
+  // Default = the container's mesh listener (build.json cloudy-browser-headless: ports.app 3118 on oci-apps, WG IP 10.0.0.6; this MCP
+  // runs on the same host). C3_BROWSER_URL overrides it (for example the public Caddy path with a bearer). Not a secret.
+  const base = (env.C3_BROWSER_URL || DEFAULT_CONTAINER_URL).replace(/\/+$/, "");
   const bearer = env.C3_BROWSER_TOKEN ?? "";
-  if (!base || !bearer) throw new Error("container backend not configured (C3_BROWSER_URL, C3_BROWSER_TOKEN)");
+  if (!base || !bearer) throw new Error("container backend not configured (C3_BROWSER_TOKEN)");
   return { url: `${base}/${kind}`, bearer };
 }
 

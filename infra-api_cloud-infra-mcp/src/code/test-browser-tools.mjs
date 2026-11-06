@@ -7,6 +7,7 @@ assert.deepEqual(target("phone", "command", env), { url: "http://10.0.0.9:8004/b
 assert.deepEqual(target("container", "run", env), { url: "https://mcp.example/cloudy-browser-headless/run", bearer: "bt" });
 assert.throws(() => target("phone", "command", {}), /phone backend not configured/);
 assert.throws(() => target("container", "command", { C3_BROWSER_URL: "https://x" }), /container backend not configured/);
+assert.deepEqual(target("container", "command", { C3_BROWSER_TOKEN: "t" }), { url: "http://10.0.0.6:3118/command", bearer: "t" });
 
 const seen = [];
 const fake = async (url, init) => { seen.push([url, init.headers.authorization, JSON.parse(init.body)]); return new Response(JSON.stringify({ ok: true, session: "s1" })); };
