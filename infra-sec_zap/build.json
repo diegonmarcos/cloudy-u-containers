@@ -1,0 +1,64 @@
+{
+  "name": "zap",
+  "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
+  "description": "OWASP ZAP — owner-authorized ethical-hacking/security scanner (own services only), headless daemon. Private mesh (bound to wg0), native API-key auth from vault, declared allowlist enforced as ZAP context/scope and in the c3 MCP layer. Apache-2.0.",
+  "dns": "zap.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 8086
+  },
+  "category": "sec",
+  "timezone": "Europe/Madrid",
+  "build": {
+    "headers_enforced": true
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/zap",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "health": {
+    "path": "/"
+  },
+  "monitoring": {
+    "tls_check": false,
+    "dns_check": false,
+    "endpoint_check": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "zap",
+      "image": "ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af",
+      "port": 8086,
+      "port_env": null,
+      "protocol": "http",
+      "dns": "zap.mesh.diegonmarcos.com",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "curl -fsS http://10.0.0.6:8086/ >/dev/null 2>&1 || exit 1",
+      "volumes": [],
+      "env_file": true,
+      "depends_on": [],
+      "resources": {
+        "mem_limit": "2G",
+        "cpus": "1.5",
+        "_comment": "Set in src/compose.nix; recorded for inventory. JVM scanner; bounded so it cannot starve oci-apps."
+      },
+      "read_only": false
+    }
+  },
+  "docker": {
+    "registry": "ghcr.io/diegonmarcos",
+    "image": "zap",
+    "dockerfile": "Dockerfile",
+    "arch": "arm64",
+    "labels": {
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/infra-sec_zap",
+      "org.opencontainers.image.licenses": "Apache-2.0",
+      "io.diegonmarcos.upstream.source": "https://github.com/zaproxy/zaproxy",
+      "io.diegonmarcos.source-offer": "https://github.com/diegonmarcos/cloudy-u-containers/blob/main/LICENSING.md#6a-source-offers-839"
+    }
+  }
+}

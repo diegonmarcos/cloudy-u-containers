@@ -1,0 +1,84 @@
+{
+  "name": "steel-browser",
+  "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
+  "description": "Steel Browser — owner-authorized ethical-hacking/security-testing headless browser (own services only). Private mesh, token-gated via a Caddy bearer sidecar, declared target allowlist enforced in the c3 MCP layer. Apache-2.0.",
+  "dns": "steel-browser.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 3000
+  },
+  "category": "sec",
+  "timezone": "Europe/Madrid",
+  "build": {
+    "headers_enforced": true
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/steel-browser",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": false,
+    "dns_check": false,
+    "endpoint_check": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "steel-browser",
+      "image": "ghcr.io/steel-dev/steel-browser@sha256:c94f9ef7f18cf0a2c3c44e5b754119099488f62b4dea411e37459d6281c19799",
+      "port": 3000,
+      "port_env": "PORT",
+      "protocol": "http",
+      "dns": "steel-browser.mesh.diegonmarcos.com",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "wget -qO /dev/null http://127.0.0.1:13000/health || exit 1",
+      "volumes": [],
+      "env_file": true,
+      "depends_on": [],
+      "resources": {
+        "mem_limit": "2G",
+        "cpus": "1.5",
+        "_comment": "Set in src/compose.nix; recorded here for inventory. Chromium is memory-hungry; bounded so it cannot starve oci-apps."
+      },
+      "read_only": false
+    },
+    "auth": {
+      "container_name": "steel-browser-auth",
+      "image": "caddy:2.11.2-alpine@sha256:834468128c7696cec0ceea6172f7d692daf645ae51983ca76e39da54a97c570d",
+      "port": 3000,
+      "port_env": null,
+      "protocol": "http",
+      "dns": null,
+      "public": false,
+      "proxy": null,
+      "healthcheck": "cmd",
+      "volumes": [],
+      "env_file": true,
+      "depends_on": ["app"],
+      "resources": {
+        "mem_limit": "64M",
+        "cpus": "0.5",
+        "_comment": "Bearer-auth reverse proxy in front of Steel. Set in src/compose.nix."
+      },
+      "read_only": false
+    }
+  },
+  "docker": {
+    "registry": "ghcr.io/diegonmarcos",
+    "image": "steel-browser",
+    "dockerfile": "Dockerfile",
+    "arch": "arm64",
+    "labels": {
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/infra-sec_steel-browser",
+      "org.opencontainers.image.licenses": "Apache-2.0",
+      "io.diegonmarcos.upstream.source": "https://github.com/steel-dev/steel-browser",
+      "io.diegonmarcos.source-offer": "https://github.com/diegonmarcos/cloudy-u-containers/blob/main/LICENSING.md#6a-source-offers-839"
+    }
+  }
+}

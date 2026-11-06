@@ -61,6 +61,7 @@ import {
 // ── shared libs (security) ─────────────────────────────────────────────────
 import { securityScan, securityDocker, securitySshKeys, securityTokens } from "../../shared/libs/security.js";
 import { getConfigPath } from "../../shared/libs/paths.js";
+import { handleSteelZap } from "./security-testing.js";
 
 // ── shared libs (health cloud/mail via SSH+Docker) ─────────────────────────
 const REPORT_VM = "oci-analytics";
@@ -1306,16 +1307,21 @@ export function registerMetaFinops(server: McpServer): void {
 export function registerMetaSec(server: McpServer): void {
   server.tool(
     "infra.sec",
-    "Security operations: full audit, Docker security, SSH keys, token scan, topology, secrets status.",
+    "Security operations: full audit, Docker security, SSH keys, token scan, topology, secrets status. Owner-authorized security testing of OWN services: Steel Browser (sec.steel_*) and OWASP ZAP (sec.zap_*), every target gated by the declared allowlist.",
     {
       method: z.enum([
         "sec.all","sec.docker","sec.scan","sec.secrets_status","sec.ssh_keys","sec.tokens","sec.topology",
+        "sec.steel_health","sec.steel_session_create","sec.steel_navigate","sec.steel_screenshot","sec.steel_scrape",
+        "sec.zap_health","sec.zap_context_sync","sec.zap_spider","sec.zap_ajax_spider","sec.zap_active_scan","sec.zap_alerts","sec.zap_report",
       ]).describe("Security operation"),
       params: z.record(z.unknown()).optional().describe("Operation parameters"),
     },
     async ({ method, params }) => {
       const p = (params ?? {}) as any;
       try {
+        if (method.startsWith("sec.steel_") || method.startsWith("sec.zap_")) {
+          return await handleSteelZap(method.replace(/^sec\./, ""), p);
+        }
         switch (method) {
           case "sec.all": {
             const config = getConfig();

@@ -17,6 +17,26 @@
     "records": {
       "mesh.diegonmarcos.com": [
         {
+          "name": "steel-browser",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "steel-browser",
+          "type": "AAAA",
+          "value": "fd0c:1d00::6"
+        },
+        {
+          "name": "zap",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "zap",
+          "type": "AAAA",
+          "value": "fd0c:1d00::6"
+        },
+        {
           "name": "maddy",
           "type": "A",
           "value": "10.0.0.3"
