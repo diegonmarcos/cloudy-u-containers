@@ -13,6 +13,10 @@ on:
       service:
         description: "Service directory name (e.g. infra-api_cloud-infra-mcp)"
         required: true
+      keep_committed:
+        description: "Optional: space-separated paths under <service>/dist/ restored to the committed version after the render. For a service whose compose carries vault secret mounts (the public checkout cannot render them): the compose stays as committed, every other dist file is re-rendered."
+        required: false
+        default: ""
       repo:
         description: "Repository holding the service (this workflow lives in cloudy-u-containers)"
         required: false
@@ -32,6 +36,7 @@ jobs:
     env:
       SERVICE: ${{ inputs.service }}
       TARGET_REPO: ${{ inputs.repo }}
+      KEEP_COMMITTED: ${{ inputs.keep_committed }}
       GITLEAKS_VERSION: "8.30.1"
       GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
     steps:
@@ -72,6 +77,15 @@ jobs:
       - name: build.sh build for the one service
         working-directory: infra/a_solutions
         run: cd "$SERVICE" && bash ./build.sh build
+      - name: Restore the paths declared keep_committed (vault-secret compose)
+        working-directory: infra/a_solutions
+        run: |
+          set -eu
+          for p in $KEEP_COMMITTED; do
+            case "$p" in *..*|/*) echo "::error::bad keep_committed path $p"; exit 1;; esac
+            git checkout -- "$SERVICE/dist/$p"
+            echo "kept committed: $SERVICE/dist/$p"
+          done
       - name: Only <service>/dist/ may have changed
         id: diff
         working-directory: infra/a_solutions
