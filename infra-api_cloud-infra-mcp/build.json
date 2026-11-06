@@ -261,6 +261,10 @@
     "cf-bridge": {
       "cmd": "node --experimental-strip-types test-cf-bridge.mjs",
       "cwd": "src/code"
+    },
+    "browser-tools": {
+      "cmd": "node --experimental-strip-types test-browser-tools.mjs",
+      "cwd": "src/code"
     }
   }
 }

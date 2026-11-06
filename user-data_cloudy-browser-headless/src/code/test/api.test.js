@@ -14,6 +14,18 @@ test('command list matches the shared schema', () => {
   try { schema = JSON.parse(readFileSync(p, 'utf8')); } catch { return; } // schema lives in another repo; checked when present
   assert.deepEqual([...CMDS].sort(), Object.keys(schema.commands).sort());
 });
+test('readable options match the shared schema and are validated', async () => {
+  assert.throws(() => validate({ cmd: 'readable', format: 'html' }), /format/);
+  assert.throws(() => validate({ cmd: 'readable', maxChars: 10 }), /maxChars/);
+  assert.throws(() => validate({ cmd: 'readable', cursor: '1;x' }), /cursor/);
+  assert.ok(validate({ cmd: 'readable', format: 'xml', maxChars: 2000, cursor: '40' }));
+  const { FORMATS } = await import('../readable.js');
+  const p = new URL('../../../../../../ab_cloud-libs-shared/libs/headless-api/headless-api.json', import.meta.url);
+  let schema;
+  try { schema = JSON.parse(readFileSync(p, 'utf8')); } catch { return; }
+  assert.deepEqual(Object.keys(schema.commands.readable.params).sort(), ['cursor', 'format', 'maxChars']);
+  assert.deepEqual(Object.keys(schema.commands.readable.formats).sort(), [...FORMATS].sort());
+});
 test('validate rejects bad commands', () => {
   assert.throws(() => validate({ cmd: 'nope' }), /unknown cmd/);
   assert.throws(() => validate({ cmd: 'open', url: 'file:///etc/passwd' }), /http/);

@@ -20,6 +20,7 @@ import { registerVmFilesTools } from "./tools/vm-files.js";
 import { registerMailOpsTools } from "./tools/mail-ops.js";
 import { registerFrontendExecTools } from "./tools/frontend.js";
 import { registerTelegramTools } from "./tools/telegram.js";
+import { registerBrowserTools } from "./tools/browser.js";
 // C) Security
 import { registerSecurityExecTools } from "./tools/security.js";
 import { registerPluginTools } from "./tools/plugin.js";
@@ -48,6 +49,7 @@ export function buildRegistry(): ToolRegistry {
   registerMailOpsTools(s);
   registerFrontendExecTools(s);
   registerTelegramTools(s);
+  registerBrowserTools(s); // #1498 browser.* (phone via the mesh /browser, or the cloudy-browser-headless container)
   registerSecurityExecTools(s);
   registerPluginTools(s);
   registerPeersControlTools(s); // #1495 peers-control: the phones' shell, logcat, crashes, apps, wake, call, grant, input, screencap, adb_*

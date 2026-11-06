@@ -47,6 +47,9 @@ in
         # ssh.phones[].alias (test/test-superapp-hosts.sh). Order = default dial order before any phone has answered. Mesh only.
         # SUPERAPP_FLEET_TOKEN arrives through .secrets, never through this block.
         SUPERAPP_PHONES = "phone2,phone1";
+        # #1498 browser.* container backend: cloudy-browser-headless on this host (mesh listener, host network). The bearer
+        # C3_BROWSER_TOKEN arrives through .secrets (vault fragment secrets.browser.yaml), never through this block.
+        C3_BROWSER_URL = "http://${svc."cloudy-browser-headless".ip or vmIp}:3118";
       };
       volumes = [
         "/opt/ssh-keys/${app.container_name}:/root/.ssh:ro"

@@ -37,7 +37,7 @@ export class ToolRegistry {
   }
 }
 
-export const GROUPS = ["devops", "obs", "sec", "finops", "health", "notify", "plugin", "peers"] as const;
+export const GROUPS = ["devops", "obs", "sec", "finops", "health", "notify", "plugin", "peers", "browser"] as const;
 export type Group = (typeof GROUPS)[number];
 
 export interface Method { group: Group; method: string; def: ToolDef }
@@ -48,6 +48,7 @@ export function classify(name: string): { group: Group; method: string } {
   const j = (a: string[]) => a.join("_");
   if (p[0] === "devops") return { group: "devops", method: j(p.slice(1)) };
   if (p[0] === "peers") return { group: "peers", method: j(p.slice(1)) }; // peers-control (#1495, merged from cloudy-android-mcp)
+  if (p[0] === "browser") return { group: "browser", method: j(p.slice(1)) };
   if (p[0] === "plugin") return { group: "plugin", method: j(p.slice(1)) };
   if (p[0] === "sec") return { group: "sec", method: j(p.slice(1)) };
   if (p[0] === "obs") {
