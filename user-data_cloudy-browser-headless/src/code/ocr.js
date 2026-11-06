@@ -144,7 +144,10 @@ export async function runOcr(h, c, budget = 30000, deps = {}) {
   const factory = deps.factory || tesseractFactory;
   const paddle = deps.paddle || ((buf, lang) => paddleRecognize(buf, lang));
   const { page, ctx } = h;
-  const found = await page.evaluate(imagesFn, { minWidth: o.minWidth, minHeight: o.minHeight });
+  // client-rendered pages (React storefronts) add their <img> after the load event: let the network go quiet first, bounded
+  await page.waitForLoadState('networkidle', { timeout: Math.min(8000, Math.floor(budget * 0.12)) }).catch(() => {});
+  let found = await page.evaluate(imagesFn, { minWidth: o.minWidth, minHeight: o.minHeight });
+  if (!found.items.length) { await page.waitForTimeout(1200); found = await page.evaluate(imagesFn, { minWidth: o.minWidth, minHeight: o.minHeight }); }
   const todo = found.items.slice(0, o.maxImages);
   const out = { url: page.url(), title: await page.title(), engine: o.engine, lang: o.lang, images_total: found.total, images_found: found.items.length, images_ocr: 0, images_failed: 0, truncated: found.items.length > todo.length, results: [], text: '' };
   if (!todo.length && !o.includeScreenshot) return out;

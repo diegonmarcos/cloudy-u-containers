@@ -17,6 +17,7 @@ const harness = ({ items, responses = {}, shot = png } = {}) => {
     url: () => 'https://x.test/p', title: async () => 'T',
     evaluate: async (fn, arg) => (fn === imagesFn ? { total: items.length, items: items.filter((i) => i.width >= arg.minWidth && i.height >= arg.minHeight) } : { w: 1280, h: 900 }),
     screenshot: async () => shot,
+    waitForLoadState: async () => {}, waitForTimeout: async () => {},
   };
   const ctx = { newPage: async () => scratch, request: { get: async (u) => { const r = responses[u]; if (!r) throw new Error('net down'); return r; } } };
   return { page, ctx, closed };

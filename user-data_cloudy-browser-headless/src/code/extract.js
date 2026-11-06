@@ -26,7 +26,8 @@ export const scrapeFn = (o) => {
 };
 
 // In-page enumeration of the <img> elements for the ocr command: absolute src (currentSrc, lazy data-src fallback), alt, natural and rendered size,
-// kept when at least minWidth x minHeight (natural size, the rendered size when the image is not decoded yet), deduplicated by src, document order.
+// kept when at least minWidth x minHeight (natural size, the rendered size when the image is not decoded yet) and not rendered below 32 px
+// (avatars, icons, pixels), deduplicated by src, document order.
 export const imagesFn = (o) => {
   const items = []; const seen = new Set(); let total = 0;
   for (const im of document.images) {
@@ -38,6 +39,7 @@ export const imagesFn = (o) => {
     const r = im.getBoundingClientRect();
     const w = im.naturalWidth || Math.round(r.width); const h = im.naturalHeight || Math.round(r.height);
     if (w < o.minWidth || h < o.minHeight) continue;
+    if (r.width > 0 && r.height > 0 && (r.width < 32 || r.height < 32)) continue; // rendered as an icon, avatar or tracking pixel
     seen.add(src);
     items.push({ src, alt: (im.getAttribute('alt') || '').trim().slice(0, 300), width: w, height: h });
   }
