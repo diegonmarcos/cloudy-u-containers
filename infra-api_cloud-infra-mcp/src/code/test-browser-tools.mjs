@@ -131,6 +131,14 @@ const st = (over = {}, t0 = Date.parse("2026-11-06T10:00:00Z")) => { const clock
   const r = await gateway("read", { url: "https://claude.ai/share/x" }, { f: fn, env: ENV, state: s });
   assert.equal(r.backend_used, "cloudflare"); assert.equal(r.bot_wall, true); assert.match(r.note, /refused as well/);
 }
+// only a token configured: the account id is discovered once from GET /accounts, then used
+{
+  const urls = [];
+  const f2 = async (url, init) => { urls.push(url); if (url.includes("/accounts?per_page=1")) return new Response(JSON.stringify({ result: [{ id: "DISC" }] })); return new Response(JSON.stringify({ success: true, result: "# d" }), { headers: { "content-type": "application/json" } }); };
+  const { s } = st();
+  const r = await gateway("read", { url: "https://x.test/", backend: "cloudflare" }, { f: f2, env: { CF_API_TOKEN: "tok" }, state: s });
+  assert.equal(r.content, "# d"); assert.ok(urls.some((u) => u.includes("/accounts/DISC/browser-rendering/markdown")));
+}
 // cloudflare not configured: the container's challenge result is returned with the reason
 {
   const { fn } = mk(CHALLENGE_RUN);

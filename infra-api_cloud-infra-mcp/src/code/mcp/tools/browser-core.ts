@@ -198,6 +198,24 @@ export function cfConf(env: Record<string, string | undefined> = process.env): C
   return { account, token, base: (env.C3_CF_API_BASE || CF_API).replace(/\/+$/, ""), seg: env.C3_CF_BROWSER_PATH || CF_PATH_DEFAULT };
 }
 
+let discoveredAccount: string | undefined;
+/** cfConf, and when only the token is configured, the account id is read once from GET /accounts (an id, not a secret; first account of the token). */
+export async function cfConfResolve(env: Record<string, string | undefined> = process.env, f: typeof fetch = fetch): Promise<CfConf | null> {
+  const c = cfConf(env);
+  if (c) return c;
+  const token = env.CF_BROWSER_API_TOKEN || env.CF_API_TOKEN || "";
+  if (!token) return null;
+  if (!discoveredAccount) {
+    try {
+      const base = (env.C3_CF_API_BASE || CF_API).replace(/\/+$/, "");
+      const r = await f(`${base}/accounts?per_page=1`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15_000) });
+      const j: any = await r.json().catch(() => ({}));
+      discoveredAccount = j?.result?.[0]?.id;
+    } catch { /* not discoverable */ }
+  }
+  return discoveredAccount ? { account: discoveredAccount, token, base: (env.C3_CF_API_BASE || CF_API).replace(/\/+$/, ""), seg: env.C3_CF_BROWSER_PATH || CF_PATH_DEFAULT } : null;
+}
+
 export const hostOf = (url: string): string => { try { return new URL(url).hostname.toLowerCase(); } catch { return ""; } };
 
 const err = (code: string, message: string, extra: Record<string, unknown> = {}) => ({ ok: false, error: { code, message }, ...extra });
@@ -382,8 +400,8 @@ const shape = (res: any, backend_used: string, fallback_reason: string | null, e
   res?.ok === false ? { ok: false, error: res.error, backend_used, fallback_reason, ...extra } : { ok: true, ...res.result, backend_used, fallback_reason, ...extra };
 
 async function viaCloudflare(op: GwOp, a: any, d: GwDeps, state: BrowserState, reason: string | null): Promise<any> {
-  const conf = cfConf(d.env ?? process.env);
-  if (!conf) return err("not_configured", "cloudflare backend not configured (names: CF_BROWSER_ACCOUNT_ID or CF_ACCOUNT_ID, and CF_BROWSER_API_TOKEN or CF_API_TOKEN with the Browser Run - Edit permission)");
+  const conf = await cfConfResolve(d.env ?? process.env, d.f ?? fetch);
+  if (!conf) return err("not_configured", "cloudflare backend not configured (names: CF_BROWSER_API_TOKEN or CF_API_TOKEN with the Browser Run - Edit permission; CF_BROWSER_ACCOUNT_ID or CF_ACCOUNT_ID, else the token's first account)");
   const cap = state.capReason();
   if (cap) return err("limit", cap);
   const { endpoint, body, binary } = cfRequestFor(op, a);
@@ -432,7 +450,7 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
     return shape(s.res, backend, null, { ...(s.session ? { session: s.session } : {}), ...(wall ? { bot_wall: true, bot_wall_reason: wall } : {}) });
   }
   // auto
-  if (host && state.needsCloudflare(host) && cfConf(d.env ?? process.env)) {
+  if (host && state.needsCloudflare(host) && await cfConfResolve(d.env ?? process.env, d.f ?? fetch)) {
     const why = "domain_memory: needs cloudflare";
     const res = await viaCloudflare(op, a, d, state, why);
     if (!(res?.ok === false && (res.error.code === "limit" || res.error.code === "not_configured"))) return cfShape(res, why);
@@ -442,7 +460,7 @@ export async function gateway(op: GwOp, a: any, d: GwDeps = {}): Promise<any> {
   if (!wall) return shape(s.res, "container", null, s.session ? { session: s.session } : {});
   // bot wall: hand the same call to Cloudflare Browser Run (never solve, spoof or rotate)
   const reason = `bot_wall: ${wall}`;
-  const conf = cfConf(d.env ?? process.env);
+  const conf = await cfConfResolve(d.env ?? process.env, d.f ?? fetch);
   if (!conf) return shape(s.res, "container", reason, { bot_wall: true, bot_wall_reason: wall, fallback_skipped: "cloudflare backend not configured" });
   const cap = state.capReason();
   if (cap) return shape(s.res, "container", reason, { bot_wall: true, bot_wall_reason: wall, fallback_skipped: cap });
