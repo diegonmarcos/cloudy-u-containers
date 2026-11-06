@@ -17,9 +17,11 @@ in
       # Host network (dockerd runs iptables:false, published ports do not forward) and the
       # listener is confined to the WG IP: mesh-only, Caddy path route on top.
       network_mode = "host";
-      # BROWSER_TOKEN (bearer) comes from the vault secret src/secrets.yaml (overlaid by the Ship); the engine
-      # auto-mounts .secrets as env_file whenever that file exists. No optional/empty fallback is declared here:
-      # server.js exits 78 when the token is empty, so a missing secret fails loudly at deploy.
+      # BROWSER_TOKEN (bearer) comes from the vault secret src/secrets.yaml (overlaid by the Ship, decrypted to .secrets).
+      # Declared explicitly and REQUIRED (no `required = false`): compose refuses to start the container when .secrets
+      # is absent, and server.js exits 78 when BROWSER_TOKEN is empty, so a missing secret fails the deploy loudly
+      # instead of running with an empty token. The explicit line also keeps the mount in the public render (render-dist).
+      env_file = [ ".secrets" ];
       environment = {
         PORT = port;
         HTTP_HOST = vmIp;
