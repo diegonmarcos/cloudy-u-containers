@@ -11,7 +11,7 @@ const HTML_TAG = /<\/?[a-z][a-z0-9]*[\s>/]/i;
 test('markdown: headings, lists, tables, links and code survive', () => {
   const r = read('article');
   assert.match(r.markdown, /^---\ntitle: "[^"]+"\nsource: "https:\/\/shop.test\/article"\nfetched_at: "2026-11-06T00:00:00.000Z"\n---/);
-  assert.match(r.markdown, /^# Tide Tables Explained$/m);
+  assert.match(r.markdown, /^title: "Tide Tables Explained/m); // Readability lifts the page headline into the title
   assert.match(r.markdown, /^## Reading the table$/m);
   assert.match(r.markdown, /^- Find your harbour$/m);
   assert.match(r.markdown, /\| Day \| High water \| Height \(m\) \|\n\| --- \| --- \| --- \|\n\| Mon \| 06:12 \| 4.1 \|/);
@@ -43,6 +43,7 @@ test('no HTML tags in any format output', () => {
 test('a table with no header row still renders as a markdown table', () => {
   const r = read('docs');
   assert.match(r.markdown, /\| Flag \| Meaning \|\n\| --- \| --- \|\n\| --json \| Print JSON \|/);
+  assert.match(r.markdown, /^1\. Download the archive/m);
   assert.ok(!r.markdown.includes('mailto:'));
 });
 
@@ -70,7 +71,8 @@ test('xml: compact, short names, tables round-trip', () => {
   const rows = [...t.matchAll(/<r( h="1")?>(.*?)<\/r>/g)].map((m) => [...m[2].matchAll(/<c>(.*?)<\/c>/g)].map((c) => c[1]));
   const j = JSON.parse(read('listing', { format: 'json' }).content).tables[0];
   assert.deepEqual(rows, [j.headers, ...j.rows]);
-  assert.match(r.content, /<s h="Used bikes" l="1">/);
+  assert.match(r.content, /<meta t="Used bikes - Shop"/);
+  assert.match(r.content, /<s h="Why buy used" l="2">/);
   assert.match(r.content, /<a href="https:\/\/shop.test\/sizing">sizing page<\/a>/);
 });
 

@@ -52,7 +52,7 @@ function extract(html, url) {
   const lang = doc.documentElement.getAttribute('lang') || '';
   const docTitle = squash(doc.title);
   let article = null;
-  try { article = new Readability(doc.cloneNode(true), { charThreshold: 100 }).parse(); } catch { /* fall through to body */ }
+  try { article = new Readability(doc.cloneNode(true), { charThreshold: 100, keepClasses: true }).parse(); } catch { /* fall through to body */ }
   let content = article && article.content;
   if (!content || squash(article.textContent).length < 80) {
     const root = doc.querySelector('main,article,[role=main]') || doc.body;
@@ -76,6 +76,14 @@ function normaliseTables(root) {
   });
 }
 
+// Token trim outside code fences: Turndown pads list markers ("-   x", "1.  x") and escapes a leading dash ("\\--flag").
+function tighten(md) {
+  return md.split(/(```[\s\S]*?```)/g).map((part, i) => (i % 2 ? part : part
+    .replace(/^(\s*)-\s{2,}/gm, '$1- ')
+    .replace(/^(\s*)(\d+\.)\s{2,}/gm, '$1$2 ')
+    .replace(/\\(-{1,2})(?=[A-Za-z0-9])/g, '$1'))).join('');
+}
+
 function toMarkdown(root) {
   const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-', linkStyle: 'inlined' });
   td.use(gfmPkg.gfm);
@@ -88,7 +96,7 @@ function toMarkdown(root) {
       return `\n\n\`\`\`${lang}\n${code.textContent.replace(/\n$/, '')}\n\`\`\`\n\n`;
     },
   });
-  return td.turndown(root.innerHTML).replace(/\n{3,}/g, '\n\n').trim();
+  return tighten(td.turndown(root.innerHTML).replace(/\n{3,}/g, '\n\n').trim());
 }
 
 // Ordered block model shared by json and xml: s = section {h, level, text}, l = list, t = table {headers, rows}, a = link.

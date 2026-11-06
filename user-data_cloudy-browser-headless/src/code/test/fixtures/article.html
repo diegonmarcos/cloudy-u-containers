@@ -12,7 +12,8 @@
 <table><tr><th>Day</th><th>High water</th><th>Height (m)</th></tr><tr><td>Mon</td><td>06:12</td><td>4.1</td></tr><tr><td>Tue</td><td>06:58</td><td>4.3</td></tr></table>
 <h2>A note on code</h2>
 <p>Harbour offices publish the same numbers as data. A small helper can convert them, for example:</p>
-<pre><code class="language-js">const h = rows.map(r => r.height);\nconsole.log(Math.max(...h));</code></pre>
+<pre><code class="language-js">const h = rows.map(r => r.height);
+console.log(Math.max(...h));</code></pre>
 <p>Always cross-check against the local notice to mariners before you rely on any computed value for passage planning.</p>
 </article>
 <footer>Copyright 2026 Example Marine. Privacy. Terms.</footer>

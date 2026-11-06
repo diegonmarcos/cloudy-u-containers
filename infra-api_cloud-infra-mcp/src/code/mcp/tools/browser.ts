@@ -20,7 +20,7 @@ const common = {
   timeoutMs: z.number().int().min(1).max(120000).optional().describe("per-call timeout"),
 };
 const FORMAT_PARAMS: z.ZodRawShape = {
-  format: z.enum(["markdown", "json", "xml"]).optional().describe("markdown (default, usually the cheapest in tokens) | json (compact structured) | xml (minimal tags)"),
+  format: z.enum(["markdown", "json", "xml"]).optional().describe("markdown (default, cheapest in tokens) | json (compact structured) | xml (minimal tags, slightly cheaper than json on fixtures)"),
   maxChars: z.number().int().min(500).max(200000).optional().describe("size cap of one page of output (default 20000)"),
   cursor: z.string().regex(/^\d{1,9}$/).optional().describe("the `next` value of a truncated result, to continue"),
 };
@@ -44,7 +44,7 @@ const extra: Record<(typeof CMDS)[number], z.ZodRawShape> = {
 const asText = (o: unknown, isError = false) => ({ content: [{ type: "text" as const, text: JSON.stringify(o) }], isError });
 
 const DESC: Partial<Record<(typeof CMDS)[number], string>> = {
-  readable: "Headless browser: the CURRENT page as clean markdown (boilerplate, scripts, ads and tracking removed; frontmatter title/source/fetched_at; links and tables). Prefer browser.read for a URL. format markdown (default) | json | xml; json/xml are compact structured forms, measure before choosing (markdown is usually the fewest tokens). Long pages are capped: pass `next` back as cursor.",
+  readable: "Headless browser: the CURRENT page as clean markdown (boilerplate, scripts, ads and tracking removed; frontmatter title/source/fetched_at; links and tables). Prefer browser.read for a URL. format markdown (default) | json | xml; json/xml are compact structured forms. Measured on 4 fixture pages (approximate tokenizer): markdown 1065 tokens, xml 1698 (+59%), json 1849 (+74%), so markdown is cheapest and xml is slightly cheaper than json. Long pages are capped: pass `next` back as cursor.",
   html: "Headless browser: RAW HTML of the page or a selector. Explicit opt-in only: it is large and noisy. Prefer browser.read (markdown) unless the raw markup itself is the data.",
   text: "Headless browser: innerText of the page or a selector (unstructured). Prefer browser.read for page content.",
 };
@@ -59,7 +59,7 @@ export function registerBrowserTools(server: McpServer, f: typeof fetch = fetch)
       } catch (e) { return asText({ ok: false, error: { code: "internal", message: e instanceof Error ? e.message : String(e) } }, true); }
     });
   }
-  server.tool("browser.read", "Headless browser, DEFAULT tool: open a URL and return the page as clean markdown (open + readable in one call; no HTML, scripts, nav, ads or tracking params). Use this first. format markdown (default) | json | xml (json and xml are compact structured alternatives; markdown is usually cheapest). Capped output: when truncated, call again with the returned session and `next` as cursor. Use browser.html only when the raw markup is the data.", {
+  server.tool("browser.read", "Headless browser, DEFAULT tool: open a URL and return the page as clean markdown (open + readable in one call; no HTML, scripts, nav, ads or tracking params). Use this first. format markdown (default, cheapest) | xml | json (compact structured alternatives; measured on fixtures: xml about 8% fewer tokens than json, markdown about 37% fewer than xml). Capped output: when truncated, call again with the returned session and `next` as cursor. Use browser.html only when the raw markup is the data.", {
     ...common, url: z.string().describe("http(s) URL"), profile: z.string().optional(), ...FORMAT_PARAMS,
   }, async (args: any) => {
     try {
