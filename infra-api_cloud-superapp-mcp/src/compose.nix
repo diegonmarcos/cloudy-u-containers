@@ -52,7 +52,7 @@ in
         # (test/test-superapp-hosts.sh). Order = default dial order before any
         # phone has answered; afterwards the last phone that answered goes first.
         # Mesh only: no public route to a phone.
-        SUPERAPP_PHONES = "phone2,phone1";
+        SUPERAPP_PHONES = "samsung-a37,samsung-s21-plus";
       };
     };
   };

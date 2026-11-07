@@ -74,18 +74,18 @@ await t("the gateway roster becomes one App per member; apps are asked at /app/<
 });
 
 await t("every result is stamped with the phone that answered", () => {
-  assert.equal(core.stamp("phone2", { content: [{ type: "text", text: "x" }] }).content[0].text, "[phone: phone2]\nx");
+  assert.equal(core.stamp("samsung-a37", { content: [{ type: "text", text: "x" }] }).content[0].text, "[phone: samsung-a37]\nx");
 });
 
 await t("two phones: alias or id, four doors each, declared dial order, an explicit phone never falls through", async () => {
-  if (PHONES.join(",") !== "phone2,phone1") return; // the compose.nix value; another SUPERAPP_PHONES is a deliberate override
-  assert.equal(phoneAlias("samsung-a37"), "phone2");
-  assert.equal(phoneAlias("A37"), "phone2");
+  if (PHONES.join(",") !== "samsung-a37,samsung-s21-plus") return; // the compose.nix value; another SUPERAPP_PHONES is a deliberate override
+  assert.equal(phoneAlias("samsung-a37"), "samsung-a37");
+  assert.equal(phoneAlias("A37"), "samsung-a37");
   assert.throws(() => phoneAlias("phone3"), /unknown phone/);
-  assert.deepEqual(doorsOf("phone2"), ["phone2", "phone2-v6", "phone2-termux", "phone2-termux-v6"]);
-  assert.deepEqual(dialOrder(null), ["phone2", "phone1"]);
-  assert.deepEqual(dialOrder("phone1"), ["phone1"]);
-  await assert.rejects(onPhone("phone1", () => run("true")), /no route to phone phone1/);
+  assert.deepEqual(doorsOf("samsung-a37"), ["samsung-a37", "samsung-a37-v6", "samsung-a37-termux", "samsung-a37-termux-v6"]);
+  assert.deepEqual(dialOrder(null), ["samsung-a37", "samsung-s21-plus"]);
+  assert.deepEqual(dialOrder("samsung-s21-plus"), ["samsung-s21-plus"]);
+  await assert.rejects(onPhone("samsung-s21-plus", () => run("true")), /no route to phone samsung-s21-plus/);
 });
 
 console.log(`${n} passed`);

@@ -52,7 +52,7 @@ in
         # #1495 peers-control (merged from cloudy-android-mcp): the phones this server dials. Every alias MUST be a build.json
         # ssh.phones[].alias (test/test-superapp-hosts.sh). Order = default dial order before any phone has answered. Mesh only.
         # SUPERAPP_FLEET_TOKEN arrives through .secrets, never through this block.
-        SUPERAPP_PHONES = "phone2,phone1";
+        SUPERAPP_PHONES = "samsung-a37,samsung-s21-plus";
       };
       volumes = [
         "/opt/ssh-keys/${app.container_name}:/root/.ssh:ro"

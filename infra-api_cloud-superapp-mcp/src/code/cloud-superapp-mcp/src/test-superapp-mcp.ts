@@ -93,27 +93,27 @@ assert.equal(resolve(gw!, "mail").pkg, "com.diegonmarcos.comms.mail");
 ok("gateway apps resolve by name like port-swept ones");
 
 // ── two phones ───────────────────────────────────────────────────────────────
-// Run with SUPERAPP_PHONES=phone2,phone1 (the compose.nix value).
-if (PHONES.join(",") === "phone2,phone1") {
-  assert.equal(phoneAlias("phone1"), "phone1");
-  assert.equal(phoneAlias("samsung-a37"), "phone2");
-  assert.equal(phoneAlias("A37"), "phone2");
-  assert.equal(phoneAlias("samsung-s21plus"), "phone1");
+// Run with SUPERAPP_PHONES=samsung-a37,samsung-s21-plus (the compose.nix value).
+if (PHONES.join(",") === "samsung-a37,samsung-s21-plus") {
+  assert.equal(phoneAlias("samsung-s21-plus"), "samsung-s21-plus");
+  assert.equal(phoneAlias("samsung-a37"), "samsung-a37");
+  assert.equal(phoneAlias("A37"), "samsung-a37");
+  assert.equal(phoneAlias("samsung-s21plus"), "samsung-s21-plus");
   assert.throws(() => phoneAlias("phone3"), /unknown phone/);
   ok("a phone is chosen by alias or id; an undeclared one is refused");
 
-  assert.deepEqual(doorsOf("phone2"), ["phone2", "phone2-v6", "phone2-termux", "phone2-termux-v6"]);
+  assert.deepEqual(doorsOf("samsung-a37"), ["samsung-a37", "samsung-a37-v6", "samsung-a37-termux", "samsung-a37-termux-v6"]);
   ok("each phone is dialled through its four declared doors");
 
-  assert.deepEqual(dialOrder(null), ["phone2", "phone1"]);
-  assert.deepEqual(dialOrder("phone1"), ["phone1"]);
+  assert.deepEqual(dialOrder(null), ["samsung-a37", "samsung-s21-plus"]);
+  assert.deepEqual(dialOrder("samsung-s21-plus"), ["samsung-s21-plus"]);
   ok("no phone given: declared order until one answers; a phone given: only that one");
 
   // An explicit phone never falls through to the other one.
-  await assert.rejects(onPhone("phone1", () => run("true")), /no route to phone phone1/);
+  await assert.rejects(onPhone("samsung-s21-plus", () => run("true")), /no route to phone samsung-s21-plus/);
   ok("an unreachable chosen phone fails as itself, not via the other phone");
 }
-assert.equal(stamp("phone2", { content: [{ type: "text", text: "x" }] }).content[0].text, "[phone: phone2]\nx");
+assert.equal(stamp("samsung-a37", { content: [{ type: "text", text: "x" }] }).content[0].text, "[phone: samsung-a37]\nx");
 ok("every result is stamped with the phone that answered");
 
 // ── live, only if the phone answers ──────────────────────────────────────────

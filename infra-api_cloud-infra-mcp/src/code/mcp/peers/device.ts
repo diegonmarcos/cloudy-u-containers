@@ -33,15 +33,15 @@ import { AsyncLocalStorage } from "node:async_hooks";
  * `local` = run here (the on-device Claude, where 127.0.0.1 already IS the phone).
  * SUPERAPP_HOSTS (a flat alias list, one phone) is still honoured for old envs.
  */
-export const PHONES: string[] = (process.env.SUPERAPP_PHONES ?? process.env.SUPERAPP_HOSTS?.split(",")[0] ?? "phone2,phone1")
+export const PHONES: string[] = (process.env.SUPERAPP_PHONES ?? process.env.SUPERAPP_HOSTS?.split(",")[0] ?? "samsung-a37,samsung-s21-plus")
   .split(",")
   .map((h) => h.trim())
   .filter(Boolean);
 
 /** Friendly ids accepted for `phone` besides the alias (build.json ssh.phones[].id). */
 const PHONE_IDS: Record<string, string> = {
-  "samsung-s21plus": "phone1", s21: "phone1", "s21plus": "phone1", termux: "phone1",
-  "samsung-a37": "phone2", a37: "phone2",
+  "samsung-s21-plus": "samsung-s21-plus", "samsung-s21plus": "samsung-s21-plus", s21: "samsung-s21-plus", "s21plus": "samsung-s21-plus", termux: "samsung-s21-plus",
+  "samsung-a37": "samsung-a37", a37: "samsung-a37",
 };
 
 export function phoneAlias(q: string): string {

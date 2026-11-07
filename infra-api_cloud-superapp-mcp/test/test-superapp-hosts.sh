@@ -21,7 +21,7 @@ DEV=src/code/lib-mcp/src/device.ts
 [ "$(jq '.ssh.phones|length' $J)" -ge 1 ] || bad "build.json ssh.phones is empty"
 inc=$(jq -r '.ssh.phones[] | select((.alias|type)!="string" or (.id|type)!="string" or (.wg_client|type)!="string") | .alias // "?"' $J)
 [ -z "$inc" ] || bad "incomplete ssh.phones entries: $inc"
-dup=$(jq -r '[.ssh.phones[].alias, .ssh.phones[].id] | group_by(.)[] | select(length>1)[0]' $J)
+dup=$(jq -r '[(.ssh.phones | map(.alias)), (.ssh.phones | map(.id))][] | group_by(.)[] | select(length>1)[0]' $J)  # alias may equal its own id (the fleet name is the model name); duplicates are across phones
 [ -z "$dup" ] || bad "phone alias/id declared twice: $dup"
 
 want=$(jq -c '[.ssh.phones[] as $p | .ssh.doors[] as $d | ("v4","v6") as $f |
