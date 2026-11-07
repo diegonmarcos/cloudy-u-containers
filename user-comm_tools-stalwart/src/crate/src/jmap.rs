@@ -104,6 +104,8 @@ pub struct Client {
     api_url: String,
     auth: String,
     account_id: String,
+    /// Armed once per poll; `email_set` refuses any update that strips it.
+    inbox_id: std::sync::Mutex<Option<String>>,
 }
 
 impl Client {
@@ -129,6 +131,7 @@ impl Client {
             api_url: format!("{}/jmap/", base_url.trim_end_matches('/')),
             auth: format!("Basic {creds}"),
             account_id: String::new(),
+            inbox_id: std::sync::Mutex::new(None),
         })
     }
 
@@ -274,7 +277,42 @@ impl Client {
         Ok((ok, bad))
     }
 
-    pub fn email_set(&self, updates: Map<String, Value>) -> Result<SetResponse> {
+    pub fn set_inbox_id(&self, id: &str) {
+        *self.inbox_id.lock().unwrap() = Some(id.to_string());
+    }
+
+    /// Ids matching an arbitrary Email/query filter (paged like `email_query_in`).
+    pub fn email_query_filter(&self, filter: &Value) -> Result<Vec<String>> {
+        let mut ids: Vec<String> = Vec::new();
+        loop {
+            let args = self.call_one(
+                "Email/query",
+                json!({ "accountId": self.account(), "filter": filter, "position": ids.len(), "limit": PAGE }),
+            )?;
+            let page: Vec<String> = args
+                .get("ids")
+                .cloned()
+                .map(|v| serde_json::from_value(v).unwrap_or_default())
+                .unwrap_or_default();
+            if page.is_empty() {
+                break;
+            }
+            ids.extend(page);
+            if args.get("total").and_then(Value::as_u64).is_some_and(|t| ids.len() as u64 >= t) {
+                break;
+            }
+        }
+        Ok(ids)
+    }
+
+    /// THE choke point for every Email/set: the Inbox invariant is enforced
+    /// here (inbox_guard.rs), so no caller can strip Inbox from a message.
+    pub fn email_set(&self, mut updates: Map<String, Value>) -> Result<SetResponse> {
+        if let Some(inbox) = self.inbox_id.lock().unwrap().clone() {
+            for id in crate::inbox_guard::sanitize(&mut updates, &inbox) {
+                tracing::error!("inbox guard: refused an Email/set that would remove Inbox from {id}");
+            }
+        }
         if updates.is_empty() {
             return Ok(SetResponse::default());
         }

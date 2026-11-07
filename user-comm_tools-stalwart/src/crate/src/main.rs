@@ -13,6 +13,7 @@
 //! time and read-state windows stay current.
 
 mod filters;
+mod inbox_guard;
 mod jmap;
 mod mailboxes;
 mod routing;
@@ -78,6 +79,12 @@ fn one_poll(client: &jmap::Client, rules: &Rules) -> Result<()> {
     // by cleanup_stale. Idempotent.
     apply_renames_step(client, rules)?;
     let (name_to_id, mailboxes) = mailboxes::ensure_mailboxes(client, rules)?;
+    // Inbox invariant (see inbox_guard.rs): arm the Email/set guard, then
+    // heal any message that lost Inbox BEFORE views/routing evaluate it.
+    if let Some(id) = mailboxes::find_inbox_id(&mailboxes) {
+        client.set_inbox_id(id);
+    }
+    inbox_guard::maintain_inbox_invariant(client, &mailboxes)?;
     // Run every poll — cleanup is idempotent (no stale -> no-op) and
     // self-healing. This used to be gated on `first_run`, so a single bad
     // first poll left orphans until the container restarted.

@@ -15,7 +15,7 @@
 
 use anyhow::Result;
 use regex::Regex;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use std::collections::{HashMap, HashSet};
 
 use crate::jmap::{BodyPart, Client, Email, Mailbox};
@@ -312,6 +312,11 @@ pub fn maintain_filters(
         let emails = client.email_get(batch, &props)?;
 
         for em in &emails {
+            // Membership is edited as RFC 8620 patch paths (`mailboxIds/<id>`),
+            // never by writing the whole `mailboxIds` map back: a whole-map write
+            // is a read-modify-write that silently drops any membership (Inbox
+            // included) changed between the Email/get and the Email/set.
+            let mut patch: Map<String, Value> = Map::new();
             let mut desired: HashMap<String, bool> = em.mailbox_ids.clone();
 
             // Only emit an update if a VIEW-mailbox bit actually flipped.
@@ -334,15 +339,17 @@ pub fn maintain_filters(
                 let have = desired.contains_key(vid);
                 if want && !have {
                     desired.insert(vid.to_string(), true);
+                    patch.extend(crate::inbox_guard::membership_patch(&[vid], &[]));
                     changed = true;
                 } else if !want && have {
                     desired.remove(vid);
+                    patch.extend(crate::inbox_guard::membership_patch(&[], &[vid]));
                     changed = true;
                 }
             }
 
             if changed {
-                updates.insert(em.id.clone(), json!({ "mailboxIds": desired }));
+                updates.insert(em.id.clone(), Value::Object(patch));
             }
         }
     }

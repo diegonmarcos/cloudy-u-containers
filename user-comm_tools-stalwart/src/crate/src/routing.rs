@@ -25,7 +25,7 @@
 //! free.
 
 use anyhow::Result;
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value};
 use std::collections::{HashMap, HashSet};
 
 use crate::filters::{email_matches, headers_referenced};
@@ -158,20 +158,23 @@ pub fn maintain_routing(
             };
 
             let mut desired = em.mailbox_ids.clone();
+            let mut patch: Map<String, Value> = Map::new();
             let mut changed = false;
             for rid in &routing_id_set {
                 let should = want == *rid;
                 if desired.contains_key(*rid) != should {
                     if should {
                         desired.insert((*rid).to_string(), true);
+                        patch.extend(crate::inbox_guard::membership_patch(&[*rid], &[]));
                     } else {
                         desired.remove(*rid);
+                        patch.extend(crate::inbox_guard::membership_patch(&[], &[*rid]));
                     }
                     changed = true;
                 }
             }
             if changed {
-                updates.insert(em.id.clone(), json!({ "mailboxIds": desired }));
+                updates.insert(em.id.clone(), Value::Object(patch));
             }
         }
     }

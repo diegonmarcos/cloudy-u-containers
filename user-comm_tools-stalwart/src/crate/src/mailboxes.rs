@@ -301,10 +301,10 @@ pub fn apply_renames(client: &Client, rules: &Rules, mailboxes: &[Mailbox]) -> R
             let emails = client.email_get(chunk, &["mailboxIds"])?;
             let mut patch: Map<String, Value> = Map::new();
             for em in &emails {
-                let mut mids: HashMap<String, bool> = em.mailbox_ids.clone();
-                mids.remove(old_id);
-                mids.insert(new_id.to_string(), true);
-                patch.insert(em.id.clone(), json!({ "mailboxIds": mids }));
+                patch.insert(
+                    em.id.clone(),
+                    Value::Object(crate::inbox_guard::membership_patch(&[new_id], &[old_id])),
+                );
             }
             let res = client.email_set(patch)?;
             for (eid, err) in &res.not_updated {
@@ -384,10 +384,10 @@ pub fn cleanup_stale(
             let emails = client.email_get(&eids, &["mailboxIds"])?;
             let mut updates: Map<String, Value> = Map::new();
             for em in &emails {
-                let mut mids = em.mailbox_ids.clone();
-                mids.insert(inbox_id.clone(), true);
-                mids.remove(&mb.id);
-                updates.insert(em.id.clone(), json!({ "mailboxIds": mids }));
+                updates.insert(
+                    em.id.clone(),
+                    Value::Object(crate::inbox_guard::membership_patch(&[inbox_id.as_str()], &[mb.id.as_str()])),
+                );
             }
             client.email_set(updates)?;
             Ok(())
