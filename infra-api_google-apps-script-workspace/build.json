@@ -1,0 +1,9 @@
+{
+  "name": "google-apps-script-workspace",
+  "taxonomy": {"group": "Infra Apps", "category": "Ops-API-MCP"},
+  "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+  "category": "app",
+  "runtime": {"type": "apps-script", "language": "javascript", "host": "script.google.com"},
+  "build": {"headers_enforced": true},
+  "deploy": {"host": "local", "remote_path": ""}
+}

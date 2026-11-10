@@ -1,0 +1,9 @@
+{
+  "name": "google-apps-script-personal",
+  "taxonomy": {"group": "Infra Apps", "category": "Ops-API-MCP"},
+  "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+  "category": "app",
+  "runtime": {"type": "apps-script", "language": "javascript", "host": "script.google.com"},
+  "build": {"headers_enforced": true},
+  "deploy": {"host": "local", "remote_path": ""}
+}
