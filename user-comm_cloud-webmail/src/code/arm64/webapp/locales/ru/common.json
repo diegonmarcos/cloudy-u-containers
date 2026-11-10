@@ -300,9 +300,7 @@
     "move": "Переместить",
     "print": "Распечатать",
     "view_source": "Просмотреть исходный код",
-
     "fullscreen": "Во весь экран",
-
     "exit_fullscreen": "Выйти из полноэкранного режима",
     "export_email": "Экспортировать как .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Скопировано!",
       "copy_failed": "Не удалось скопировать"
     },
-    "send_now": "Отправить сейчас"
+    "send_now": "Отправить сейчас",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Запрошено уведомление о прочтении (нажмите, чтобы отключить)",

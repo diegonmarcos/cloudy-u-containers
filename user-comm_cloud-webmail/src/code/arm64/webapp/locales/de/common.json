@@ -300,9 +300,7 @@
     "move": "Verschieben",
     "print": "Drucken",
     "view_source": "Quelltext anzeigen",
-
     "fullscreen": "Vollbild",
-
     "exit_fullscreen": "Vollbild beenden",
     "export_email": "Als .eml exportieren",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Kopiert!",
       "copy_failed": "Kopieren fehlgeschlagen"
     },
-    "send_now": "Jetzt senden"
+    "send_now": "Jetzt senden",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Lesebestätigung angefordert (klicken zum Deaktivieren)",

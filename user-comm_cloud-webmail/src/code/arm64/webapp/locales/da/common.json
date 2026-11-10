@@ -300,9 +300,7 @@
     "move": "Flyt",
     "print": "Udskriv",
     "view_source": "Vis kilde",
-
     "fullscreen": "Fuld skærm",
-
     "exit_fullscreen": "Afslut fuld skærm",
     "export_email": "Eksportér som .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Kopieret!",
       "copy_failed": "Kunne ikke kopiere"
     },
-    "send_now": "Send nu"
+    "send_now": "Send nu",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Læsekvittering anmodet (klik for at deaktivere)",

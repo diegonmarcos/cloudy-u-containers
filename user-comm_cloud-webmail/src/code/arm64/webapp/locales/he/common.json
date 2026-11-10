@@ -247,9 +247,7 @@
     "mark_read": "סמן כנקרא",
     "print": "הדפס",
     "view_source": "צפה במקור",
-
     "fullscreen": "מסך מלא",
-
     "exit_fullscreen": "יציאה ממסך מלא",
     "export_email": "ייצא כ-.eml",
     "forward_as_attachment": "Forward as attachment",
@@ -537,7 +535,13 @@
       "copied": "הועתק!",
       "copy_failed": "העתקה נכשלה"
     },
-    "send_now": "שלח עכשיו"
+    "send_now": "שלח עכשיו",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "new_message": "הודעה חדשה",

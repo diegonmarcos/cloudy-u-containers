@@ -300,9 +300,7 @@
     "move": "انتقال",
     "print": "چاپ",
     "view_source": "مشاهده منبع",
-
     "fullscreen": "تمام‌صفحه",
-
     "exit_fullscreen": "خروج از تمام‌صفحه",
     "export_email": "خروجی .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "کپی شد!",
       "copy_failed": "کپی ناموفق بود"
     },
-    "send_now": "ارسال فوری"
+    "send_now": "ارسال فوری",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "درخواست تأیید خواندن فعال (کلیک برای غیرفعال کردن)",

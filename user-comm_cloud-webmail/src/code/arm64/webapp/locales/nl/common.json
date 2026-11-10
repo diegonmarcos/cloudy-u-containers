@@ -300,9 +300,7 @@
     "move": "Verplaatsen",
     "print": "Afdrukken",
     "view_source": "Bron bekijken",
-
     "fullscreen": "Volledig scherm",
-
     "exit_fullscreen": "Volledig scherm sluiten",
     "export_email": "Exporteren als .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Gekopieerd!",
       "copy_failed": "Kopiëren mislukt"
     },
-    "send_now": "Nu verzenden"
+    "send_now": "Nu verzenden",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Leesbevestiging aangevraagd (klik om uit te schakelen)",

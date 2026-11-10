@@ -300,9 +300,7 @@
     "move": "Áthelyezés",
     "print": "Nyomtatás",
     "view_source": "Forrás megtekintése",
-
     "fullscreen": "Teljes képernyő",
-
     "exit_fullscreen": "Kilépés a teljes képernyőből",
     "export_email": "Exportálás .eml-ként",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Másolva!",
       "copy_failed": "A másolás nem sikerült"
     },
-    "send_now": "Küldés most"
+    "send_now": "Küldés most",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Olvasási visszaigazolás kérve (kattints a letiltáshoz)",

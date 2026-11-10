@@ -300,9 +300,7 @@
     "move": "Перенести",
     "print": "Роздрукувати",
     "view_source": "Переглянути джерело",
-
     "fullscreen": "На весь екран",
-
     "exit_fullscreen": "Вийти з повноекранного режиму",
     "export_email": "Експортувати як .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Скопійовано!",
       "copy_failed": "Не вдалося скопіювати"
     },
-    "send_now": "Надіслати зараз"
+    "send_now": "Надіслати зараз",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Запитано сповіщення про прочитання (натисніть, щоб вимкнути)",

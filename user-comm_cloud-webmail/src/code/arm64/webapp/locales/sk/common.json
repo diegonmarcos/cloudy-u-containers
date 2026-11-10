@@ -300,9 +300,7 @@
     "move": "Presunúť",
     "print": "Tlačiť",
     "view_source": "Zobraziť zdrojový kód",
-
     "fullscreen": "Celá obrazovka",
-
     "exit_fullscreen": "Ukončiť režim celej obrazovky",
     "export_email": "Exportovať ako .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Skopírované!",
       "copy_failed": "Kopírovanie zlyhalo"
     },
-    "send_now": "Odoslať teraz"
+    "send_now": "Odoslať teraz",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Potvrdenie o prečítaní požiadané (kliknutím vypnete)",

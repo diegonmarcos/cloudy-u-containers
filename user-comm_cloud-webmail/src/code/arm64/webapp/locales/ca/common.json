@@ -300,9 +300,7 @@
     "move": "Mou",
     "print": "Imprimeix",
     "view_source": "Mostra el codi font",
-
     "fullscreen": "Pantalla completa",
-
     "exit_fullscreen": "Surt de la pantalla completa",
     "export_email": "Exporta com a .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Copiat!",
       "copy_failed": "No s'ha pogut copiar"
     },
-    "send_now": "Envia ara"
+    "send_now": "Envia ara",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Confirmació de lectura sol·licitada (feu clic per desactivar-la)",

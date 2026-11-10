@@ -16,6 +16,8 @@ import { formatFileSize, cn, buildMailboxTree, MailboxNode, formatDateTime, gene
 import { emailDisplayDate } from "@/lib/email-date";
 import { TagBadge } from "./tag-badge";
 import { TagPicker } from "./tag-picker";
+import { MailTagSections } from "./mail-tag-sections";
+import { classifyTagIds } from "@/lib/keyword-classification";
 import { useMeasuredTagDisplay } from "@/hooks/use-tag-display";
 import { useKeywordFormat } from "@/hooks/use-keyword-format";
 import { getEmailTagIds } from "@/lib/thread-utils";
@@ -682,7 +684,7 @@ export function EmailViewer({
   const isTrustedAddressBookSender = useContactStore((state) => state.isTrustedAddressBookSender);
   const addToTrustedSendersBook = useContactStore((state) => state.addToTrustedSendersBook);
   const emailKeywords = useSettingsStore((state) => state.emailKeywords);
-  const { sortTagIds, tagColor } = useKeywordFormat();
+  const { sortTagIds, tagColor, tagName } = useKeywordFormat();
   const toolbarPosition = useSettingsStore((state) => state.toolbarPosition);
   const showToolbarLabels = useSettingsStore((state) => state.showToolbarLabels);
   const mailLayout = useSettingsStore((state) => state.mailLayout);
@@ -3770,8 +3772,19 @@ export function EmailViewer({
             )}
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2">
-                <h1 className="text-lg lg:text-xl font-bold text-foreground tracking-tight break-words min-w-0">
-                  {email.subject || t('no_subject')}
+                {/* Tapping the subject reveals the full mail metadata panel
+                    below (#1590), mirroring how tapping the sender reveals its
+                    details. */}
+                <h1 className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowFullHeaders((v) => !v)}
+                    aria-expanded={showFullHeaders}
+                    title={showFullHeaders ? t('hide_details') : t('show_details')}
+                    className="text-start text-lg lg:text-xl font-bold text-foreground tracking-tight break-words min-w-0 hover:text-primary transition-colors cursor-pointer"
+                  >
+                    {email.subject || t('no_subject')}
+                  </button>
                 </h1>
                 {/* Star inline with subject (top toolbar mode) */}
                 {toolbarPosition === 'top' && (
@@ -3792,16 +3805,16 @@ export function EmailViewer({
                   </span>
                 )}
               </div>
+              {/* Tags split into Project (expanded) and Meta (collapsed)
+                  families (#1590). The ref keeps measuring the row width so the
+                  badge/dot variant stays responsive. */}
               {sortedTagIds.length > 0 && (
-                <div ref={headerTagsRef} className="mt-1.5 flex flex-wrap items-center gap-1">
-                  {sortedTagIds.map((tagId) => (
-                    <TagBadge
-                      key={tagId}
-                      tagId={tagId}
-                      variant={headerTagVariant}
-                      onRemove={onSetTag && email ? () => onSetTag(email.id, tagId) : undefined}
-                    />
-                  ))}
+                <div ref={headerTagsRef}>
+                  <MailTagSections
+                    tagIds={sortedTagIds}
+                    variant={headerTagVariant}
+                    onRemove={onSetTag && email ? (tagId) => onSetTag(email.id, tagId) : undefined}
+                  />
                 </div>
               )}
             </div>
@@ -4290,9 +4303,97 @@ export function EmailViewer({
             />
           );
 
+          // Tags on the message, split into the Project and Meta families so
+          // the full-metadata view mirrors the reading panel's grouping (#1590).
+          const { project: detailProjectTags0, meta: detailMetaTags, other: detailOtherTags } =
+            classifyTagIds(sortedTagIds, tagName);
+          const detailProjectTags = [...detailProjectTags0, ...detailOtherTags];
+          const hasTagSection = detailProjectTags.length > 0 || detailMetaTags.length > 0;
+
+          // Builds a plain-text dump of every piece of metadata on screen so a
+          // single "Copy all" hands the lot to the clipboard (#1590). Reads the
+          // same already-derived values the panel renders, so the two never
+          // drift apart.
+          const buildMetadataText = (): string => {
+            const lines: string[] = [];
+            const add = (label: string, value?: string | null) => {
+              if (value) lines.push(`${label}: ${value}`);
+            };
+            const names = (addrs?: { name?: string; email: string }[]) =>
+              addrs && addrs.length
+                ? addrs.map((a) => (a.name ? `${a.name} <${a.email}>` : a.email)).join(', ')
+                : undefined;
+            add(t('subject'), email.subject || undefined);
+            add(t('from'), sender ? (sender.name ? `${sender.name} <${sender.email}>` : sender.email) : undefined);
+            if (replyToDifferent) add(t('reply_to_label').replace(':', ''), names(email.replyTo));
+            add(t('to'), names(email.to));
+            add(t('cc'), names(email.cc));
+            add(t('bcc'), names(email.bcc));
+            add(t('details.sent'), email.sentAt ? fullDate(email.sentAt) : undefined);
+            add(t('details.received'), email.receivedAt ? fullDate(email.receivedAt) : undefined);
+            add(t('details.size'), email.size ? formatFileSize(email.size) : undefined);
+            if (topMimeType) add(t('details.mime_type'), topMimeType);
+            if (detailProjectTags.length) add(t('project_tags'), detailProjectTags.map(tagName).join(', '));
+            if (detailMetaTags.length) add(t('meta_tags'), detailMetaTags.map(tagName).join(', '));
+            if (auth?.spf) add('SPF', `${auth.spf.result}${auth.spf.domain ? ` (${auth.spf.domain})` : ''}`);
+            if (auth?.dkim) add('DKIM', `${auth.dkim.result}${auth.dkim.domain ? ` (${auth.dkim.domain})` : ''}${auth.dkim.selector ? ` [${auth.dkim.selector}]` : ''}`);
+            if (auth?.dmarc) add('DMARC', `${auth.dmarc.result}${auth.dmarc.domain ? ` (${auth.dmarc.domain})` : ''}${auth.dmarc.policy ? ` policy=${auth.dmarc.policy}` : ''}`);
+            if (auth?.iprev) add(t('details.iprev'), `${auth.iprev.result}${auth.iprev.ip ? ` (${auth.iprev.ip})` : ''}`);
+            if (email.spamScore !== undefined) add(t('authentication.spam_score'), `${email.spamScore}${email.spamStatus ? ` (${email.spamStatus})` : ''}`);
+            add(t('headers.message_id'), email.messageId || undefined);
+            add(t('details.thread_id'), email.threadId || undefined);
+            if (email.references?.length) add(t('details.references'), email.references.join(' '));
+            if (listHeaders?.listId) add(t('details.list_id'), listHeaders.listId);
+            if (listHeaders?.listUnsubscribe?.preferred) {
+              add(
+                t('details.list_unsubscribe'),
+                listHeaders.listUnsubscribe.preferred === 'http'
+                  ? listHeaders.listUnsubscribe.http
+                  : listHeaders.listUnsubscribe.mailto,
+              );
+            }
+            if (email.accountLabel) add(t('details.account'), email.accountLabel);
+            return lines.join('\n');
+          };
+          const handleCopyAllMetadata = async () => {
+            try {
+              await navigator.clipboard.writeText(buildMetadataText());
+              toast.success(t('metadata_copied'));
+            } catch {
+              toast.error(t('contact_sidebar.copy_failed'));
+            }
+          };
+
           return (
             <div className="bg-background border-b border-border px-4 lg:px-6" style={{ paddingBlock: 'var(--density-header-py)' }}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-5">
+                {hasTagSection && (
+                  <section className="lg:col-span-2 min-w-0">
+                    <SectionHeader>{t('tag')}</SectionHeader>
+                    <div className="flex flex-col gap-2">
+                      {detailProjectTags.length > 0 && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-muted-foreground text-xs pt-1 w-20 shrink-0">{t('project_tags')}</span>
+                          <div className="flex flex-wrap items-center gap-1 min-w-0">
+                            {detailProjectTags.map((tagId) => (
+                              <TagBadge key={tagId} tagId={tagId} variant="badge" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {detailMetaTags.length > 0 && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-muted-foreground text-xs pt-1 w-20 shrink-0">{t('meta_tags')}</span>
+                          <div className="flex flex-wrap items-center gap-1 min-w-0">
+                            {detailMetaTags.map((tagId) => (
+                              <TagBadge key={tagId} tagId={tagId} variant="badge" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
                 <section className="min-w-0">
                   <SectionHeader>{t('details.recipients_routing')}</SectionHeader>
                   <dl className="grid grid-cols-[7rem_1fr] gap-x-4 gap-y-1.5">
@@ -4536,6 +4637,18 @@ export function EmailViewer({
                     />
                   </section>
                 )}
+              </div>
+              {/* Copy all metadata as plain text (#1590). */}
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyAllMetadata}
+                  className="gap-1.5"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  {t('copy_all')}
+                </Button>
               </div>
             </div>
           );

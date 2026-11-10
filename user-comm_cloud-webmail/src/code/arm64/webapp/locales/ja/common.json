@@ -300,9 +300,7 @@
     "move": "移動",
     "print": "印刷",
     "view_source": "ソースを表示",
-
     "fullscreen": "全画面表示",
-
     "exit_fullscreen": "全画面表示を終了",
     "export_email": ".emlとしてエクスポート",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "コピーしました！",
       "copy_failed": "コピーに失敗しました"
     },
-    "send_now": "今すぐ送信"
+    "send_now": "今すぐ送信",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "開封確認を要求中（クリックで無効化）",

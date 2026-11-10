@@ -300,9 +300,7 @@
     "move": "نقل",
     "print": "طباعة",
     "view_source": "عرض المصدر",
-
     "fullscreen": "ملء الشاشة",
-
     "exit_fullscreen": "الخروج من ملء الشاشة",
     "export_email": "تصدير كملف ‎.eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "تم النسخ!",
       "copy_failed": "فشل النسخ"
     },
-    "send_now": "إرسال الآن"
+    "send_now": "إرسال الآن",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "إيصال القراءة مطلوب (انقر للتعطيل)",

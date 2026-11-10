@@ -300,9 +300,7 @@
     "move": "Mutare",
     "print": "Imprimare",
     "view_source": "Vizualizați sursa",
-
     "fullscreen": "Ecran complet",
-
     "exit_fullscreen": "Ieșire din ecran complet",
     "export_email": "Exportați ca fișier .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Copiat!",
       "copy_failed": "Copierea a eșuat"
     },
-    "send_now": "Trimite acum"
+    "send_now": "Trimite acum",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Solicitare confirmare de citire (faceți clic pentru a dezactiva)",

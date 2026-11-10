@@ -300,9 +300,7 @@
     "move": "Taşı",
     "print": "Yazdır",
     "view_source": "Kaynağı görüntüle",
-
     "fullscreen": "Tam ekran",
-
     "exit_fullscreen": "Tam ekrandan çık",
     "export_email": ".eml olarak dışa aktar",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Kopyalandı!",
       "copy_failed": "Kopyalanamadı"
     },
-    "send_now": "Şimdi gönder"
+    "send_now": "Şimdi gönder",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Okundu bilgisi istendi (devre dışı bırakmak için tıklayın)",

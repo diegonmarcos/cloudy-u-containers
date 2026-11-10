@@ -300,9 +300,7 @@
     "move": "Pārvietot",
     "print": "Drukāt",
     "view_source": "Skatīt avota kodu",
-
     "fullscreen": "Pilnekrāna režīms",
-
     "exit_fullscreen": "Iziet no pilnekrāna režīma",
     "export_email": "Eksportēt kā .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "Nokopēts!",
       "copy_failed": "Neizdevās nokopēt"
     },
-    "send_now": "Sūtīt tagad"
+    "send_now": "Sūtīt tagad",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Pieprasīts lasīšanas apstiprinājums (noklikšķiniet, lai atspējotu)",

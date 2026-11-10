@@ -300,9 +300,7 @@
     "move": "移动",
     "print": "打印",
     "view_source": "查看源码",
-
     "fullscreen": "全屏",
-
     "exit_fullscreen": "退出全屏",
     "export_email": "导出为 .eml",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "已复制！",
       "copy_failed": "复制失败"
     },
-    "send_now": "立即发送"
+    "send_now": "立即发送",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "已请求已读回执（点击以关闭）",

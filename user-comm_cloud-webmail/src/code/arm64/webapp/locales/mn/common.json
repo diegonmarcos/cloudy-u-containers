@@ -300,9 +300,7 @@
     "move": "Хөдөлгөөн",
     "print": "Хэвлэх",
     "view_source": "Эх сурвалжийг харах",
-
     "fullscreen": "Бүтэн дэлгэц",
-
     "exit_fullscreen": "Бүтэн дэлгэцээс гарах",
     "export_email": ".eml",
     "forward_as_attachment": "Хавсралт болгон дамжуулах",
@@ -572,7 +570,13 @@
       "copied": "Хуулбарласан!",
       "copy_failed": "Хуулж чадсангүй"
     },
-    "send_now": "Одоо илгээх"
+    "send_now": "Одоо илгээх",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "Уншсан баримт хүссэн (идэвхгүй болгохын тулд дарна уу)",

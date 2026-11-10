@@ -300,9 +300,7 @@
     "move": "이동",
     "print": "인쇄",
     "view_source": "원본 보기",
-
     "fullscreen": "전체 화면",
-
     "exit_fullscreen": "전체 화면 종료",
     "export_email": ".eml 파일로 내보내기",
     "forward_as_attachment": "Forward as attachment",
@@ -572,7 +570,13 @@
       "copied": "복사됨!",
       "copy_failed": "복사하지 못했습니다"
     },
-    "send_now": "지금 보내기"
+    "send_now": "지금 보내기",
+    "project_tags": "Project",
+    "meta_tags": "Meta",
+    "see_more": "See more",
+    "see_less": "See less",
+    "copy_all": "Copy all",
+    "metadata_copied": "Metadata copied to clipboard"
   },
   "email_composer": {
     "read_receipt_on": "읽음 확인 요청됨 (클릭하여 해제)",
