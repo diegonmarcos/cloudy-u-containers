@@ -1,4 +1,8 @@
 {
+  "runtime": {
+    "oom_score_adj": 700,
+    "_why_oom_score_adj": "#1641 sacrificial tier (killed before the c3 control plane): Chromium farm (2G cap): the most memory-hungry thing per MB of value, restartable on demand. Ordering: _shared/oom-priority.json."
+  },
   "name": "steel-browser",
   "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
   "description": "Steel Browser — owner-authorized ethical-hacking/security-testing headless browser (own services only). Private mesh, token-gated via a Caddy bearer sidecar, declared target allowlist enforced in the c3 MCP layer. Apache-2.0.",

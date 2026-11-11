@@ -87,6 +87,16 @@ let
       inherit services;
     };
 
+  # OOM kill order — see _shared/oom-priority.nix and oom-priority.json (#1641).
+  # build.json runtime.oom_score_adj, applied to every service that does not set
+  # its own; a service that declares nothing renders exactly as before.
+  applyOomPriority = services:
+    import ./oom-priority.nix {
+      adj   = (buildJson.runtime or {}).oom_score_adj or null;
+      title = title;
+      inherit services;
+    };
+
   # ──────────────────────────────────────────────────────────────
   # Agent toolbelt (#509, extends #366/#450) — data-driven from
   # _shared/agent-toolbelt.json, the ONE declaration every AI agent
@@ -453,7 +463,7 @@ let
       # applyMemoryCeiling wraps the WHOLE set, git-tree repair included: a
       # container the engine adds is still a container, and the one that got
       # away is exactly how uncapped stays reachable.
-      services = applyMemoryCeiling ((lib.mapAttrs
+      services = applyOomPriority (applyMemoryCeiling ((lib.mapAttrs
         (name: svc:
           mergeGitTreeMaintInto (
           if agentCredential.isAgent name
@@ -461,7 +471,7 @@ let
           # #359: not an agent — no tree, no /run/secrets, token blanked.
           else agentCredential.withhold (mergeSecretsEnvOnly (mergeSvc svc))))
         (spec.services or {}))
-        // (if wantsGitTree then { "${gitTreeRepairKey}" = gitTreeRepairSvc; } else {}));
+        // (if wantsGitTree then { "${gitTreeRepairKey}" = gitTreeRepairSvc; } else {})));
     } // (if wantsGitTree || wantsGitTreeMaint
           then {
             volumes = (spec.volumes or {})

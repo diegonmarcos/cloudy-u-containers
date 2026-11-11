@@ -19,7 +19,10 @@ if [ -d /root/.ssh ]; then
 fi
 
 export PATH="/app/node_modules/.bin:/usr/local/nix-bin:$PATH"
-export NODE_OPTIONS="--unhandled-rejections=throw"
+# #1641: V8 is told its budget (3G cgroup ceiling in build.json containers.app.resources):
+# a heap capped at half of it leaves room for the ssh/git/curl/oci/wrangler children this
+# server fans out, so a leak surfaces as a V8 heap error instead of a cgroup OOM-kill.
+export NODE_OPTIONS="--unhandled-rejections=throw --max-old-space-size=1536"
 
 # Materialise OCI config + PEM from sops-passed env vars (declarative,
 # data-flows entirely through src/secrets.yaml -> .secrets env file).

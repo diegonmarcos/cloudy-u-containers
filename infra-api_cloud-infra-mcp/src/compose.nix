@@ -24,6 +24,12 @@ in
       # Override fleet default pids=256 via deploy.resources (compose-defaults.json).
       # Using pids_limit conflicts with deploy.resources.limits.pids in compose v3.
       deploy.resources.limits.pids = buildJson.runtime.pids_limit or 256;
+      # #1641: memory budget from build.json containers.app.resources (the ONE declaration).
+      # No restart policy here on purpose (fleet default "no" is kept, owner policy): the
+      # container stays up because it is OOM-protected (runtime.oom_score_adj, applied by
+      # _shared/oom-priority.nix) and has headroom, and comes back at boot via container-init.
+      deploy.resources.limits.memory = app.resources.mem_limit;
+      deploy.resources.reservations.memory = app.resources.mem_reservation;
       env_file = [ ".secrets" ];
       environment = {
         NODE_ENV = "production";

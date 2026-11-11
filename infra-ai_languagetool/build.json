@@ -1,4 +1,8 @@
 {
+  "runtime": {
+    "oom_score_adj": 600,
+    "_why_oom_score_adj": "#1641 sacrificial tier (killed before the c3 control plane): JVM grammar checker (4G cap, 899MiB measured): cosmetic, restartable. Ordering: _shared/oom-priority.json."
+  },
   "name": "languagetool",
   "taxonomy": {"group": "Cloud Apps", "category": "Tools Primary"},
   "description": "LanguageTool grammar/spell-check HTTP API — rules-only, no n-grams, WG-only sidecar on oci-apps",

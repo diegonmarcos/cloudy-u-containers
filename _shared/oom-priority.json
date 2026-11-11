@@ -1,0 +1,23 @@
+{
+  "_comment": "#1641 fleet OOM kill order for oci-apps (24G RAM, ~326G of declared cgroup ceilings, zram 12G + 24G disk swap). The ONE declaration per service is build.json runtime.oom_score_adj, applied by _shared/oom-priority.nix; this file is the ordering and the reasoning, and _shared/test-oom-priority.mjs fails if a service listed under `applied` disagrees with its build.json. Lower = killed LAST. The kernel kills the highest oom_score first. Host-side tiers already in force (cloudy-t-infra protection/system-packages.json): connectivity sshd/wg -900, protection -800, docker daemon +500; containers are NOT inherited from the daemon (docker sets 0), so the values below are what the container tasks really carry. -1000 is deliberately not used: it exempts a task from the cgroup OOM killer too, so a runaway would wedge against memory.max instead of being reaped.",
+  "tiers": [
+    { "tier": "control-plane", "adj": -900, "applied": ["infra-api_cloud-infra-mcp"],
+      "why": "c3-infra MCP: the fleet's own remote hands. Restart policy is 'no' (owner policy), so a kill means it stays down and the owner loses every MCP tool." },
+    { "tier": "default", "adj": 0, "applied": [],
+      "why": "Everything that declares nothing: app/data/obs containers, kg-store, mail, vault, caddy, edge. The kernel's own memory-size badness ranks these." },
+    { "tier": "sacrificial", "adj": 600, "applied": ["infra-ai_languagetool", "user-data_cloudy-browser-headless"],
+      "why": "Restartable on demand, cosmetic or re-creatable state." },
+    { "tier": "sacrificial-heavy", "adj": 700, "applied": ["infra-sec_steel-browser"],
+      "why": "Chromium farm: biggest memory per unit of value." },
+    { "tier": "sacrificial-first", "adj": 800, "applied": ["infra-sec_zap"],
+      "why": "JVM scanner, on demand only: killed before anything else in this list." }
+  ],
+  "deferred": {
+    "_why": "Not changed in #1641 because recreating the container kills live work (a runner mid-build or an agent mid-session, and Ship can itself run on the oci-apps runner). Each is a one-line runtime.oom_score_adj in its build.json to be applied during a quiet window.",
+    "infra-bld_gha-runner": { "suggested_adj": 900, "ceiling": "4 x 16G, restart: always", "note": "Largest declared memory footprint on the VM (64G of ceilings): the prime hog candidate under a Gradle/Nix build." },
+    "user-ai_cloudy-ai-claude-api": { "suggested_adj": 500, "ceiling": "16G", "note": "Agent runner; the load-shedder already treats it as sheddable demand." },
+    "user-ai_cloudy-ai-agents-api": { "suggested_adj": 500, "ceiling": "8G x 2" },
+    "infra-ai_cloudy-ai-embeddings-api": { "suggested_adj": 400, "ceiling": "6G" },
+    "user-ai_cloud-cgc-pub-mcp": { "suggested_adj": 300, "ceiling": "8G x 7" }
+  }
+}
