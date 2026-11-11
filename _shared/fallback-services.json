@@ -20,10 +20,19 @@
       "bearer": true
     },
     {
-      "slug": "embeddings-api",
-      "dir": "infra-ai_embeddings-api",
+      "slug": "cloudy-ai-api",
+      "dir": "infra-ai_cloudy-ai-api",
+      "description": "AI gateway: /ai/{tokens,embeddings,agents,claude,memory} -> separate backend containers (cloudy-ai-*-api); legacy /<old-name>/ paths kept for one release.",
+      "mesh": "cloudy-ai-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-ai-embeddings-api",
+      "dir": "infra-ai_cloudy-ai-embeddings-api",
       "description": "Fleet embeddings + rerank + PDF text server, CPU, mesh-only on oci-apps. OpenAI-compatible POST /embeddings (BAAI/bge-m3) and POST /rerank (BAAI/bge-reranker-v2-m3) served by Infinity, plus POST /pdf (raw application/pdf body to plain text,",
-      "mesh": "embeddings-api.mesh.diegonmarcos.com",
+      "mesh": "cloudy-ai-embeddings-api.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": true
@@ -49,15 +58,6 @@
       "bearer": false
     },
     {
-      "slug": "c3-infra-api",
-      "dir": "infra-api_c3-infra-api",
-      "description": "C3 REST API — Cloud Control Center Fastify API",
-      "mesh": "c3-infra-api.mesh.diegonmarcos.com",
-      "hosts": [],
-      "signin": false,
-      "bearer": true
-    },
-    {
       "slug": "c3-public-api",
       "dir": "infra-api_c3-public-api",
       "description": "C3 Public API — single public-edge listener on oci-analytics. Consolidates http-to-smtp-proxy-api (Bearer-gated /mail/*) and c3-analytics-api passthrough (public /analytics/*). Replaces split listeners across gcp-proxy + oci-analytics so gc",
@@ -67,13 +67,13 @@
       "bearer": true
     },
     {
-      "slug": "c3-services-api",
-      "dir": "infra-api_c3-services-api",
-      "description": "C3 Services REST API — service API gateway Fastify API",
-      "mesh": "c3-services-api.mesh.diegonmarcos.com",
+      "slug": "c3bot-relay",
+      "dir": "infra-api_c3bot-relay",
+      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-po",
+      "mesh": "c3bot-relay.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
-      "bearer": true
+      "bearer": false
     },
     {
       "slug": "cloud-drive-mcp",
@@ -156,13 +156,89 @@
       "bearer": true
     },
     {
-      "slug": "git-proxy-api",
-      "dir": "infra-api_git-proxy-api",
-      "description": "Git Proxy API — Authelia-fronted read path to GitHub so the phone holds NO GitHub credential (#647, route 3 of #646's fallback chain). The caller authenticates to US with the Authelia bearer it already has; this service holds the GitHub tok",
-      "mesh": "git-proxy-api.mesh.diegonmarcos.com",
+      "slug": "cloudy-all-api",
+      "dir": "infra-api_cloudy-all-api",
+      "description": "C3 Services REST API — service API gateway Fastify API",
+      "mesh": "cloudy-all-api.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": true
+    },
+    {
+      "slug": "cloudy-all-mcp",
+      "dir": "infra-api_cloudy-all-mcp",
+      "description": "Fleet MCP router: list_servers, list_tools(server), call(server, tool, args)",
+      "mesh": "cloudy-all-mcp.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-apps-communication-mcp",
+      "dir": "infra-api_cloudy-apps-communication-mcp",
+      "description": "Mail MCP server — IMAP/SMTP/Admin via Stalwart REST API",
+      "mesh": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+      "hosts": [
+        "mcp.diegonmarcos.com"
+      ],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-apps-drive-mcp",
+      "dir": "infra-api_cloudy-apps-drive-mcp",
+      "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
+      "mesh": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com",
+      "hosts": [
+        "mcp.diegonmarcos.com"
+      ],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-c3-api",
+      "dir": "infra-api_cloudy-c3-api",
+      "description": "C3 REST API — Cloud Control Center Fastify API",
+      "mesh": "cloudy-c3-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-drive-git-proxy-api",
+      "dir": "infra-api_cloudy-drive-git-proxy-api",
+      "description": "Git Proxy API — Authelia-fronted read path to GitHub so the phone holds NO GitHub credential (#647, route 3 of #646's fallback chain). The caller authenticates to US with the Authelia bearer it already has; this service holds the GitHub tok",
+      "mesh": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-mail-http-to-smtp-api",
+      "dir": "infra-api_cloudy-mail-http-to-smtp-api",
+      "description": "HTTP-to-SMTP bridge sidecar of Caddy on gcp-proxy. CF Worker POSTs JSON email payloads to this container (because GCP blocks outbound TCP/25); container speaks SMTP over WG to maddy:25 + stalwart:2025 on oci-mail. Public path: api.diegonmar",
+      "mesh": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "google-apps-script-personal",
+      "dir": "infra-api_google-apps-script-personal",
+      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is sh",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "google-apps-script-workspace",
+      "dir": "infra-api_google-apps-script-workspace",
+      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
     },
     {
       "slug": "google-personal-mcp",
@@ -183,15 +259,6 @@
       "hosts": [
         "mcp.diegonmarcos.com"
       ],
-      "signin": false,
-      "bearer": true
-    },
-    {
-      "slug": "http-to-smtp-proxy-api",
-      "dir": "infra-api_tools-http-to-smtp-proxy-api",
-      "description": "HTTP-to-SMTP bridge sidecar of Caddy on gcp-proxy. CF Worker POSTs JSON email payloads to this container (because GCP blocks outbound TCP/25); container speaks SMTP over WG to maddy:25 + stalwart:2025 on oci-mail. Public path: api.diegonmar",
-      "mesh": "http-to-smtp-proxy-api.mesh.diegonmarcos.com",
-      "hosts": [],
       "signin": false,
       "bearer": true
     },
@@ -491,6 +558,15 @@
       "bearer": false
     },
     {
+      "slug": "cloudy-ai-tokens-api",
+      "dir": "infra-sec_cloudy-ai-tokens-api",
+      "description": "Fleet token engine: lists, generates, reveals and revokes every fleet bearer token (fleet ft_ tokens and adopted Authelia JWTs); introspect-proxy asks it before accepting a Bearer, so a revoked token stops working within 60 seconds. Public ",
+      "mesh": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
       "slug": "crowdsec",
       "dir": "infra-sec_crowdsec",
       "description": "CrowdSec behavioral IDS/IPS engine — DORMANT placeholder (Cloudflare-off fallback). Container runs but detects/remediates nothing: empty acquisition, online API (CAPI) disabled, no bouncers wired.",
@@ -520,19 +596,73 @@
       "bearer": false
     },
     {
-      "slug": "tokens-api",
-      "dir": "infra-sec_tokens-api",
-      "description": "Fleet token engine: lists, generates, reveals and revokes every fleet bearer token (fleet ft_ tokens and adopted Authelia JWTs); introspect-proxy asks it before accepting a Bearer, so a revoked token stops working within 60 seconds. Public ",
-      "mesh": "tokens-api.mesh.diegonmarcos.com",
+      "slug": "steel-browser",
+      "dir": "infra-sec_steel-browser",
+      "description": "Steel Browser — owner-authorized ethical-hacking/security-testing headless browser (own services only). Private mesh, token-gated via a Caddy bearer sidecar, declared target allowlist enforced in the c3 MCP layer. Apache-2.0.",
+      "mesh": "steel-browser.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
-      "bearer": true
+      "bearer": false
+    },
+    {
+      "slug": "zap",
+      "dir": "infra-sec_zap",
+      "description": "OWASP ZAP — owner-authorized ethical-hacking/security scanner (own services only), headless daemon. Private mesh (bound to wg0), native API-key auth from vault, declared allowlist enforced as ZAP context/scope and in the c3 MCP layer. Apach",
+      "mesh": "zap.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": false
     },
     {
       "slug": "cloud-cgc-pub-mcp",
       "dir": "user-ai_cloud-cgc-pub-mcp",
       "description": "Cloud CGC Pub MCP — Code Graph Context: infra knowledge, specs, docs, semantic code search",
       "mesh": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloud-me-cgc-pvt-graph-api",
+      "dir": "user-ai_cloud-me-cgc-pvt-graph-api",
+      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-ai-agents-api",
+      "dir": "user-ai_cloudy-ai-agents-api",
+      "description": "my-ai API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by OpenRouter (no Claude subscription, no metered Anthropic key), with a vendored Headroom (Apache-2.0) compression hop and a sav",
+      "mesh": "cloudy-ai-agents-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-ai-claude-api",
+      "dir": "user-ai_cloudy-ai-claude-api",
+      "description": "Claude superset API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by the subscription `claude` CLI (no metered key), with a vendored Headroom (Apache-2.0) compression hop and a savings ",
+      "mesh": "my-ai-claude-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-ai-memory-api",
+      "dir": "user-ai_cloudy-ai-memory-api",
+      "description": "Central SQLite store of all Claude Code session transcripts — push/list/fetch so a session started on one device can be resumed from any other. WG-only sidecar on oci-apps; Node 22 built-in node:sqlite (phone-portable, no native deps).",
+      "mesh": "cloudy-ai-memory-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-cgc-pub-graph-api",
+      "dir": "user-ai_cloudy-cgc-pub-graph-api",
+      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
+      "mesh": null,
       "hosts": [],
       "signin": false,
       "bearer": true
@@ -556,55 +686,10 @@
       "bearer": false
     },
     {
-      "slug": "kg-store",
-      "dir": "user-ai_kg-store",
-      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
-      "slug": "kg-store-pub",
-      "dir": "user-ai_kg-store-pub",
-      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
-      "slug": "my-ai-api",
-      "dir": "user-ai_my-ai-api",
-      "description": "my-ai API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by OpenRouter (no Claude subscription, no metered Anthropic key), with a vendored Headroom (Apache-2.0) compression hop and a sav",
-      "mesh": "my-ai-api.mesh.diegonmarcos.com",
-      "hosts": [],
-      "signin": false,
-      "bearer": true
-    },
-    {
-      "slug": "my-ai_claude-api",
-      "dir": "user-ai_my-ai_claude-api",
-      "description": "Claude superset API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by the subscription `claude` CLI (no metered key), with a vendored Headroom (Apache-2.0) compression hop and a savings ",
-      "mesh": "my-ai-claude-api.mesh.diegonmarcos.com",
-      "hosts": [],
-      "signin": false,
-      "bearer": true
-    },
-    {
       "slug": "openclaw",
       "dir": "user-ai_openclaw",
       "description": "OpenClaw (MIT, github.com/openclaw/openclaw) on oci-apps — the open-source personal agent gateway, as a fourth fleet agent next to hermes, goose and claude. Upstream's own image, unmodified. Its gateway listens on a local address only (host",
       "mesh": "openclaw.mesh.diegonmarcos.com",
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
-      "slug": "session-memory",
-      "dir": "user-ai_session-memory",
-      "description": "Central SQLite store of all Claude Code session transcripts — push/list/fetch so a session started on one device can be resumed from any other. WG-only sidecar on oci-apps; Node 22 built-in node:sqlite (phone-portable, no native deps).",
-      "mesh": "session-memory.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": false
@@ -696,19 +781,28 @@
       "bearer": false
     },
     {
-      "slug": "scrappers-api",
-      "dir": "user-data_scrappers-api",
+      "slug": "cloudy-browser-headless",
+      "dir": "user-data_cloudy-browser-headless",
+      "description": "Headless browser for agents: official Playwright image (Apache-2.0, not browserless/SSPL) plus a small Node server implementing the shared headless-api JSON command API (open/wait/eval/click/type/scroll/html/text/readable (markdown|json|xml",
+      "mesh": "cloudy-browser-headless.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "cloudy-browser-scrapper-api",
+      "dir": "user-data_cloudy-browser-scrapper-api",
       "description": "Unified scrapers API (Instagram / Pinterest / LinkedIn / generic crawl) — retires crawlee-cloud. Lean single-container FastAPI, on-demand, flat-JSON output.",
-      "mesh": "scrappers-api.mesh.diegonmarcos.com",
+      "mesh": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": true
     },
     {
-      "slug": "capital-stack-finterminal-api",
-      "dir": "user-fin_capital-stack-finterminal-api",
+      "slug": "capital-stack-finterm-api",
+      "dir": "user-fin_capital-stack-finterm-api",
       "description": "Fincept Terminal backend (capital-stack-finterminal-api) — REST + WebSocket over DataHub, 35 data connectors, 7 analytics, 17 brokers, 6 investor personas, MCP tools",
-      "mesh": "capital-stack-finterminal-api.mesh.diegonmarcos.com",
+      "mesh": "capital-stack-finterm-api.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": true
@@ -745,13 +839,13 @@
       "bearer": false
     },
     {
-      "slug": "news-gdelt",
-      "dir": "user-news_news-gdelt",
+      "slug": "capital-stack-news-gdelt-api",
+      "dir": "user-news_capital-stack-news-gdelt-api",
       "description": "GDELT News Aggregator — Fastify API with SQLite cache",
       "mesh": null,
       "hosts": [],
       "signin": false,
-      "bearer": false
+      "bearer": true
     },
     {
       "slug": "calendar-radicale",
