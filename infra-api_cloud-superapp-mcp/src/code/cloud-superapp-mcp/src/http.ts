@@ -4,6 +4,9 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { registerAll } from "../../lib-mcp/src/tools.js";
 import { loadModules } from "../../lib-mcp/src/registry.js";
 
+// The address the persistent session dials: the one the listener binds (see startMcpHttpServer).
+const SELF_HOST = !process.env.MCP_HTTP_HOST || process.env.MCP_HTTP_HOST === "0.0.0.0" ? "127.0.0.1" : process.env.MCP_HTTP_HOST;
+
 const log = (msg: string) => process.stderr.write(`[cloud-superapp-mcp-http] ${msg}\n`);
 const SESSION_ID = "cloud-superapp-mcp-session";
 
@@ -51,12 +54,12 @@ async function initSession(port: number): Promise<void> {
   await new Promise<void>((resolve) => {
     const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize",
       params: { protocolVersion: "2024-11-05", capabilities: {}, clientInfo: { name: "self", version: "1.0" } } });
-    const req = httpRequest({ hostname: "127.0.0.1", port, path: "/mcp", method: "POST",
+    const req = httpRequest({ hostname: SELF_HOST, port, path: "/mcp", method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", "Content-Length": Buffer.byteLength(body) },
     }, (res) => {
       res.on("data", () => {}); res.on("end", () => {
         const notif = JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" });
-        const nr = httpRequest({ hostname: "127.0.0.1", port, path: "/mcp", method: "POST",
+        const nr = httpRequest({ hostname: SELF_HOST, port, path: "/mcp", method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream",
             "Mcp-Session-Id": SESSION_ID, "Content-Length": Buffer.byteLength(notif) } });
         nr.write(notif); nr.end();
@@ -70,14 +73,19 @@ async function initSession(port: number): Promise<void> {
   log(`Persistent session ready: ${SESSION_ID}`);
 }
 
-export function startMcpHttpServer(port: number = 3110): Promise<void> {
+export function startMcpHttpServer(port: number = 3113): Promise<void> {
   return new Promise((resolve) => {
     const httpServer = createServer(async (req, res) => {
       try { await handleMcpRequest(req, res); }
       catch (err) { log(`Error: ${err}`); if (!res.headersSent) { res.writeHead(500); res.end(JSON.stringify({ error: "Internal Server Error" })); } }
     });
-    httpServer.listen(port, "0.0.0.0", async () => {
-      log(`MCP Streamable HTTP server listening on 0.0.0.0:${port}`);
+    // #1659: bind the address compose.nix declares (MCP_HTTP_HOST = the VM's WG IP). Under host
+    // networking a 0.0.0.0 listener sits on every interface and collides with any other host
+    // listener on the same port number, whatever address that one binds.
+    const host = process.env.MCP_HTTP_HOST || "0.0.0.0";
+    httpServer.on("error", (err) => { log(`FATAL listen ${host}:${port}: ${err}`); process.exit(1); });
+    httpServer.listen(port, host, async () => {
+      log(`MCP Streamable HTTP server listening on ${host}:${port}`);
       await initSession(port);
       resolve();
     });

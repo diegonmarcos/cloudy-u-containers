@@ -122,5 +122,11 @@
     "description": "Unified service API gateway: Grafana, Matomo, Umami, Ntfy, Syncthing, Crawlee, Authelia, NocoDB, PhotoPrism, Gitea, Grist, HedgeDoc, Etherpad, Vaultwarden; proxies infra and user MCPs.",
     "auth": "none",
     "sdk": "@modelcontextprotocol/sdk@^1.12.0"
+  },
+  "tests": {
+    "startup-imports": {
+      "cmd": "node test-startup-imports.mjs",
+      "cwd": "src"
+    }
   }
 }

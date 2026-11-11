@@ -20,7 +20,7 @@ const log = (msg: string) => process.stderr.write(`[cloud-superapp-mcp] ${msg}\n
 async function main() {
   if (process.argv.includes("--http")) {
     const { startMcpHttpServer } = await import("./http.js");
-    const port = parseInt(process.env.MCP_HTTP_PORT || process.env.PORT || "3110", 10);
+    const port = parseInt(process.env.MCP_HTTP_PORT || process.env.PORT || "3113", 10);
     await startMcpHttpServer(port);
     return;
   }
