@@ -61,6 +61,10 @@ let
   };
   # Octocode index wiring (data-driven from build.json.runtime.octocode).
   oct = buildJson.runtime.octocode;
+  # #1659 OOM order: build.json runtime.oom_score_adj (-900) is applied by the
+  # engine to every service that sets none (_shared/oom-priority.nix). Only the
+  # two MCP servers may carry it; the batch jobs below set their own.
+  jobOomAdj = buildJson.runtime.job_oom_score_adj;
 
   # Extension -> EXISTING octocode grammar map, rendered as "kt=java kts=java"
   # for reindex.sh's set_file_associations(). octocode 0.22.0 drops a file at the
@@ -114,6 +118,7 @@ let
   # only), `reindex` = forced fresh build (octocode clear + index) that re-runs the
   # GraphRAG AI phase (description/relationship LLM calls).
   octocodeJob = {
+    oom_score_adj = jobOomAdj;
     image = binariesImage;
     network_mode = "host";
     user = "0:0";
@@ -288,6 +293,7 @@ let
     image = "docker:cli";
     container_name = containerName;
     profiles = [ profile ];
+    oom_score_adj = jobOomAdj;
     restart = "no";
     # Host networking, exactly like the app and octocodeJob above. This service
     # runs `docker manifest inspect` INSIDE the container, and that is a CLI-side
@@ -389,6 +395,7 @@ in
     cloud-cgc-pub-mcp-db-restore = {
       image = dbImage;
       container_name = "cloud-cgc-pub-mcp-db-restore";
+      oom_score_adj = jobOomAdj;
       profiles = [ "restore" ];
       restart = "no";
       volumes = [ "${oct.db_volume}:${oct.db_path}" ];

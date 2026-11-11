@@ -1,0 +1,34 @@
+{
+  "_comment": "#1659 the MCP tier of the oci-apps OOM kill order. Extends _shared/oom-priority.json (#1641), whose `control-plane` tier named only cloud-infra-mcp: every MCP server on oci-apps is now in the last tier the kernel OOM killer picks. The ONE declaration per service is still build.json runtime.oom_score_adj, applied by _shared/oom-priority.nix through engine.nix to the rendered compose (`oom_score_adj`), which docker applies to the container's init process when compose (re)creates it on deploy. This file lives under _shared/test/ on purpose: the Ship detect step fans a change to any other _shared/ file out to every engine consumer (the whole fleet is rebuilt and redeployed), and an ordering note must not do that. _shared/test-oom-priority.mjs reads it and fails when it and the build.json files disagree, when a service that declares an `mcp` block on oci-apps is missing from `applied`, or when anything that is not an MCP server is ranked as safe or safer.",
+  "tier": "mcp",
+  "adj": -900,
+  "host": "oci-apps",
+  "why": "An MCP server is the owner's and the agents' hands on the fleet. Restart policy is 'no' (owner rule, kept), so a killed MCP stays down until someone starts it by hand. -900 equals the host's connectivity tier (sshd, WireGuard); -1000 is not used because it would also exempt the task from its own cgroup limit.",
+  "applied": [
+    "infra-api_cloud-drive-mcp",
+    "infra-api_cloud-infra-mcp",
+    "infra-api_cloud-mail-mcp",
+    "infra-api_cloud-mattermost-mcp",
+    "infra-api_cloud-services-mcp",
+    "infra-api_cloud-superapp-mcp",
+    "infra-api_cloud-vault-mcp",
+    "infra-api_cloudy-all-mcp",
+    "infra-api_cloudy-apps-communication-mcp",
+    "infra-api_cloudy-apps-drive-mcp",
+    "infra-api_google-personal-mcp",
+    "infra-api_google-workspace-mcp",
+    "user-ai_cloud-cgc-pub-mcp"
+  ],
+  "pending_deploy_gate": {
+    "_why": "google-workspace-mcp is declared in the same ticket, but its build.json change ships with its code change, and that redeploy waits for the two Drive jobs running inside the live container (started 2026-11-11). Until that commit lands the test accepts this one service without the value. The commit that ships it removes this block.",
+    "services": ["infra-api_google-workspace-mcp"]
+  },
+  "not_rendered": {
+    "_why": "Declared for when they ship: these three have a build.json only (no src/, no dist/), so no container exists yet.",
+    "services": ["infra-api_cloudy-all-mcp", "infra-api_cloudy-apps-communication-mcp", "infra-api_cloudy-apps-drive-mcp"]
+  },
+  "non_server_containers": {
+    "_why": "user-ai_cloud-cgc-pub-mcp renders seven containers; only cloud-cgc-pub-mcp and cloud-cgc-pvt-mcp are MCP servers. The index, reindex and restore jobs carry build.json runtime.job_oom_score_adj (300) from compose.nix, so the service-wide -900 does not reach them.",
+    "user-ai_cloud-cgc-pub-mcp": 300
+  }
+}
