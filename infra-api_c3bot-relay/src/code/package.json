@@ -1,0 +1,9 @@
+{
+  "name": "c3bot-relay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Telegram <-> c3 relay: WebSocket + SSE + long-poll, zero dependencies",
+  "scripts": { "start": "node server.js", "test": "node --test test/*.test.js" },
+  "dependencies": {}
+}

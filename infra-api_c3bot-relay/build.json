@@ -1,0 +1,80 @@
+{
+  "name": "c3bot-relay",
+  "taxonomy": { "group": "Infra Apps", "category": "Ops-API-MCP" },
+  "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame. Zero npm dependencies. Bearer-gated, mesh-only.",
+  "dns": "c3bot-relay.mesh.diegonmarcos.com",
+  "dns_aliases": [],
+  "category": "sec",
+  "build": { "headers_enforced": true },
+  "docker": {
+    "image": "c3bot-relay",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "image-wrapper",
+      "cmd": "npm install --omit=dev --no-audit --no-fund",
+      "entrypoint": "node /app/server.js",
+      "base_image": "node:22-bookworm-slim",
+      "app_dir": "code",
+      "user": "node"
+    },
+    "labels": {
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/infra-api_c3bot-relay",
+      "org.opencontainers.image.licenses": "LicenseRef-NoLicenseGranted"
+    }
+  },
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/c3bot-relay",
+    "compose_flags": "--build"
+  },
+  "ports": { "app": 3119 },
+  "timezone": "Europe/Paris",
+  "domain": "mcp.diegonmarcos.com/c3bot-relay",
+  "proxy": {
+    "primary": {
+      "streaming": true,
+      "type": "path",
+      "parent_domain": "mcp.diegonmarcos.com",
+      "base_path": "/c3bot-relay",
+      "wg_only": true,
+      "auth": "none",
+      "_auth_doc": "auth none: the app gates every call itself with its own bearer (C3BOT_RELAY_TOKEN, 401 without it; /health is open). The fleet forward_auth would reject this token and buffer SSE; the route stays WG-only. streaming:true keeps SSE and WebSocket unbuffered."
+    },
+    "app_hub": false
+  },
+  "health": { "path": "/health" },
+  "monitoring": { "tls_check": true, "dns_check": true, "endpoint_check": true },
+  "containers": {
+    "app": {
+      "container_name": "c3bot-relay",
+      "image": "ghcr.io/diegonmarcos/c3bot-relay:latest",
+      "port": 3119,
+      "port_env": "PORT",
+      "protocol": "http",
+      "dns": "c3bot-relay.mesh.diegonmarcos.com",
+      "public": true,
+      "proxy": { "domain": "mcp.diegonmarcos.com", "base_path": "/c3bot-relay" },
+      "healthcheck": "node -e \"fetch('http://'+(process.env.HTTP_HOST||'127.0.0.1')+':3119/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+      "env_file": true,
+      "resources": { "mem_limit": "256M", "mem_reservation": "64m", "pids_limit": 128 },
+      "limits": { "buffer_size": 500, "max_clients": 32, "poll_max_wait_s": 50, "allowed_from": "6431508617" }
+    }
+  },
+  "api": {
+    "type": "rest",
+    "base_path": "/c3bot-relay",
+    "display_name": "c3bot Telegram relay",
+    "description": "Telegram <-> c3 relay: WS /ws, SSE /events, long-poll /poll, POST /send.",
+    "auth": "bearer"
+  },
+  "tests": {
+    "relay": { "cmd": "node --test test/*.test.js", "cwd": "src/code" }
+  },
+  "secrets": {
+    "escape_dollars": false,
+    "container_readable": false,
+    "_doc": "Two secrets by NAME, values only in the private vault at Linux-Containers/infra-api_c3bot-relay/src/secrets.yaml (sops, public fleet recipient); the Ship overlay copies it in and the engine mounts .secrets (env_file). C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it); the server exits 78 when empty. C3BOT_RELAY_BOT_TOKEN: the Telegram bot token of the DEDICATED relay bot (Bot B, minted in @BotFather by the owner). It must NOT be C3_TELEGRAM_BOT_TOKEN: cloud-infra-mcp long-polls that token and Telegram answers 409 to a second getUpdates consumer. While the bot token is absent the relay still starts and serves all three transports; /health reports telegram:'unconfigured' and /send answers 503.",
+    "required": ["C3BOT_RELAY_TOKEN"]
+  }
+}
