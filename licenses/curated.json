@@ -131,6 +131,12 @@
   "infra-cloud_cloudflare-worker": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-api_google-apps-script-personal": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_google-apps-script-workspace": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "infra-cloud_gcloud": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
