@@ -28,6 +28,7 @@ Edited (owner changes — composer, identities, mail app, JMAP paging, settings)
 - `components/identity/identity-manager-modal.tsx`
 - `components/mail/mail-app.tsx`
 - `lib/jmap/client.ts`
+- `components/email/email-viewer.tsx` (#1590: Project/Meta tag sections, subject-tap metadata, Copy all)
 - `stores/settings-store.ts`
 - `locales/en/common.json` (strings for the above)
 
@@ -39,6 +40,10 @@ Edited (AGPL §13 source offer, #839):
 Added:
 - `lib/jmap/page-anchors.ts`
 - `lib/jmap/__tests__/query-anchor.test.ts`
+- `lib/keyword-classification.ts` (#1590: A*-Z* meta / 1*-9* project tag classification)
+- `lib/__tests__/keyword-classification.test.ts`
+- `components/email/mail-tag-sections.tsx`
+- `components/email/__tests__/mail-reading-panel-parity.test.ts`
 
 ## AGPL-3.0 §13 source offer
 
