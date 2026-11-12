@@ -33,9 +33,9 @@
     "google-workspace-mcp": {
       "detected_base": null,
       "files": {
-        "modified": 22,
-        "new": 7,
-        "total": 118,
+        "modified": 23,
+        "new": 16,
+        "total": 128,
         "verbatim": 89
       },
       "git": {
@@ -43,18 +43,18 @@
         "first_added": "81ed282 2026-08-20"
       },
       "lines": {
-        "new": 2769,
-        "pct_upstream_derived": 92.0,
-        "total": 34529,
-        "upstream_derived": 31760
+        "new": 5086,
+        "pct_upstream_derived": 86.2,
+        "total": 36726,
+        "upstream_derived": 31640
       },
-      "measured_on": "2026-10-03",
+      "measured_on": "2026-11-12",
       "measured_sha": "92b4a7847fa78713e98ffe9562a5adee2c926ec7",
       "path": "infra-api_google-workspace-mcp/src/code",
       "pin": "92b4a7847fa78713e98ffe9562a5adee2c926ec7",
       "pin_source": "infra-api_google-workspace-mcp/src/code/VENDORED.md (tag v1.14.3, inferred from pyproject.toml version; #839)",
       "repo": "https://github.com/taylorwilsdon/google_workspace_mcp.git",
-      "tree_measured_at": "5bb463ee7",
+      "tree_measured_at": "e596abeaa",
       "upstream": "google_workspace_mcp (Taylor Wilsdon)",
       "upstream_files_not_in_tree": 25,
       "upstream_licence": "MIT"

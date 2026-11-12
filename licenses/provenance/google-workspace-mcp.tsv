@@ -8,7 +8,7 @@ infra-api_google-workspace-mcp/src/code/LICENSE	verbatim		17	0	txt
 infra-api_google-workspace-mcp/src/code/README.md	verbatim		1235	0	txt
 infra-api_google-workspace-mcp/src/code/README_NEW.md	verbatim		363	0	txt
 infra-api_google-workspace-mcp/src/code/SECURITY.md	verbatim		31	0	txt
-infra-api_google-workspace-mcp/src/code/VENDORED.md	new		0	13	txt
+infra-api_google-workspace-mcp/src/code/VENDORED.md	new		0	16	txt
 infra-api_google-workspace-mcp/src/code/auth/__init__.py	verbatim		1	0	txt
 infra-api_google-workspace-mcp/src/code/auth/auth_info_middleware.py	verbatim		336	0	txt
 infra-api_google-workspace-mcp/src/code/auth/credential_store.py	verbatim		218	0	txt
@@ -25,17 +25,18 @@ infra-api_google-workspace-mcp/src/code/auth/scopes.py	modified	auth/scopes.py	2
 infra-api_google-workspace-mcp/src/code/auth/service_decorator.py	modified	auth/service_decorator.py	722	32	txt
 infra-api_google-workspace-mcp/src/code/core/__init__.py	verbatim		1	0	txt
 infra-api_google-workspace-mcp/src/code/core/api_enablement.py	verbatim		87	0	txt
-infra-api_google-workspace-mcp/src/code/core/attachment_storage.py	verbatim		211	0	txt
+infra-api_google-workspace-mcp/src/code/core/attachment_storage.py	modified	core/attachment_storage.py	208	66	txt
 infra-api_google-workspace-mcp/src/code/core/cli_handler.py	verbatim		334	0	txt
 infra-api_google-workspace-mcp/src/code/core/comments.py	verbatim		250	0	txt
 infra-api_google-workspace-mcp/src/code/core/config.py	verbatim		32	0	txt
 infra-api_google-workspace-mcp/src/code/core/context.py	verbatim		33	0	txt
 infra-api_google-workspace-mcp/src/code/core/log_formatter.py	verbatim		170	0	txt
-infra-api_google-workspace-mcp/src/code/core/meta.py	new		0	173	txt
-infra-api_google-workspace-mcp/src/code/core/server.py	modified	core/server.py	516	3	txt
+infra-api_google-workspace-mcp/src/code/core/meta.py	new		0	176	txt
+infra-api_google-workspace-mcp/src/code/core/server.py	modified	core/server.py	508	29	txt
+infra-api_google-workspace-mcp/src/code/core/streaming.py	new		0	324	txt
 infra-api_google-workspace-mcp/src/code/core/tool_registry.py	verbatim		167	0	txt
 infra-api_google-workspace-mcp/src/code/core/tool_tier_loader.py	verbatim		151	0	txt
-infra-api_google-workspace-mcp/src/code/core/tool_tiers.yaml	modified	core/tool_tiers.yaml	159	2	txt
+infra-api_google-workspace-mcp/src/code/core/tool_tiers.yaml	modified	core/tool_tiers.yaml	159	5	txt
 infra-api_google-workspace-mcp/src/code/core/utils.py	verbatim		432	0	txt
 infra-api_google-workspace-mcp/src/code/fastmcp.json	verbatim		21	0	txt
 infra-api_google-workspace-mcp/src/code/fastmcp_server.py	verbatim		148	0	txt
@@ -62,7 +63,8 @@ infra-api_google-workspace-mcp/src/code/gdocs/managers/table_operation_manager.p
 infra-api_google-workspace-mcp/src/code/gdocs/managers/validation_manager.py	modified	gdocs/managers/validation_manager.py	598	14	txt
 infra-api_google-workspace-mcp/src/code/gdrive/__init__.py	verbatim		0	0	txt
 infra-api_google-workspace-mcp/src/code/gdrive/drive_helpers.py	verbatim		308	0	txt
-infra-api_google-workspace-mcp/src/code/gdrive/drive_tools.py	modified	gdrive/drive_tools.py	2058	133	txt
+infra-api_google-workspace-mcp/src/code/gdrive/drive_tools.py	modified	gdrive/drive_tools.py	1949	434	txt
+infra-api_google-workspace-mcp/src/code/gdrive/unzip_engine.py	new		0	592	txt
 infra-api_google-workspace-mcp/src/code/gforms/__init__.py	verbatim		3	0	txt
 infra-api_google-workspace-mcp/src/code/gforms/forms_tools.py	verbatim		393	0	txt
 infra-api_google-workspace-mcp/src/code/glama.json	verbatim		4	0	txt
@@ -104,6 +106,7 @@ infra-api_google-workspace-mcp/src/code/tests/gdocs/test_docs_markdown.py	verbat
 infra-api_google-workspace-mcp/src/code/tests/gdocs/test_paragraph_style.py	verbatim		112	0	txt
 infra-api_google-workspace-mcp/src/code/tests/gdrive/__init__.py	verbatim		0	0	txt
 infra-api_google-workspace-mcp/src/code/tests/gdrive/test_create_drive_folder.py	verbatim		125	0	txt
+infra-api_google-workspace-mcp/src/code/tests/gdrive/test_drive_streaming_tools.py	new		0	140	txt
 infra-api_google-workspace-mcp/src/code/tests/gdrive/test_drive_tools.py	verbatim		773	0	txt
 infra-api_google-workspace-mcp/src/code/tests/gdrive/test_ssrf_protections.py	verbatim		125	0	txt
 infra-api_google-workspace-mcp/src/code/tests/gforms/__init__.py	verbatim		0	0	txt
@@ -112,6 +115,13 @@ infra-api_google-workspace-mcp/src/code/tests/gmail/test_attachment_fix.py	verba
 infra-api_google-workspace-mcp/src/code/tests/gmail/test_draft_gmail_message.py	new		0	235	txt
 infra-api_google-workspace-mcp/src/code/tests/gsheets/__init__.py	verbatim		0	0	txt
 infra-api_google-workspace-mcp/src/code/tests/gsheets/test_format_sheet_range.py	verbatim		339	0	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/__init__.py	verbatim		0	0	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/_env.py	new		0	16	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/test_attachment_expiry.py	new		0	54	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/test_drain_probe.py	new		0	148	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/test_no_whole_file_reads.py	new		0	94	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/test_streaming.py	new		0	175	txt
+infra-api_google-workspace-mcp/src/code/tests/stability/test_unzip_engine.py	new		0	372	txt
 infra-api_google-workspace-mcp/src/code/tests/test_drive_write_scopes.py	new		0	141	txt
 infra-api_google-workspace-mcp/src/code/tests/test_main_permissions_tier.py	verbatim		43	0	txt
 infra-api_google-workspace-mcp/src/code/tests/test_permissions.py	verbatim		158	0	txt

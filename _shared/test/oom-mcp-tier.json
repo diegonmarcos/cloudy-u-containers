@@ -19,10 +19,6 @@
     "infra-api_google-workspace-mcp",
     "user-ai_cloud-cgc-pub-mcp"
   ],
-  "pending_deploy_gate": {
-    "_why": "google-workspace-mcp is declared in the same ticket, but its build.json change ships with its code change, and that redeploy waits for the two Drive jobs running inside the live container (started 2026-11-11). Until that commit lands the test accepts this one service without the value. The commit that ships it removes this block.",
-    "services": ["infra-api_google-workspace-mcp"]
-  },
   "not_rendered": {
     "_why": "Declared for when they ship: these three have a build.json only (no src/, no dist/), so no container exists yet.",
     "services": ["infra-api_cloudy-all-mcp", "infra-api_cloudy-apps-communication-mcp", "infra-api_cloudy-apps-drive-mcp"]

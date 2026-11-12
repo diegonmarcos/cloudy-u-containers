@@ -70,6 +70,9 @@ GROUPS = {
         "get_drive_file_permissions",
         "check_drive_file_public_access",
         "download_drive_folder_as_zip",
+        "start_drive_unzip",
+        "get_drive_unzip_status",
+        "cancel_drive_unzip",
     ],
     "workspace_calendar": [
         "list_calendars",

@@ -8,6 +8,8 @@ Files are automatically cleaned up after expiration (default 1 hour).
 import base64
 import logging
 import os
+import shutil
+import time
 import uuid
 from pathlib import Path
 from typing import NamedTuple, Optional, Dict
@@ -63,6 +65,7 @@ class AttachmentStorage:
             SavedAttachment with file_id (UUID) and path (absolute file path)
         """
         _ensure_storage_dir()
+        self.cleanup_expired()
 
         # Generate unique file ID for metadata tracking
         file_id = str(uuid.uuid4())
@@ -143,6 +146,49 @@ class AttachmentStorage:
 
         return SavedAttachment(file_id=file_id, path=str(file_path))
 
+    def _target_name(
+        self, file_id: str, filename: Optional[str], mime_type: Optional[str]
+    ) -> str:
+        if filename:
+            # basename only: a Drive file may be called "../../x"
+            safe = Path(filename.replace("\\", "/")).name or "attachment"
+            return f"{Path(safe).stem}_{file_id[:8]}{Path(safe).suffix}"
+        return file_id
+
+    def save_file(
+        self,
+        source_path,
+        filename: Optional[str] = None,
+        mime_type: Optional[str] = None,
+    ) -> SavedAttachment:
+        """
+        Adopt a file that is already on disk (#1659).
+
+        The streaming download paths write straight to a temp file; this moves
+        that file into the store (a rename on the same filesystem) instead of
+        reading it back through base64, so a large file never enters memory.
+        """
+        _ensure_storage_dir()
+        self.cleanup_expired()
+        file_id = str(uuid.uuid4())
+        file_path = STORAGE_DIR / self._target_name(file_id, filename, mime_type)
+        shutil.move(str(source_path), str(file_path))
+        os.chmod(file_path, 0o600)
+        size = os.path.getsize(file_path)
+        self._metadata[file_id] = {
+            "file_path": str(file_path),
+            "filename": filename or file_path.name,
+            "mime_type": mime_type or "application/octet-stream",
+            "size": size,
+            "created_at": datetime.now(),
+            "expires_at": datetime.now() + timedelta(seconds=self.expiration_seconds),
+        }
+        logger.info(
+            f"Stored attachment file_id={file_id} filename={filename or file_path.name} "
+            f"({size} bytes) at {file_path}"
+        )
+        return SavedAttachment(file_id=file_id, path=str(file_path))
+
     def get_attachment_path(self, file_id: str) -> Optional[Path]:
         """
         Get the file path for an attachment ID.
@@ -210,10 +256,15 @@ class AttachmentStorage:
 
     def cleanup_expired(self) -> int:
         """
-        Clean up expired attachments.
+        Remove expired attachments from disk.
+
+        Two passes (#1659). Tracked files past their expiry go first. Then any
+        file in the storage directory that this process does not track and that
+        is older than the expiration: the metadata is in memory only, so every
+        file written before a restart was an orphan that nothing ever deleted.
 
         Returns:
-            Number of files cleaned up
+            Number of files removed
         """
         now = datetime.now()
         expired_ids = [
@@ -225,7 +276,23 @@ class AttachmentStorage:
         for file_id in expired_ids:
             self._cleanup_file(file_id)
 
-        return len(expired_ids)
+        removed = len(expired_ids)
+        tracked = {m["file_path"] for m in self._metadata.values()}
+        cutoff = time.time() - self.expiration_seconds
+        try:
+            entries = list(STORAGE_DIR.iterdir())
+        except OSError:
+            entries = []
+        for entry in entries:
+            try:
+                if str(entry) in tracked or not entry.is_file():
+                    continue
+                if entry.lstat().st_mtime < cutoff:
+                    entry.unlink()
+                    removed += 1
+            except OSError as e:
+                logger.warning(f"Failed to delete orphan attachment {entry}: {e}")
+        return removed
 
 
 # Global instance

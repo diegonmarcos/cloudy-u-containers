@@ -14,18 +14,29 @@ import socket
 from contextlib import asynccontextmanager
 
 from typing import AsyncIterator, Optional, List, Dict, Any
-from tempfile import NamedTemporaryFile
 from urllib.parse import urljoin, urlparse, urlunparse
 from urllib.request import url2pathname
 from pathlib import Path
 
 from googleapiclient.errors import HttpError
-from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
+from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
 
 from auth.service_decorator import require_google_service
 from auth.oauth_config import is_stateless_mode
 from core.attachment_storage import get_attachment_storage, get_attachment_url
 from core.utils import extract_office_xml_text, handle_http_errors, validate_file_path
+from core.streaming import (
+    BusyError,
+    MAX_TEXT_BYTES,
+    RESUMABLE_THRESHOLD_BYTES,
+    TooLargeError,
+    download_to_file,
+    ensure_room,
+    heavy_slot,
+    new_tmp_path,
+    read_head,
+    remove_quietly,
+)
 from core.server import server
 from core.config import get_transport_mode
 from gdrive.drive_helpers import (
@@ -48,6 +59,68 @@ logger = logging.getLogger(__name__)
 DOWNLOAD_CHUNK_SIZE_BYTES = 256 * 1024  # 256 KB
 UPLOAD_CHUNK_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB (Google recommended minimum)
 MAX_DOWNLOAD_BYTES = 2 * 1024 * 1024 * 1024  # 2 GB safety limit for URL downloads
+MAX_IMPORT_BYTES = 100 * 1024 * 1024  # import_to_google_doc holds the source in memory
+
+
+@asynccontextmanager
+async def _scratch_file():
+    """A binary temp file in the server's scratch dir, deleted on exit."""
+    path = new_tmp_path("upload")
+    fh = open(path, "w+b")
+    try:
+        yield fh
+    finally:
+        fh.close()
+        remove_quietly(path)
+
+
+def _declared_size(file_metadata: Dict[str, Any]) -> Optional[int]:
+    """Drive's `size` for a binary file (absent for Google-native files)."""
+    try:
+        return int(file_metadata.get("size"))
+    except (TypeError, ValueError):
+        return None
+
+
+async def _stream_media_to_tmp(
+    request_obj,
+    *,
+    suffix: str = "",
+    expected_bytes: Optional[int] = None,
+    max_bytes: Optional[int] = None,
+) -> tuple[Path, int]:
+    """
+    #1659: download a Drive media request to a temp file on disk, chunk by chunk
+    (core.streaming.download_to_file). Returns (path, size). The caller owns the
+    file. Nothing here holds more than one chunk of the file in memory.
+    """
+    await asyncio.to_thread(ensure_room, expected_bytes or 0, "This file")
+    tmp = new_tmp_path("drive", suffix)
+    size = await asyncio.to_thread(
+        download_to_file, request_obj, tmp, max_bytes=max_bytes
+    )
+    return tmp, size
+
+
+def _upload_file_media(path, mime_type: str) -> MediaFileUpload:
+    """Upload body that reads from disk; resumable (chunked) above 4 MiB."""
+    size = Path(path).stat().st_size
+    return MediaFileUpload(
+        str(path),
+        mimetype=mime_type,
+        resumable=size > RESUMABLE_THRESHOLD_BYTES,
+        chunksize=UPLOAD_CHUNK_SIZE_BYTES,
+    )
+
+
+def _execute_upload(request):
+    """Run a Drive create/update with a file body: chunk loop when resumable."""
+    if getattr(request, "resumable", None) is None:
+        return request.execute(num_retries=5)
+    response = None
+    while response is None:
+        _status, response = request.next_chunk(num_retries=5)
+    return response
 
 
 @server.tool()
@@ -177,7 +250,7 @@ async def get_drive_file_content(
     resolved_file_id, file_metadata = await resolve_drive_item(
         service,
         file_id,
-        extra_fields="name, webViewLink",
+        extra_fields="name, webViewLink, size",
     )
     file_id = resolved_file_id
     mime_type = file_metadata.get("mimeType", "")
@@ -188,19 +261,37 @@ async def get_drive_file_content(
         "application/vnd.google-apps.presentation": "text/plain",
     }.get(mime_type)
 
+    # #1659: this tool returns the content inside the MCP response, so the file
+    # has to fit in memory. Refuse a huge one up front instead of loading it.
+    too_large = (
+        f"Error: '{file_name}' (ID: {file_id}) is {{size}} bytes, above the "
+        f"{MAX_TEXT_BYTES} byte limit for reading content as text "
+        f"(WORKSPACE_MCP_MAX_TEXT_BYTES). Use get_drive_file_download_url to "
+        f"download it, or start_drive_unzip if it is a zip to extract into Drive."
+    )
+    declared = _declared_size(file_metadata)
+    if not export_mime_type and declared is not None and declared > MAX_TEXT_BYTES:
+        return too_large.format(size=declared)
+
     request_obj = (
         service.files().export_media(fileId=file_id, mimeType=export_mime_type)
         if export_mime_type
         else service.files().get_media(fileId=file_id)
     )
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request_obj)
-    loop = asyncio.get_event_loop()
-    done = False
-    while not done:
-        status, done = await loop.run_in_executor(None, downloader.next_chunk)
-
-    file_content_bytes = fh.getvalue()
+    tmp = None
+    try:
+        async with heavy_slot("get_drive_file_content"):
+            tmp, _size = await _stream_media_to_tmp(
+                request_obj, expected_bytes=declared, max_bytes=MAX_TEXT_BYTES
+            )
+            file_content_bytes = await asyncio.to_thread(Path(tmp).read_bytes)
+    except TooLargeError as e:
+        return too_large.format(size=f"more than {MAX_TEXT_BYTES}") + f" ({e})"
+    except BusyError as e:
+        return f"Error: {e}"
+    finally:
+        if tmp is not None:
+            remove_quietly(tmp)
 
     # Attempt Office XML extraction only for actual Office XML files
     office_mime_types = {
@@ -283,7 +374,7 @@ async def get_drive_file_download_url(
     resolved_file_id, file_metadata = await resolve_drive_item(
         service,
         file_id,
-        extra_fields="name, webViewLink, mimeType",
+        extra_fields="name, webViewLink, mimeType, size",
     )
     file_id = resolved_file_id
     mime_type = file_metadata.get("mimeType", "")
@@ -350,19 +441,27 @@ async def get_drive_file_download_url(
         else service.files().get_media(fileId=file_id)
     )
 
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request_obj)
-    loop = asyncio.get_event_loop()
-    done = False
-    while not done:
-        status, done = await loop.run_in_executor(None, downloader.next_chunk)
-
-    file_content_bytes = fh.getvalue()
-    size_bytes = len(file_content_bytes)
+    # #1659: stream to a file on disk in bounded chunks. The previous code read
+    # the whole file into a BytesIO, copied it with getvalue(), base64-encoded it
+    # and decoded it again: ~4x the file size in memory (a 417 MB zip took the
+    # 2 GiB container down). The temp file is then moved into the attachment
+    # store; the content never passes through memory.
+    tmp = None
+    try:
+        async with heavy_slot("get_drive_file_download_url"):
+            tmp, size_bytes = await _stream_media_to_tmp(
+                request_obj,
+                suffix=Path(output_filename).suffix,
+                expected_bytes=_declared_size(file_metadata),
+            )
+    except (TooLargeError, BusyError) as e:
+        return f"Error: could not download '{file_name}' (ID: {file_id}): {e}"
     size_kb = size_bytes / 1024 if size_bytes else 0
 
     # Check if we're in stateless mode (can't save files)
     if is_stateless_mode():
+        head = await asyncio.to_thread(read_head, tmp, 100)
+        remove_quietly(tmp)
         result_lines = [
             "File downloaded successfully!",
             f"File: {file_name}",
@@ -371,23 +470,20 @@ async def get_drive_file_download_url(
             f"MIME Type: {output_mime_type}",
             "\n⚠️ Stateless mode: File storage disabled.",
             "\nBase64-encoded content (first 100 characters shown):",
-            f"{base64.b64encode(file_content_bytes[:100]).decode('utf-8')}...",
+            f"{base64.b64encode(head).decode('utf-8')}...",
         ]
         logger.info(
             f"[get_drive_file_download_url] Successfully downloaded {size_kb:.1f} KB file (stateless mode)"
         )
         return "\n".join(result_lines)
 
-    # Save file to local disk and return file path
+    # Move the file into the attachment store and return its path / URL
     try:
         storage = get_attachment_storage()
 
-        # Encode bytes to base64 (as expected by AttachmentStorage)
-        base64_data = base64.urlsafe_b64encode(file_content_bytes).decode("utf-8")
-
-        # Save attachment to local disk
-        result = storage.save_attachment(
-            base64_data=base64_data,
+        result = await asyncio.to_thread(
+            storage.save_file,
+            tmp,
             filename=output_filename,
             mime_type=output_mime_type,
         )
@@ -421,6 +517,7 @@ async def get_drive_file_download_url(
         return "\n".join(result_lines)
 
     except Exception as e:
+        remove_quietly(tmp)
         logger.error(f"[get_drive_file_download_url] Failed to save file: {e}")
         return (
             f"Error: Failed to save file for download.\n"
@@ -667,126 +764,84 @@ async def create_drive_file(
 
             logger.info(f"[create_drive_file] Reading local file: {file_path}")
 
-            # Read file and upload
-            file_data = await asyncio.to_thread(path_obj.read_bytes)
-            total_bytes = len(file_data)
-            logger.info(f"[create_drive_file] Read {total_bytes} bytes from local file")
-
-            media = MediaIoBaseUpload(
-                io.BytesIO(file_data),
-                mimetype=mime_type,
-                resumable=True,
-                chunksize=UPLOAD_CHUNK_SIZE_BYTES,
-            )
+            # #1659: upload straight from disk (the whole file used to be read into memory)
+            media = _upload_file_media(path_obj, mime_type)
 
             logger.info("[create_drive_file] Starting upload to Google Drive...")
-            created_file = await asyncio.to_thread(
-                service.files()
-                .create(
-                    body=file_metadata,
-                    media_body=media,
-                    fields="id, name, webViewLink",
-                    supportsAllDrives=True,
+            async with heavy_slot("create_drive_file"):
+                created_file = await asyncio.to_thread(
+                    _execute_upload,
+                    service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields="id, name, webViewLink",
+                        supportsAllDrives=True,
+                    ),
                 )
-                .execute
-            )
         # Handle HTTP/HTTPS URLs
         elif parsed_url.scheme in ("http", "https"):
-            # when running in stateless mode, deployment may not have access to local file system
-            if is_stateless_mode():
-                resp = await _ssrf_safe_fetch(fileUrl)
-                if resp.status_code != 200:
-                    raise Exception(
-                        f"Failed to fetch file from URL: {fileUrl} (status {resp.status_code})"
-                    )
-                file_data = resp.content
-                # Try to get MIME type from Content-Type header
-                content_type = resp.headers.get("Content-Type")
+            # #1659: one path for every mode. The stateless branch used to hold
+            # the whole response body in memory; a temp file under the server's
+            # scratch dir is bounded and is deleted when the upload ends.
+            # Stream download to temp file with SSRF protection, then upload
+            async with heavy_slot("create_drive_file"), _scratch_file() as temp_file:
+                total_bytes = 0
+                content_type = None
+
+                async with _ssrf_safe_stream(fileUrl) as resp:
+                    if resp.status_code != 200:
+                        raise Exception(
+                            f"Failed to fetch file from URL: {fileUrl} "
+                            f"(status {resp.status_code})"
+                        )
+
+                    content_type = resp.headers.get("Content-Type")
+
+                    async for chunk in resp.aiter_bytes(
+                        chunk_size=DOWNLOAD_CHUNK_SIZE_BYTES
+                    ):
+                        total_bytes += len(chunk)
+                        if total_bytes > MAX_DOWNLOAD_BYTES:
+                            raise Exception(
+                                f"Download exceeded {MAX_DOWNLOAD_BYTES} byte limit"
+                            )
+                        await asyncio.to_thread(temp_file.write, chunk)
+
+                logger.info(
+                    f"[create_drive_file] Downloaded {total_bytes} bytes "
+                    f"from URL before upload."
+                )
+
                 if content_type and content_type != "application/octet-stream":
                     mime_type = content_type
-                    file_metadata["mimeType"] = content_type
+                    file_metadata["mimeType"] = mime_type
                     logger.info(
-                        f"[create_drive_file] Using MIME type from Content-Type header: {content_type}"
+                        f"[create_drive_file] Using MIME type from "
+                        f"Content-Type header: {mime_type}"
                     )
 
+                # Reset file pointer to beginning for upload
+                temp_file.seek(0)
+
                 media = MediaIoBaseUpload(
-                    io.BytesIO(file_data),
+                    temp_file,
                     mimetype=mime_type,
                     resumable=True,
                     chunksize=UPLOAD_CHUNK_SIZE_BYTES,
                 )
 
+                logger.info(
+                    "[create_drive_file] Starting upload to Google Drive..."
+                )
                 created_file = await asyncio.to_thread(
-                    service.files()
-                    .create(
+                    _execute_upload,
+                    service.files().create(
                         body=file_metadata,
                         media_body=media,
                         fields="id, name, webViewLink",
                         supportsAllDrives=True,
-                    )
-                    .execute
+                    ),
                 )
-            else:
-                # Stream download to temp file with SSRF protection, then upload
-                with NamedTemporaryFile() as temp_file:
-                    total_bytes = 0
-                    content_type = None
-
-                    async with _ssrf_safe_stream(fileUrl) as resp:
-                        if resp.status_code != 200:
-                            raise Exception(
-                                f"Failed to fetch file from URL: {fileUrl} "
-                                f"(status {resp.status_code})"
-                            )
-
-                        content_type = resp.headers.get("Content-Type")
-
-                        async for chunk in resp.aiter_bytes(
-                            chunk_size=DOWNLOAD_CHUNK_SIZE_BYTES
-                        ):
-                            total_bytes += len(chunk)
-                            if total_bytes > MAX_DOWNLOAD_BYTES:
-                                raise Exception(
-                                    f"Download exceeded {MAX_DOWNLOAD_BYTES} byte limit"
-                                )
-                            await asyncio.to_thread(temp_file.write, chunk)
-
-                    logger.info(
-                        f"[create_drive_file] Downloaded {total_bytes} bytes "
-                        f"from URL before upload."
-                    )
-
-                    if content_type and content_type != "application/octet-stream":
-                        mime_type = content_type
-                        file_metadata["mimeType"] = mime_type
-                        logger.info(
-                            f"[create_drive_file] Using MIME type from "
-                            f"Content-Type header: {mime_type}"
-                        )
-
-                    # Reset file pointer to beginning for upload
-                    temp_file.seek(0)
-
-                    media = MediaIoBaseUpload(
-                        temp_file,
-                        mimetype=mime_type,
-                        resumable=True,
-                        chunksize=UPLOAD_CHUNK_SIZE_BYTES,
-                    )
-
-                    logger.info(
-                        "[create_drive_file] Starting upload to Google Drive..."
-                    )
-                    created_file = await asyncio.to_thread(
-                        service.files()
-                        .create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields="id, name, webViewLink",
-                            supportsAllDrives=True,
-                        )
-                        .execute
-                    )
         else:
             if not parsed_url.scheme:
                 raise Exception(
@@ -1249,6 +1304,14 @@ async def import_to_google_doc(
         if not path_obj.is_file():
             raise ValueError(f"Path is not a file: {actual_path}")
 
+        # #1659: a Docs import is converted server-side and capped by Google well
+        # below this; refuse a huge file instead of loading it.
+        local_size = path_obj.stat().st_size
+        if local_size > MAX_IMPORT_BYTES:
+            raise ValueError(
+                f"File is {local_size} bytes, above the {MAX_IMPORT_BYTES} byte limit "
+                f"for importing as a Google Doc. Use create_drive_file to upload it as is."
+            )
         file_data = await asyncio.to_thread(path_obj.read_bytes)
         logger.info(f"[import_to_google_doc] Read local file: {len(file_data)} bytes")
 
@@ -1266,12 +1329,22 @@ async def import_to_google_doc(
             raise ValueError(f"file_url must be http:// or https://, got: {file_url}")
 
         # SSRF protection: block internal/private network URLs and validate redirects
-        resp = await _ssrf_safe_fetch(file_url)
-        if resp.status_code != 200:
-            raise Exception(
-                f"Failed to fetch file from URL: {file_url} (status {resp.status_code})"
-            )
-        file_data = resp.content
+        # #1659: streamed with a byte cap (was resp.content of any size).
+        buffer = bytearray()
+        async with _ssrf_safe_stream(file_url) as resp:
+            if resp.status_code != 200:
+                raise Exception(
+                    f"Failed to fetch file from URL: {file_url} (status {resp.status_code})"
+                )
+            async for chunk in resp.aiter_bytes(chunk_size=DOWNLOAD_CHUNK_SIZE_BYTES):
+                buffer.extend(chunk)
+                if len(buffer) > MAX_IMPORT_BYTES:
+                    raise ValueError(
+                        f"Download exceeded the {MAX_IMPORT_BYTES} byte limit for "
+                        f"importing as a Google Doc. Use create_drive_file with fileUrl "
+                        f"to upload it as is."
+                    )
+        file_data = bytes(buffer)
 
         logger.info(
             f"[import_to_google_doc] Downloaded from URL: {len(file_data)} bytes"
@@ -2396,7 +2469,7 @@ async def download_drive_folder_as_zip(
     single .zip, returned as one temporary download URL (valid ~1 hour).
 
     Solves bulk retrieval: the Drive API has no server-side folder export, so this
-    walks the folder tree, streams each file's bytes, and zips them in memory —
+    walks the folder tree, streams each file to disk, and zips them on disk —
     turning N per-file downloads into one archive.
 
     Args:
@@ -2409,10 +2482,7 @@ async def download_drive_folder_as_zip(
     Returns:
         A summary with the zip's temporary download URL, file count, and byte size.
     """
-    import io
     import zipfile
-    import base64 as _b64
-    from googleapiclient.http import MediaIoBaseDownload
     from core.attachment_storage import get_attachment_storage, get_attachment_url
 
     FOLDER_MIME = "application/vnd.google-apps.folder"
@@ -2431,7 +2501,7 @@ async def download_drive_folder_as_zip(
                     supportsAllDrives=True,
                     includeItemsFromAllDrives=True,
                 )
-                .execute()
+                .execute(num_retries=5)
             )
             items.extend(resp.get("files", []))
             token = resp.get("nextPageToken")
@@ -2464,7 +2534,7 @@ async def download_drive_folder_as_zip(
             else:
                 if _filt and _filt not in c["name"].lower():
                     continue
-                collected.append((path, c["id"]))
+                collected.append((path, c["id"], _declared_size(c) or 0))
                 if len(collected) > max_files:
                     return (
                         f"❌ Aborted: folder has more than max_files={max_files} matching files. "
@@ -2474,48 +2544,59 @@ async def download_drive_folder_as_zip(
     if not collected:
         return f"No files matched in folder '{folder_name}' (filter: {name_contains or 'none'})."
 
-    # Download files CONCURRENTLY (bounded), then zip sequentially. Sequential
-    # per-file download made large folders (e.g. 1300+ stories) exceed the request
-    # timeout; a semaphore-bounded gather keeps memory/API pressure sane while
-    # cutting wall-clock ~10x. zipfile writes are single-threaded (not thread-safe).
-    _sem = asyncio.Semaphore(16)
-
-    async def _fetch(path, fid):
-        async with _sem:
-            def _dl():
-                req = service.files().get_media(fileId=fid, supportsAllDrives=True)
-                fh = io.BytesIO()
-                dl = MediaIoBaseDownload(fh, req)
-                done = False
-                while not done:
-                    _, done = dl.next_chunk()
-                return fh.getvalue()
-            try:
-                return path, await asyncio.to_thread(_dl)
-            except Exception as e:  # noqa: BLE001 - report per-file, don't abort the batch
-                return path, e
-
-    fetched = await asyncio.gather(*[_fetch(p, f) for p, f in collected])
-    buf = io.BytesIO()
+    # #1659: everything goes through disk. Each file is streamed to its own temp
+    # file (bounded chunks, at most _FETCHERS at a time), appended to a zip that
+    # is itself a file on disk, and deleted. The old code kept every file AND the
+    # finished archive in memory, then base64-encoded the archive on top.
+    _FETCHERS = 4
+    total_declared = sum(size for _p, _f, size in collected)
+    zip_tmp = new_tmp_path("folderzip", ".zip")
     ok, failed = 0, []
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path, data in fetched:
-            if isinstance(data, Exception):
-                failed.append(f"{path}: {data}")
-            else:
-                zf.writestr(path, data)
-                ok += 1
+    try:
+        async with heavy_slot("download_drive_folder_as_zip"):
+            # the archive plus the temp files being fetched
+            await asyncio.to_thread(ensure_room, total_declared, "This folder")
+            sem = asyncio.Semaphore(_FETCHERS)
+            zip_lock = asyncio.Lock()  # zipfile writes are single-threaded
+            zf = zipfile.ZipFile(zip_tmp, "w", zipfile.ZIP_DEFLATED, allowZip64=True)
 
-    data = buf.getvalue()
+            async def _fetch(path, fid):
+                nonlocal ok
+                async with sem:
+                    tmp = new_tmp_path("member")
+                    try:
+                        req = service.files().get_media(
+                            fileId=fid, supportsAllDrives=True
+                        )
+                        await asyncio.to_thread(download_to_file, req, tmp)
+                        async with zip_lock:
+                            await asyncio.to_thread(zf.write, tmp, path)
+                        ok += 1
+                    except Exception as e:  # noqa: BLE001 - report per-file, don't abort the batch
+                        failed.append(f"{path}: {e}")
+                    finally:
+                        remove_quietly(tmp)
+
+            try:
+                await asyncio.gather(*[_fetch(p, f) for p, f, _s in collected])
+            finally:
+                await asyncio.to_thread(zf.close)
+    except (TooLargeError, BusyError) as e:
+        remove_quietly(zip_tmp)
+        return f"❌ Could not zip folder '{folder_name}': {e}"
+    except BaseException:
+        remove_quietly(zip_tmp)
+        raise
+
+    zip_bytes = Path(zip_tmp).stat().st_size
     zip_name = f"{folder_name}.zip"
-    b64 = _b64.urlsafe_b64encode(data).decode()
     saved = await asyncio.to_thread(
-        get_attachment_storage().save_attachment, b64, zip_name, "application/zip"
+        get_attachment_storage().save_file, zip_tmp, zip_name, "application/zip"
     )
     url = get_attachment_url(saved.file_id)
 
     lines = [
-        f"📦 Zipped '{folder_name}' → {ok} files ({len(data)} bytes)",
+        f"📦 Zipped '{folder_name}' → {ok} files ({zip_bytes} bytes)",
         f"📎 Download URL: {url}",
         "The file will expire after 1 hour.",
     ]
@@ -2523,3 +2604,139 @@ async def download_drive_folder_as_zip(
         lines.append(f"⚠️ {len(failed)} file(s) failed:")
         lines.extend(f"  - {f}" for f in failed[:10])
     return "\n".join(lines)
+
+
+# ── #1659: unzip a Drive zip straight into Drive (background job) ───────────
+
+
+@server.tool()
+@handle_http_errors("start_drive_unzip", service_type="drive")
+@require_google_service("drive", "drive_write")
+async def start_drive_unzip(
+    service,
+    user_google_email: str,
+    file_id: str,
+    destination_folder_id: Optional[str] = None,
+    strip_wrapper_dir: bool = False,
+    skip_existing: bool = True,
+    workers: int = 4,
+) -> str:
+    """
+    Starts a background job that unzips a .zip stored in Google Drive straight
+    into a Drive folder, and returns a job id immediately. Poll
+    get_drive_unzip_status with that id for progress and the final summary.
+
+    The zip is streamed to the server's disk, each member is extracted to a temp
+    file and uploaded (several uploads in parallel, resumable above 4 MiB, with
+    retries); the folder structure inside the zip is recreated under the
+    destination. Nothing is deleted or overwritten: the zip stays where it is.
+
+    Args:
+        user_google_email: The user's Google email address. Required.
+        file_id: Drive file ID of the .zip.
+        destination_folder_id: Folder to extract into. Default: the folder the zip is in.
+        strip_wrapper_dir: If every entry sits under one top-level directory
+            (e.g. "Takeout/" or GitHub's "repo-sha/"), drop that directory.
+        skip_existing: Skip a file when the target folder already has a file with
+            the same name and the same size (makes a re-run resume). Default true.
+        workers: Parallel uploads, 1-8. Default 4.
+
+    Returns:
+        str: JSON with job_id and the initial status.
+    """
+    import json
+    from googleapiclient.discovery import build
+    from gdrive import unzip_engine
+
+    credentials = service._http.credentials
+
+    def _client():
+        # one Drive client per worker thread (httplib2 is not thread-safe)
+        return build("drive", "v3", credentials=credentials, cache_discovery=False)
+
+    try:
+        job = unzip_engine.start_job(
+            zip_file_id=file_id,
+            destination_folder_id=destination_folder_id,
+            strip_wrapper_dir=strip_wrapper_dir,
+            skip_existing=skip_existing,
+            workers=workers,
+            service_factory=_client,
+            owner=user_google_email,
+        )
+    except unzip_engine.UnzipError as e:
+        return f"Error: {e}"
+    logger.info(f"[start_drive_unzip] job {job.job_id} started for file {file_id}")
+    return json.dumps(
+        {
+            "job_id": job.job_id,
+            "message": "Unzip job started. Call get_drive_unzip_status with this job_id.",
+            "status": job.status(),
+        },
+        indent=1,
+    )
+
+
+@server.tool()
+@handle_http_errors("get_drive_unzip_status", is_read_only=True, service_type="drive")
+@require_google_service("drive", "drive_read")
+async def get_drive_unzip_status(
+    service,
+    user_google_email: str,
+    job_id: Optional[str] = None,
+) -> str:
+    """
+    Reports an unzip job started with start_drive_unzip: state (queued, running,
+    done, done_with_failures, failed, cancelled, interrupted), phase, bytes
+    downloaded, files total / uploaded / skipped / failed, the first failures,
+    and the final summary once finished. Without job_id, lists all known jobs.
+
+    Args:
+        user_google_email: The user's Google email address. Required.
+        job_id: The id returned by start_drive_unzip. Omit to list jobs.
+
+    Returns:
+        str: JSON status.
+    """
+    import json
+    from gdrive import unzip_engine
+
+    if not job_id:
+        return json.dumps({"jobs": unzip_engine.list_jobs()}, indent=1)
+    status = unzip_engine.job_status(job_id)
+    if status is None:
+        return (
+            f"Error: no unzip job '{job_id}'. Jobs are kept in memory; one started "
+            f"before the last server restart is only known while its status file exists."
+        )
+    return json.dumps(status, indent=1)
+
+
+@server.tool()
+@handle_http_errors("cancel_drive_unzip", service_type="drive")
+@require_google_service("drive", "drive_write")
+async def cancel_drive_unzip(
+    service,
+    user_google_email: str,
+    job_id: str,
+) -> str:
+    """
+    Asks a running unzip job to stop. Uploads in flight finish; files already
+    uploaded stay in Drive. A later start_drive_unzip with skip_existing=true
+    continues where it stopped.
+
+    Args:
+        user_google_email: The user's Google email address. Required.
+        job_id: The id returned by start_drive_unzip.
+
+    Returns:
+        str: JSON status after the request.
+    """
+    import json
+    from gdrive import unzip_engine
+
+    job = unzip_engine.get_job(job_id)
+    if job is None:
+        return f"Error: no running unzip job '{job_id}'."
+    job.cancel()
+    return json.dumps(job.status(), indent=1)

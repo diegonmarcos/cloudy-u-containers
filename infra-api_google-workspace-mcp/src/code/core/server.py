@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import logging
 import os
@@ -470,14 +471,33 @@ async def health_check(request: Request):
         version = metadata.version("workspace-mcp")
     except metadata.PackageNotFoundError:
         version = "dev"
-    return JSONResponse(
-        {
-            "status": "healthy",
-            "service": "workspace-mcp",
-            "version": version,
-            "transport": get_transport_mode(),
-        }
-    )
+    body = {
+        "status": "healthy",
+        "service": "workspace-mcp",
+        "version": version,
+        "transport": get_transport_mode(),
+    }
+    # #1659: report memory headroom, heavy-call slots and temp usage, and use the
+    # probe (docker runs it every 30s) as the janitor for expired attachments and
+    # stale temp files. Always 200: restart policy is "no", so an unhealthy mark
+    # would only hide the figures.
+    try:
+        from core.attachment_storage import get_attachment_storage
+        from core.streaming import health_snapshot, sweep_tmp
+
+        expired = await asyncio.to_thread(get_attachment_storage().cleanup_expired)
+        swept = await asyncio.to_thread(sweep_tmp)
+        body.update(await asyncio.to_thread(health_snapshot))
+        body["cleanup"] = {"attachments_removed": expired, "tmp_removed": swept}
+        try:
+            from gdrive.unzip_engine import jobs_summary
+
+            body["unzip_jobs"] = jobs_summary()
+        except Exception:  # noqa: BLE001 - drive tools may be disabled
+            pass
+    except Exception as e:  # noqa: BLE001 - the probe must never fail on its extras
+        body["diagnostics_error"] = str(e)[:200]
+    return JSONResponse(body)
 
 
 @server.custom_route("/attachments/{file_id}", methods=["GET"])

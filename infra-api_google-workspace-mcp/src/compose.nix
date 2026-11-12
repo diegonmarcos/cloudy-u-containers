@@ -29,6 +29,21 @@ in
         # (auth/google_auth.py:_get_service_account_credentials). NOT _KEY_FILE —
         # that's the newer upstream `main` var name and has no effect here.
         GOOGLE_SERVICE_ACCOUNT_KEY_PATH = "/run/secrets/GOOGLE_SERVICE_ACCOUNT_KEY";
+        # #1659 bounded memory. Heavy Drive calls stream through this directory
+        # on the container's disk (never tmpfs: a tmpfs would count against the
+        # memory limit again); it has a quota and is swept by age from /health.
+        WORKSPACE_MCP_TMP_DIR = "/tmp/workspace-mcp";
+        # At most this many file-moving calls at once; the rest wait, then get
+        # a clear "busy" answer.
+        WORKSPACE_MCP_HEAVY_CONCURRENCY = "2";
+        # glibc gives every thread its own malloc arena (8 x cores); with upload
+        # worker threads that is retained memory that never returns to the OS.
+        MALLOC_ARENA_MAX = "2";
+      };
+      # Memory budget: build.json containers.app.resources is the one declaration.
+      deploy.resources = {
+        limits.memory = app.resources.mem_limit;
+        reservations.memory = app.resources.mem_reservation;
       };
       # DIR-bind, not file-bind (2026-07-03): runc on oci-apps dies with
       # "mknod .../run/secrets/...: read-only file system" creating a FILE
