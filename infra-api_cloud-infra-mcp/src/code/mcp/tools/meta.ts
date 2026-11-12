@@ -62,6 +62,7 @@ import {
 import { securityScan, securityDocker, securitySshKeys, securityTokens } from "../../shared/libs/security.js";
 import { getConfigPath } from "../../shared/libs/paths.js";
 import { handleSteelZap } from "./security-testing.js";
+import { handleBacklog } from "./backlog.js";
 
 // ── shared libs (health cloud/mail via SSH+Docker) ─────────────────────────
 const REPORT_VM = "oci-analytics";
@@ -838,9 +839,10 @@ async function workflowsDaguTrigger(dagName?: string): Promise<string> {
 export function registerMetaDevops(server: McpServer): void {
   server.tool(
     "infra.devops",
-    "DevOps operations: build, ship, docker, container, VM, service, frontend, workflows. Pass method + params.",
+    "DevOps operations: build, ship, docker, container, VM, service, frontend, workflows, backlog (safe ticket read/add/update, never delete). Pass method + params.",
     {
       method: z.enum([
+        "backlog.add","backlog.get","backlog.list","backlog.update",
         "build.all","build.backup","build.docker","build.secrets_status","build.service","build.ship",
         "caddy.cert_repair",
         "container.restart","container.start","container.stop",
@@ -858,6 +860,9 @@ export function registerMetaDevops(server: McpServer): void {
     async ({ method, params }) => {
       const p = (params ?? {}) as any;
       try {
+        if (method.startsWith("backlog.")) {
+          return text(await handleBacklog(method.replace(/^backlog\./, ""), p));
+        }
         switch (method) {
           // ── build ──
           case "build.service": {
