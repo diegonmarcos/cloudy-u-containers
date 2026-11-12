@@ -26,6 +26,7 @@ import { registerSecurityExecTools } from "./tools/security.js";
 import { registerPluginTools } from "./tools/plugin.js";
 // D) Peers control (#1495): the phone tools merged from cloudy-android-mcp
 import { registerPeersControlTools } from "./tools/peers-control.js";
+import { registerBacklogTools } from "./tools/backlog.js";
 // Resources
 import { registerResources } from "./resources/index.js";
 
@@ -52,6 +53,7 @@ export function buildRegistry(): ToolRegistry {
   registerBrowserTools(s); // #1498 browser.* (phone via the mesh /browser, or the cloudy-browser-headless container)
   registerSecurityExecTools(s);
   registerPluginTools(s);
+  registerBacklogTools(s); // #1585 devops.repo.backlog_*: safe ticket read/add/update in cloudy-a-docs (never delete/blank)
   registerPeersControlTools(s); // #1495 peers-control: the phones' shell, logcat, crashes, apps, wake, call, grant, input, screencap, adb_*
   return reg;
 }

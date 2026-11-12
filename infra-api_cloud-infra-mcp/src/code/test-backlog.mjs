@@ -1,7 +1,7 @@
 // #1585: the c3 MCP backlog.* policy never deletes or blanks a ticket.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { validId, validSession, indexFromTree, nextId, newTicket, mergeUpdate, TASKS_DIR } from "./mcp/tools/backlog.ts";
+import { validId, validSession, indexFromTree, nextId, newTicket, mergeUpdate, TASKS_DIR } from "./mcp/tools/backlog-core.ts";
 
 const base = { id: "42", subject: "#42 thing", description: "spec", status: "pending", metadata: { progress: "a" } };
 

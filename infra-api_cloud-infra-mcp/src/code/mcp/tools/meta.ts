@@ -62,7 +62,7 @@ import {
 import { securityScan, securityDocker, securitySshKeys, securityTokens } from "../../shared/libs/security.js";
 import { getConfigPath } from "../../shared/libs/paths.js";
 import { handleSteelZap } from "./security-testing.js";
-import { handleBacklog } from "./backlog.js";
+import { handleBacklog } from "./backlog-core.js";
 
 // ── shared libs (health cloud/mail via SSH+Docker) ─────────────────────────
 const REPORT_VM = "oci-analytics";
