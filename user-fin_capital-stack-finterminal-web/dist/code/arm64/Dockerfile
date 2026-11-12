@@ -14,6 +14,6 @@ LABEL cloud.diegonmarcos.from-image="nginx:1.27-alpine"
 
 RUN printf 'ok\n' > /usr/share/nginx/html/healthz
 RUN set -e; apk add --no-cache --virtual .fetch curl tar; mkdir -p /tmp/w; curl -fsSL https://codeload.github.com/diegonmarcos/cloudy-h-webapps-mob/tar.gz/df55fd534ccb694f766874395686bd84de1a5d63 | tar -xz -C /tmp/w --strip-components=4 --wildcards '*/sites/cloudy-webapps/dist/_app/*' '*/sites/cloudy-webapps/dist/capital-stack-finterminal/*'; cp -r /tmp/w/_app /tmp/w/capital-stack-finterminal /usr/share/nginx/html/; rm -rf /tmp/w; apk del .fetch
-RUN find /usr/share/nginx/html -type f \( -name '*.html' -o -name '*.js' -o -name '*.json' -o -name '*.css' \) -exec sed -i -e 's#https://capital-stack-finterminal-api.mesh.diegonmarcos.com#/capital-stack-finterminal-api#g' -e 's#/cloud-webapps#/capital-stack-finterminal-web#g' {} +
+RUN find /usr/share/nginx/html -type f \( -name '*.html' -o -name '*.js' -o -name '*.json' -o -name '*.css' \) -exec sed -i -e 's#https://capital-stack-finterm-api.mesh.diegonmarcos.com#/capital-stack-finterm-api#g' -e 's#https://capital-stack-finterminal-api.mesh.diegonmarcos.com#/capital-stack-finterm-api#g' -e 's#/cloud-webapps#/capital-stack-finterminal-web#g' {} +
 RUN ln -s . /usr/share/nginx/html/capital-stack-finterminal-web
 RUN printf '<!doctype html><meta charset=utf-8><title>Capital-Stack-FinTerminal</title><meta http-equiv=refresh content="0;url=capital-stack-finterminal/"><a href="capital-stack-finterminal/">Capital-Stack-FinTerminal</a>\n' > /usr/share/nginx/html/index.html
