@@ -1,0 +1,34 @@
+name: stalwart sorter guard
+
+# Mail sorter crate (user-comm_tools-stalwart/src/crate): unit tests, incl. inbox_guard.rs
+# (#1674: every message keeps the Inbox mailbox; membership edits are additive patch paths only).
+on:
+  push:
+    branches: [main]
+    paths: ['user-comm_tools-stalwart/src/crate/**', '.github/workflows/stalwart-sorter-guard.yml']
+  pull_request:
+    paths: ['user-comm_tools-stalwart/src/crate/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: user-comm_tools-stalwart/src/crate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: user-comm_tools-stalwart/src/crate
+      - name: sorter crate tests
+        run: cargo test 2>&1 | tee test.log; test "${PIPESTATUS[0]}" = 0
+        shell: bash
+      - name: inbox guard tests ran
+        shell: bash
+        run: grep -E "inbox_guard::tests::.* ok" test.log | tee /dev/stderr | wc -l | awk '{ if ($1 < 6) { print "expected >= 6 inbox_guard tests"; exit 1 } }'
