@@ -1,0 +1,12 @@
+# #1686 cloudy-browser-headless for Cloud Run (linux/amd64), built by .github/workflows/cloud-run-images.yml.
+# The oci-apps image is the arm64 binaries image (engine.nix, generated); this is the same recipe for the amd64 Cloud Run
+# registry: the Playwright base (Chromium + deps), the package.json deps, `node server.js`. Cloud Run sets PORT; the
+# listener binds 0.0.0.0 here (on the VM it binds the WG IP). BROWSER_TOKEN comes from Secret Manager (secret_env).
+FROM mcr.microsoft.com/playwright:v1.55.0-noble
+WORKDIR /app
+COPY code/package.json .
+RUN npm install --omit=dev --no-audit --no-fund
+COPY code/ .
+ENV NODE_ENV=production HTTP_HOST=0.0.0.0 PORT=3118 BASE_PATH=/cloudy-browser-headless
+EXPOSE 3118
+CMD ["node", "server.js"]

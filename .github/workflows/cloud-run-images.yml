@@ -13,13 +13,16 @@ on:
       - 'user-fin_capital-stack-finterm-api/src/code/**'
       - 'user-fin_capital-stack-finterminal-web/dist/code/**'
       - 'user-data_cloudy-browser-scrapper-api/src/**'
+      - 'user-data_cloudy-browser-headless/src/**'
+      - 'infra-ai_cloudy-ai-embeddings-api/src/**'
+      - 'infra-ai_languagetool/src/Dockerfile.cloudrun'
       - '.github/workflows/cloud-run-images.yml'
   workflow_dispatch:
     inputs:
       service:
         description: "Service to build (all = every entry below)"
         type: choice
-        options: [all, agy, capital-stack-finterminal-api, capital-stack-finterminal-web, scrappers-api]
+        options: [all, agy, capital-stack-finterminal-api, capital-stack-finterminal-web, scrappers-api, cloudy-browser-headless, cloudy-ai-embeddings-api, languagetool]
         default: all
       push:
         description: "Push the image to ghcr.io (owner approval)"
@@ -31,7 +34,8 @@ permissions:
   packages: write
 
 concurrency:
-  group: cloud-run-images-${{ github.ref }}
+  # Per selected service: two dispatches for different services must not cancel each other (#1686).
+  group: cloud-run-images-${{ github.ref }}-${{ github.event.inputs.service || 'push' }}
   cancel-in-progress: true
 
 jobs:
@@ -58,6 +62,18 @@ jobs:
             context: user-data_cloudy-browser-scrapper-api/src
             dockerfile: user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun
             image: ghcr.io/diegonmarcos/scrappers-api-cloudrun
+          - name: cloudy-browser-headless
+            context: user-data_cloudy-browser-headless/src
+            dockerfile: user-data_cloudy-browser-headless/src/Dockerfile.cloudrun
+            image: ghcr.io/diegonmarcos/cloudy-browser-headless-cloudrun
+          - name: cloudy-ai-embeddings-api
+            context: infra-ai_cloudy-ai-embeddings-api/src
+            dockerfile: infra-ai_cloudy-ai-embeddings-api/src/Dockerfile.cloudrun
+            image: ghcr.io/diegonmarcos/cloudy-ai-embeddings-api-cloudrun
+          - name: languagetool
+            context: infra-ai_languagetool/src
+            dockerfile: infra-ai_languagetool/src/Dockerfile.cloudrun
+            image: ghcr.io/diegonmarcos/languagetool-cloudrun
     steps:
       - name: Selected?
         id: sel

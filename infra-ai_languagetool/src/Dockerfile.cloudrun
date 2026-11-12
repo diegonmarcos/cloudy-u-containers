@@ -1,0 +1,5 @@
+# #1686 languagetool for Cloud Run (linux/amd64), built by .github/workflows/cloud-run-images.yml.
+# Cloud Run pulls only through the ghcr remote repo, so the upstream image the VM runs (build.json containers.app.image)
+# is re-published as its amd64 manifest under ghcr.io/diegonmarcos/languagetool-cloudrun. Rules-only (no n-grams).
+FROM erikvl87/languagetool:latest
+EXPOSE 8010

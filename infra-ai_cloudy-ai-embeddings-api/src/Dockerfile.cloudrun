@@ -1,0 +1,12 @@
+# #1686 cloudy-ai-embeddings-api for Cloud Run (linux/amd64), built by .github/workflows/cloud-run-images.yml.
+# Same recipe as the oci-apps image (python 3.11, requirements.txt, uvicorn main:app), CPU torch, listening on 0.0.0.0.
+# The models download from Hugging Face on first start into HF_HOME (the instance's own disk, or the optional GCS
+# volume declared in terraform.json); /health answers at once, /ready once both models are loaded.
+FROM python:3.11-slim
+WORKDIR /app
+COPY code/requirements.txt .
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+COPY code/ .
+ENV PORT=7997 INFINITY_ANONYMOUS_USAGE_STATS=0 HF_HUB_DISABLE_TELEMETRY=1 HF_HOME=/root/.cache/huggingface
+EXPOSE 7997
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
