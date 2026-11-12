@@ -183,12 +183,56 @@
       "wg_only": false
     },
     {
-      "service": "infra-api_c3-infra-api",
-      "mesh_name": "c3-infra-api.mesh.diegonmarcos.com",
+      "service": "infra-ai_cloudy-ai-api",
+      "mesh_name": "cloudy-ai-api.mesh.diegonmarcos.com",
       "block": "primary",
       "host": "api.diegonmarcos.com",
       "type": "path",
-      "base_path": "/c3-infra-api",
+      "base_path": "/ai",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-fin_capital-stack-finterm-api",
+      "mesh_name": "capital-stack-finterm-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/capital-stack-finterm-api",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-all-api",
+      "mesh_name": "cloudy-all-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-all-api",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-data_cloudy-browser-scrapper-api",
+      "mesh_name": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-browser-scrapper-api",
+      "auth": "two_factor",
+      "public_paths": [
+        "/scrappers/health",
+        "/scrappers/openapi.json"
+      ],
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-c3-api",
+      "mesh_name": "cloudy-c3-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-c3-api",
       "auth": "two_factor",
       "public_paths": [
         "/c3-infra-api/docs/json",
@@ -198,28 +242,18 @@
       "wg_only": true
     },
     {
-      "service": "infra-api_c3-services-api",
-      "mesh_name": "c3-services-api.mesh.diegonmarcos.com",
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "mesh_name": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
       "block": "primary",
       "host": "api.diegonmarcos.com",
       "type": "path",
-      "base_path": "/c3-services-api",
-      "auth": "two_factor",
+      "base_path": "/cloudy-mail-http-to-smtp-api",
+      "auth": "bearer",
       "wg_only": true
     },
     {
-      "service": "user-fin_capital-stack-finterminal-api",
-      "mesh_name": "capital-stack-finterminal-api.mesh.diegonmarcos.com",
-      "block": "primary",
-      "host": "api.diegonmarcos.com",
-      "type": "path",
-      "base_path": "/capital-stack-finterminal-api",
-      "auth": "two_factor",
-      "wg_only": true
-    },
-    {
-      "service": "infra-api_git-proxy-api",
-      "mesh_name": "git-proxy-api.mesh.diegonmarcos.com",
+      "service": "infra-api_cloudy-drive-git-proxy-api",
+      "mesh_name": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
       "block": "primary",
       "host": "api.diegonmarcos.com",
       "type": "path",
@@ -228,16 +262,6 @@
       "public_paths": [
         "/git/health"
       ],
-      "wg_only": true
-    },
-    {
-      "service": "infra-api_tools-http-to-smtp-proxy-api",
-      "mesh_name": "http-to-smtp-proxy-api.mesh.diegonmarcos.com",
-      "block": "primary",
-      "host": "api.diegonmarcos.com",
-      "type": "path",
-      "base_path": "/http-to-smtp-proxy-api",
-      "auth": "bearer",
       "wg_only": true
     },
     {
@@ -254,20 +278,6 @@
         "/pub/analytics/*"
       ],
       "wg_only": false
-    },
-    {
-      "service": "user-data_scrappers-api",
-      "mesh_name": "scrappers-api.mesh.diegonmarcos.com",
-      "block": "primary",
-      "host": "api.diegonmarcos.com",
-      "type": "path",
-      "base_path": "/scrappers",
-      "auth": "two_factor",
-      "public_paths": [
-        "/scrappers/health",
-        "/scrappers/openapi.json"
-      ],
-      "wg_only": true
     },
     {
       "service": "user-prod_etherpad",
@@ -444,6 +454,17 @@
       "wg_only": true
     },
     {
+      "service": "infra-api_c3bot-relay",
+      "mesh_name": "c3bot-relay.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/c3bot-relay",
+      "auth": "none",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
       "service": "user-ai_cloud-cgc-pub-mcp",
       "mesh_name": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com",
       "block": "primary",
@@ -481,6 +502,47 @@
       "type": "path",
       "base_path": "/cloud-vault-mcp",
       "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-all-mcp",
+      "mesh_name": "cloudy-all-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-all-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-apps-communication-mcp",
+      "mesh_name": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-apps-communication-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-apps-drive-mcp",
+      "mesh_name": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-apps-drive-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "user-data_cloudy-browser-headless",
+      "mesh_name": "cloudy-browser-headless.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-browser-headless",
+      "auth": "none",
+      "streaming": false,
       "wg_only": true
     },
     {
@@ -645,10 +707,6 @@
       "dns": "authelia.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-api_c3-infra-api",
-      "dns": "c3-infra-api.mesh.diegonmarcos.com"
-    },
-    {
       "service": "infra-api_cloud-infra-mcp",
       "dns": "c3-infra-mcp.mesh.diegonmarcos.com"
     },
@@ -657,16 +715,16 @@
       "dns": "c3-public-api.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-api_c3-services-api",
-      "dns": "c3-services-api.mesh.diegonmarcos.com"
-    },
-    {
       "service": "infra-api_cloud-services-mcp",
       "dns": "c3-services-mcp.mesh.diegonmarcos.com"
     },
     {
       "service": "infra-obs_cloud-spec",
       "dns": "c3-spec.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_c3bot-relay",
+      "dns": "c3bot-relay.mesh.diegonmarcos.com"
     },
     {
       "service": "infra-sec_caddy-public",
@@ -681,8 +739,8 @@
       "dns": "calendar.mesh.diegonmarcos.com"
     },
     {
-      "service": "user-fin_capital-stack-finterminal-api",
-      "dns": "capital-stack-finterminal-api.mesh.diegonmarcos.com"
+      "service": "user-fin_capital-stack-finterm-api",
+      "dns": "capital-stack-finterm-api.mesh.diegonmarcos.com"
     },
     {
       "service": "user-fin_capital-stack-finterminal-web",
@@ -703,6 +761,62 @@
     {
       "service": "user-prod_cloud-notes-web",
       "dns": "cloud-notes-web.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloudy-ai-agents-api",
+      "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ai_cloudy-ai-api",
+      "dns": "cloudy-ai-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ai_cloudy-ai-embeddings-api",
+      "dns": "cloudy-ai-embeddings-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloudy-ai-memory-api",
+      "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_cloudy-ai-tokens-api",
+      "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-all-api",
+      "dns": "cloudy-all-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-all-mcp",
+      "dns": "cloudy-all-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-apps-communication-mcp",
+      "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-apps-drive-mcp",
+      "dns": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-data_cloudy-browser-headless",
+      "dns": "cloudy-browser-headless.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-data_cloudy-browser-scrapper-api",
+      "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-c3-api",
+      "dns": "cloudy-c3-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-drive-git-proxy-api",
+      "dns": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com"
     },
     {
       "service": "user-prod_code-server",
@@ -729,10 +843,6 @@
       "dns": "drive-mcp.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-ai_embeddings-api",
-      "dns": "embeddings-api.mesh.diegonmarcos.com"
-    },
-    {
       "service": "user-prod_etherpad",
       "dns": "etherpad.mesh.diegonmarcos.com"
     },
@@ -749,10 +859,6 @@
       "dns": "g-workspace-mcp.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-api_git-proxy-api",
-      "dns": "git-proxy-api.mesh.diegonmarcos.com"
-    },
-    {
       "service": "infra-dat_gitea",
       "dns": "gitea.mesh.diegonmarcos.com"
     },
@@ -767,10 +873,6 @@
     {
       "service": "user-ai_hermes-agent",
       "dns": "hermes-agent.mesh.diegonmarcos.com"
-    },
-    {
-      "service": "infra-api_tools-http-to-smtp-proxy-api",
-      "dns": "http-to-smtp-proxy-api.mesh.diegonmarcos.com"
     },
     {
       "service": "infra-sec_introspect-proxy",
@@ -821,11 +923,7 @@
       "dns": "mcp-oauth.mesh.diegonmarcos.com"
     },
     {
-      "service": "user-ai_my-ai-api",
-      "dns": "my-ai-api.mesh.diegonmarcos.com"
-    },
-    {
-      "service": "user-ai_my-ai_claude-api",
+      "service": "user-ai_cloudy-ai-claude-api",
       "dns": "my-ai-claude-api.mesh.diegonmarcos.com"
     },
     {
@@ -857,24 +955,16 @@
       "dns": "revealmd.mesh.diegonmarcos.com"
     },
     {
-      "service": "user-data_scrappers-api",
-      "dns": "scrappers-api.mesh.diegonmarcos.com"
-    },
-    {
-      "service": "user-ai_session-memory",
-      "dns": "session-memory.mesh.diegonmarcos.com"
-    },
-    {
       "service": "user-comm_tools-stalwart",
       "dns": "stalwart.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-api_cloud-superapp-mcp",
-      "dns": "superapp-mcp.mesh.diegonmarcos.com"
+      "service": "infra-sec_steel-browser",
+      "dns": "steel-browser.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-sec_tokens-api",
-      "dns": "tokens-api.mesh.diegonmarcos.com"
+      "service": "infra-api_cloud-superapp-mcp",
+      "dns": "superapp-mcp.mesh.diegonmarcos.com"
     },
     {
       "service": "infra-obs_umami",
@@ -887,6 +977,10 @@
     {
       "service": "user-comm_cloud-webmail",
       "dns": "webmail.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_zap",
+      "dns": "zap.mesh.diegonmarcos.com"
     }
   ]
 }

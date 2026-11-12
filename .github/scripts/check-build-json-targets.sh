@@ -18,12 +18,12 @@
 # dist. It is not a one-field change. #542 renamed three agent containers to
 # cloud-agi-* and produced all three possible outcomes:
 #
-#   LOUD    user-ai_my-ai_claude-api kept the old symlink name. nix reads from
+#   LOUD    user-ai_cloudy-ai-claude-api kept the old symlink name. nix reads from
 #           git, so the missing target is "Path '...src/build-my-ai_claude-api.json'
 #           does not exist in Git repository". Ship run 35995862469 died there.
 #   LATENT  user-ai_hermes-agent had the identical dangling symlink and had
 #           simply not shipped yet.
-#   SILENT  user-ai_my-ai-api was a 52,827-byte REGULAR FILE, not a symlink,
+#   SILENT  user-ai_cloudy-ai-agents-api was a 52,827-byte REGULAR FILE, not a symlink,
 #           whose dist name was also gone. It BUILT — from a frozen pre-rename
 #           config — and nothing could report it. Worse than the loud failure.
 #
@@ -132,7 +132,7 @@ check_tree() {
                         frozen_read=$((frozen_read + 1))
                         _say "  · $svc/src/$ref: regular file, not a symlink — builds from a frozen copy, dist still carries the name (#564, not failed here)"
                     else
-                        _say "  ✗ $svc/src/$ref: regular file AND no such name in cloud-infra dist. This service builds from a frozen pre-rename config and cannot fail loudly about it — the user-ai_my-ai-api shape (#564)." >&2
+                        _say "  ✗ $svc/src/$ref: regular file AND no such name in cloud-infra dist. This service builds from a frozen pre-rename config and cannot fail loudly about it — the user-ai_cloudy-ai-agents-api shape (#564)." >&2
                         rc=1
                     fi
                 else

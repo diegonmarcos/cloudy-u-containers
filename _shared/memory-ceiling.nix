@@ -76,7 +76,7 @@ let
       + "An uncapped container sizes its caches from the HOST's RAM — that is how "
       + "kg-store ate ~10.6GB of oci-apps unnoticed. Fix it by declaring "
       + "containers.<role>.resources.mem_limit in build.json and reading it in "
-      + "compose.nix (see user-ai_kg-store), or by adding a default for this "
+      + "compose.nix (see user-ai_cloud-me-cgc-pvt-graph-api), or by adding a default for this "
       + "category. Going uncapped is deliberately not an option."
     );
 in

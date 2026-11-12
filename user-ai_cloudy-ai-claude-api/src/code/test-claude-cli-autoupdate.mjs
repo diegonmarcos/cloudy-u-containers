@@ -22,7 +22,7 @@
 //   * the refreshed CLI not first on PATH (baked one wins)    -> C5 red
 //   * the model list falling back to claude-opus-5            -> D1/D2 red
 //
-// Usage: node test-claude-cli-autoupdate.mjs  (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+// Usage: node test-claude-cli-autoupdate.mjs  (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -49,9 +49,9 @@ const OPUS_FLOOR = [5, 5];
 
 const toolbelt = JSON.parse(read("_shared/agent-toolbelt.json"));
 const engine = read("_shared/engine.nix");
-const build = JSON.parse(read("user-ai_my-ai_claude-api/build.json"));
-const start = read("user-ai_my-ai_claude-api/src/code/start.sh");
-const dockerfile = read("user-ai_my-ai_claude-api/src/code/Dockerfile");
+const build = JSON.parse(read("user-ai_cloudy-ai-claude-api/build.json"));
+const start = read("user-ai_cloudy-ai-claude-api/src/code/start.sh");
+const dockerfile = read("user-ai_cloudy-ai-claude-api/src/code/Dockerfile");
 
 const cmp = (a, b) => {
   const pa = String(a).split(".").map(Number);

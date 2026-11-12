@@ -13,7 +13,7 @@
 // ONE declaration (build.json runtime.repos) as the only source, and fail if a
 // literal repo loop comes back into the shell.
 //
-// Usage: node test-bootstrap-repos-declared.mjs   (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+// Usage: node test-bootstrap-repos-declared.mjs   (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync, mkdtempSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";

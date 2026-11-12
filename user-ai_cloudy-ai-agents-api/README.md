@@ -60,7 +60,7 @@ unset — handy for diagnosing.
 ## Ship
 
 ```sh
-cd a_solutions/user-ai_my-ai-api
+cd a_solutions/user-ai_cloudy-ai-agents-api
 ./build.sh ship          # build (Rust wheel + Node) → GHCR → rsync → compose up → health
 ./build.sh logs          # tail container logs
 ./build.sh health        # healthcheck
@@ -89,7 +89,7 @@ claude stack does — see the my-ai `--help`.
 ## Layout
 
 ```
-user-ai_my-ai-api/
+user-ai_cloudy-ai-agents-api/
 ├── build.json                       # data-driven build/deploy config
 ├── build.sh  → ../../9_others/…/cloud-ship-container-engine.sh
 ├── README.md

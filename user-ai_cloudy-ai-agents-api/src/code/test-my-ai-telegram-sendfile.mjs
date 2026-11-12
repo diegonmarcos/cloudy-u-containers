@@ -15,7 +15,7 @@
 //   finding. So the source itself is asserted: sendDocument must be built with
 //   FormData and must NOT be routed through tgPost.
 //
-// Usage: node test-my-ai-telegram-sendfile.mjs   (cwd = <repo>/user-ai_my-ai-api/src/code)
+// Usage: node test-my-ai-telegram-sendfile.mjs   (cwd = <repo>/user-ai_cloudy-ai-agents-api/src/code)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { deliverDocument, TELEGRAM_MAX_DOCUMENT_BYTES } from "./bots/telegram.mjs";

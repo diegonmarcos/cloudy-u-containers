@@ -19,10 +19,10 @@ const DENY = new RegExp(readJson(join(HERE, '..', 'build.json')).runtime.files.d
 
 export const GROUPS = {
   'c3-mail': ['user-comm_tools-stalwart', 'user-comm_tools-maddy', 'user-comm_cloud-webmail', 'user-comm_mail-puller',
-    'infra-api_cloud-mail-mcp', 'infra-api_tools-http-to-smtp-proxy-api', 'infra-sec_caddy-l4-image'],
+    'infra-api_cloud-mail-mcp', 'infra-api_cloudy-mail-http-to-smtp-api', 'infra-sec_caddy-l4-image'],
   'c3-dns-routing': ['infra-net_hickory-dns', 'infra-net_unbound-dns64', 'infra-net_cloudflared', 'infra-cloud_cloudflare-worker',
     'infra-sec_caddy', 'infra-sec_caddy-public'],
-  'c3-security-network': ['infra-sec_authelia', 'infra-sec_crowdsec', 'infra-sec_introspect-proxy', 'infra-sec_mcp-oauth', 'infra-sec_tokens-api',
+  'c3-security-network': ['infra-sec_authelia', 'infra-sec_crowdsec', 'infra-sec_introspect-proxy', 'infra-sec_mcp-oauth', 'infra-sec_cloudy-ai-tokens-api',
     'infra-sec_caddy', 'infra-sec_caddy-public', 'infra-net_wireguard-mesh', 'infra-net_wireguard-mesh-ws-tunnel', 'infra-net_wireguard-public'],
   'c3-observability': null, // every infra-obs_* plus bc-obs_*
   'c3-mcp-apis': null,      // every infra-api_* plus user-*mcp*/api services

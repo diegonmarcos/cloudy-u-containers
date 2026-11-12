@@ -96,7 +96,7 @@ done
 # The floor — see the header comment. Zero discovered is the exact defect this
 # runner is paid to remove, so make it unmissable, in the log AND the summary.
 if [ "${DISCOVERED}" -eq 0 ]; then
-    echo "::error::DISCOVERED 0 testers — no build.json declares a 'tests' key. This is a broken discovery step or an empty tester registry, NOT a clean repo. Expected >= 1 (today infra-api_c3-infra-api registers the drift-multi-container tester). Treating this as green would be the courier lie ticket #486 exists to kill." >&2
+    echo "::error::DISCOVERED 0 testers — no build.json declares a 'tests' key. This is a broken discovery step or an empty tester registry, NOT a clean repo. Expected >= 1 (today infra-api_cloudy-c3-api registers the drift-multi-container tester). Treating this as green would be the courier lie ticket #486 exists to kill." >&2
     exit 1
 fi
 if [ "${EXECUTED}" -eq 0 ]; then

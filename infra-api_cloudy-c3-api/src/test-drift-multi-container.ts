@@ -119,7 +119,7 @@ for (const c of livenessCases) {
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 // Portable fixture lookup. This tester sits at
-//   <repo>/infra-api_c3-infra-api/src/test-drift-multi-container.ts
+//   <repo>/infra-api_cloudy-c3-api/src/test-drift-multi-container.ts
 // so two dirname() hops from import.meta.dirname reach the repo root — no
 // hardcoded checkout paths (ticket #476/#479), resolves on the standalone
 // clone and the cloud-infra a_solutions checkout alike.

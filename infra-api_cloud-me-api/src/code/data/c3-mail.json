@@ -199,13 +199,13 @@
       }
     },
     {
-      "service": "infra-api_tools-http-to-smtp-proxy-api",
-      "name": "http-to-smtp-proxy-api",
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "name": "cloudy-mail-http-to-smtp-api",
       "description": "HTTP-to-SMTP bridge sidecar of Caddy on gcp-proxy. CF Worker POSTs JSON email payloads to this container (because GCP blocks outbound TCP/25); container speaks SMTP over WG to maddy:25 + stalwart:2025 on oci-mail. Public path: api.diegonmarcos.com/http-to-smtp-proxy-api/ [DECOMMISSIONED 2026-05-21]",
       "category": "app",
       "enabled": false,
       "host": "gcp-proxy",
-      "dns": "http-to-smtp-proxy-api.mesh.diegonmarcos.com",
+      "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
       "domain": "api.diegonmarcos.com/http-to-smtp-proxy-api",
       "ports": {
         "app": 8090
@@ -213,8 +213,8 @@
       "containers": [
         {
           "key": "app",
-          "container_name": "http-to-smtp-proxy-api",
-          "dns": "http-to-smtp-proxy-api.mesh.diegonmarcos.com",
+          "container_name": "cloudy-mail-http-to-smtp-api",
+          "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
           "port": 8090,
           "protocol": "http",
           "mesh_route": true
@@ -225,7 +225,7 @@
           "block": "primary",
           "host": "api.diegonmarcos.com",
           "type": "path",
-          "base_path": "/http-to-smtp-proxy-api",
+          "base_path": "/cloudy-mail-http-to-smtp-api",
           "auth": "bearer",
           "wg_only": true
         }
@@ -233,7 +233,7 @@
       "exposure": "wg-only (mesh)",
       "api": {
         "type": "custom-rest",
-        "base_path": "/http-to-smtp-proxy-api",
+        "base_path": "/cloudy-mail-http-to-smtp-api",
         "endpoint_count": 1,
         "display_name": "HTTP-to-SMTP Proxy API",
         "auth": "bearer"

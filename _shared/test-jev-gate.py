@@ -933,7 +933,7 @@ def package_and_parity():
         fails.append(sidecar + ": the sidecar must not be public")
     # every committed copy of the gate is byte-identical to _shared/jev-gate (dist is generated; a stale
     # copy would ship an old gate with a new declaration)
-    for rel in ["user-ai_my-ai-api/dist/code/arm64/jev-gate", "user-ai_my-ai-api/dist/code/amd64/jev-gate"]:
+    for rel in ["user-ai_cloudy-ai-agents-api/dist/code/arm64/jev-gate", "user-ai_cloudy-ai-agents-api/dist/code/amd64/jev-gate"]:
         d = os.path.join(ROOT, rel)
         if not os.path.isdir(d):
             continue
@@ -1092,12 +1092,12 @@ def cli_and_wiring():
     # the real CLI configs resolve to a cloud-cgc server the gate can call
     os.environ["XDG_CONFIG_HOME"] = xdg = os.path.join(TMP, "xdg")
     os.makedirs(os.path.join(xdg, "goose"), exist_ok=True)
-    shutil.copy(os.path.join(ROOT, "user-ai_my-ai-api/src/code/configs/goose-config.yaml"),
+    shutil.copy(os.path.join(ROOT, "user-ai_cloudy-ai-agents-api/src/code/configs/goose-config.yaml"),
                 os.path.join(xdg, "goose", "config.yaml"))
     os.environ["HERMES_HOME"] = os.path.join(ROOT, "user-ai_hermes-agent/src/configs")
     real_cfg = mod.load_config(os.path.join(GATE_DIR, "jev-gate.json"))
     real_cfg["code_graph"]["client_configs"]["claude"]["path"] = os.path.join(
-        ROOT, "user-ai_my-ai_claude-api/src/code/claude-config/mcp.tpl.json")
+        ROOT, "user-ai_cloudy-ai-claude-api/src/code/claude-config/mcp.tpl.json")
     for cli in ["claude", "goose", "hermes"]:
         try:
             ep = mod.cgc_endpoint(cli, real_cfg)
@@ -1123,7 +1123,7 @@ def cli_and_wiring():
     # each container actually ships and registers the gate
     def read(p):
         return open(os.path.join(ROOT, p)).read()
-    s = json.load(open(os.path.join(ROOT, "user-ai_my-ai_claude-api/src/code/claude-config/settings.json")))
+    s = json.load(open(os.path.join(ROOT, "user-ai_cloudy-ai-claude-api/src/code/claude-config/settings.json")))
     pr = s.get("hooks", {}).get("PermissionRequest") or []
     if not any("jev_gate.py claude" in h.get("command", "") and re.fullmatch(e.get("matcher", ""), "Bash")
                for e in pr for h in e.get("hooks", [])):
@@ -1137,16 +1137,16 @@ def cli_and_wiring():
         fails.append("claude PermissionRequest timeout must exceed Jev timeout + impact budget")
     if "jev-gate" in s.get("permissions", {}).get("deny", []):
         fails.append("unexpected deny rule")
-    for svc in ["user-ai_my-ai_claude-api", "user-ai_my-ai-api"]:
+    for svc in ["user-ai_cloudy-ai-claude-api", "user-ai_cloudy-ai-agents-api"]:
         if "../../_shared/jev-gate" not in read(svc + "/src/flake.nix"):
             fails.append(svc + ": flake extraFiles must carry ../../_shared/jev-gate")
         if not re.search(r"^COPY jev-gate/ /app/jev-gate/$", read(svc + "/src/code/Dockerfile"), re.M):
             fails.append(svc + ": Dockerfile must COPY jev-gate/ /app/jev-gate/")
-    if "/app/jev-gate" not in read("user-ai_my-ai-api/src/code/start.sh") or ".agents/plugins" not in read("user-ai_my-ai-api/src/code/start.sh"):
+    if "/app/jev-gate" not in read("user-ai_cloudy-ai-agents-api/src/code/start.sh") or ".agents/plugins" not in read("user-ai_cloudy-ai-agents-api/src/code/start.sh"):
         fails.append("goose start.sh must install /app/jev-gate as a ~/.agents/plugins plugin")
-    if not re.search(r'^export GOOSE_MOIM_MESSAGE_FILE="\$\{HOME\}/', read("user-ai_my-ai-api/src/code/start.sh"), re.M):
+    if not re.search(r'^export GOOSE_MOIM_MESSAGE_FILE="\$\{HOME\}/', read("user-ai_cloudy-ai-agents-api/src/code/start.sh"), re.M):
         fails.append("goose start.sh must export GOOSE_MOIM_MESSAGE_FILE for goosed and its hooks")
-    tom = mod.mini_yaml(read("user-ai_my-ai-api/src/code/configs/goose-config.yaml"))["extensions"].get("tom") or {}
+    tom = mod.mini_yaml(read("user-ai_cloudy-ai-agents-api/src/code/configs/goose-config.yaml"))["extensions"].get("tom") or {}
     if tom.get("enabled") != "true" or tom.get("type") != "platform":
         fails.append("goose-config.yaml must enable the tom platform extension (it injects the context file)")
     if not re.search(r"^\s*enabled:\s*\[[^\]]*jev-gate", read("user-ai_hermes-agent/src/configs/config.yaml"), re.M):
@@ -1155,7 +1155,7 @@ def cli_and_wiring():
         fails.append("hermes compose must mount the plugin at /opt/data/plugins/jev-gate")
     if "_shared/jev-gate" not in read("user-ai_hermes-agent/src/flake.nix"):
         fails.append("hermes flake must emit the shared jev-gate files")
-    for svc in ["user-ai_my-ai_claude-api", "user-ai_my-ai-api", "user-ai_hermes-agent"]:
+    for svc in ["user-ai_cloudy-ai-claude-api", "user-ai_cloudy-ai-agents-api", "user-ai_hermes-agent"]:
         if not os.path.exists(os.path.join(ROOT, svc, "src", "secrets.yaml")):
             continue  # #1064: the sops file lives only in the private vault; the check runs where it is overlaid
         if not re.search(r"^OPENROUTER_API_KEY: ENC\[AES256_GCM", read(svc + "/src/secrets.yaml"), re.M):

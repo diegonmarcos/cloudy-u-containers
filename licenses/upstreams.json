@@ -3,21 +3,21 @@
  "modules": [
   {
    "id": "headroom-my-ai-api",
-   "path": "user-ai_my-ai-api/src/code/vendor/headroom",
+   "path": "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom",
    "upstream": "Headroom (context compression engine)",
    "licence": "Apache-2.0",
    "repo": "https://github.com/chopratejas/headroom.git",
    "ref": "9f7f3adfea03710d5e67c4c630b3c8061ff6d161",
-   "pin_doc": "user-ai_my-ai-api/src/code/vendor/headroom/VENDORED.md (upstream 0.26.0)"
+   "pin_doc": "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/VENDORED.md (upstream 0.26.0)"
   },
   {
    "id": "headroom-claude-api",
-   "path": "user-ai_my-ai_claude-api/src/code/vendor/headroom",
+   "path": "user-ai_cloudy-ai-claude-api/src/code/vendor/headroom",
    "upstream": "Headroom (context compression engine)",
    "licence": "Apache-2.0",
    "repo": "https://github.com/chopratejas/headroom.git",
    "ref": "9f7f3adfea03710d5e67c4c630b3c8061ff6d161",
-   "pin_doc": "user-ai_my-ai_claude-api/src/code/vendor/headroom/VENDORED.md (upstream 0.26.0)"
+   "pin_doc": "user-ai_cloudy-ai-claude-api/src/code/vendor/headroom/VENDORED.md (upstream 0.26.0)"
   },
   {
    "id": "cloud-webmail",
@@ -40,7 +40,7 @@
   },
   {
    "id": "ponytail",
-   "path": "user-ai_my-ai_claude-api/src/code/claude-config/ponytail",
+   "path": "user-ai_cloudy-ai-claude-api/src/code/claude-config/ponytail",
    "upstream": "ponytail (Claude Code hooks + skills, DietrichGebert)",
    "licence": "MIT",
    "repo": "https://github.com/DietrichGebert/ponytail.git",

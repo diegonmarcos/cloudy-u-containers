@@ -18,7 +18,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-const here = process.cwd(); // <repo>/user-ai_my-ai-api/src/code
+const here = process.cwd(); // <repo>/user-ai_cloudy-ai-agents-api/src/code
 const src = (rel) => join(here, rel);
 const dist = (rel) => join(here, `../../dist/code/arm64/${rel}`);
 

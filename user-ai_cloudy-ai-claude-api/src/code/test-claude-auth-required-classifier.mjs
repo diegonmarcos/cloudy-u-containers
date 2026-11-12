@@ -18,7 +18,7 @@
 // actually reads the list instead of re-testing strings inline.
 //
 // Usage: node test-claude-auth-required-classifier.mjs
-//        (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+//        (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync } from "node:fs";
 import { AUTH_REQUIRED_SIGNATURES, isAuthRequired } from "./login.mjs";
 

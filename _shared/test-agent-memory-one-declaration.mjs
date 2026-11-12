@@ -199,7 +199,7 @@ const agentServices = execFileSync("sh", ["-c",
   "grep -l '\"git_tree\": true' */build.json | sed 's#/build.json##' | sort"],
   { cwd: ROOT, encoding: "utf8" }).trim().split("\n").filter(Boolean);
 check("R0 the three agent runtimes are the ones declaring agent.git_tree",
-  ["user-ai_hermes-agent", "user-ai_my-ai-api", "user-ai_my-ai_claude-api"]
+  ["user-ai_hermes-agent", "user-ai_cloudy-ai-agents-api", "user-ai_cloudy-ai-claude-api"]
     .every((s) => agentServices.includes(s)),
   `declared: ${agentServices.join(", ")}`);
 // No agent container may set AGENT_MEMORY_* itself — that is the second
@@ -217,7 +217,7 @@ for (const svc of agentServices) {
 // of them ended up with none.
 //
 // claude: Claude Code SessionStart hook, has a Read tool, gets the INDEX.
-const hook = read("user-ai_my-ai_claude-api/src/code/claude-config/hooks/a-context-inject-memory.sh");
+const hook = read("user-ai_cloudy-ai-claude-api/src/code/claude-config/hooks/a-context-inject-memory.sh");
 check("P1 claude reads the index through AGENT_MEMORY_DIR", /AGENT_MEMORY_DIR/.test(hook));
 check("P2 claude's hook cats the INDEX, never the entries",
   /cat "\$\{_mem_dir\}\/\$\{_mem_index\}"/.test(hook)
@@ -225,7 +225,7 @@ check("P2 claude's hook cats the INDEX, never the entries",
 
 // goose: no hook, no CLAUDE.md. Its one context surface is .goosehints
 // (goose 1.44 CONTEXT_FILE_NAMES), written at start from the declaration.
-const startSh = read("user-ai_my-ai-api/src/code/start.sh");
+const startSh = read("user-ai_cloudy-ai-agents-api/src/code/start.sh");
 check("P3 goose gets a .goosehints file",
   /\.goosehints/.test(startSh));
 check("P4 goose's hints come from the declaration, not a retyped path",
@@ -240,7 +240,7 @@ check("P6 an unset briefing is LOUD for goose",
 
 // goose/hermes chat modes on the front are OpenRouter forwards; the injected
 // system message is their ONLY context surface.
-const server = read("user-ai_my-ai-api/src/code/server.mjs");
+const server = read("user-ai_cloudy-ai-agents-api/src/code/server.mjs");
 check("P7 the front injects the briefing into the system prompt",
   /process\.env\.AGENT_MEMORY_BRIEFING/.test(server)
   && /parts\.push\(AGENT_MEMORY_BRIEFING\)/.test(server));
@@ -278,8 +278,8 @@ check("P13 a container declaring no alias gets no extra var",
 // — it ships nothing, deploys nothing, and every other check still passes while
 // the container keeps running the old code (#539).
 for (const rel of ["start.sh", "server.mjs"]) {
-  const s = join(ROOT, "user-ai_my-ai-api/src/code", rel);
-  const d = join(ROOT, "user-ai_my-ai-api/dist/code/arm64", rel);
+  const s = join(ROOT, "user-ai_cloudy-ai-agents-api/src/code", rel);
+  const d = join(ROOT, "user-ai_cloudy-ai-agents-api/dist/code/arm64", rel);
   check(`S:${rel} is byte-identical src == dist`,
     existsSync(d) && readFileSync(s, "utf8") === readFileSync(d, "utf8"),
     "regenerate dist in the SAME commit as the src edit, or this fix deploys nothing");

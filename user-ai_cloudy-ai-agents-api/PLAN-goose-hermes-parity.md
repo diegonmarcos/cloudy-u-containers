@@ -7,7 +7,7 @@ Live error surfaced to the my-ai client / Telegram:
 ```
 
 ## Root cause (verified)
-Two components in `user-ai_my-ai-api`:
+Two components in `user-ai_cloudy-ai-agents-api`:
 
 1. **`src/code/gateway.mjs`** — the Telegram/Mattermost gateway. Already fixed in
    commit `ffb3a8450`: `routeToGoose` now POSTs to the front `/v1/chat/completions`
@@ -64,7 +64,7 @@ Hermes works because its mode routes to `callOpenRouter({ messages, model: HERME
 The deployed image is stale (that's why the live error persists even though the gateway
 commit landed). After editing source:
 ```
-cd /home/diego/git/cloud-infra/a_solutions/user-ai_my-ai-api
+cd /home/diego/git/cloud-infra/a_solutions/user-ai_cloudy-ai-agents-api
 ./build.sh build      # regenerate dist/ from src/
 ```
 Then ship with an actual image rebuild (arm64, oci-apps) — do NOT just `compose up`

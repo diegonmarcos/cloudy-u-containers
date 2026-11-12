@@ -63,7 +63,7 @@ in
         ISSUER         = "https://auth.diegonmarcos.com";
         REQUIRED_SCOPE = "authelia.bearer.authz";
         PORT           = toString buildJson.ports.app;
-        # Fleet token engine (infra-sec_tokens-api, mesh name tokens-api.mesh.diegonmarcos.com): every Bearer is checked against its
+        # Fleet token engine (infra-sec_cloudy-ai-tokens-api, mesh name tokens-api.mesh.diegonmarcos.com): every Bearer is checked against its
         # live list, so a token revoked in Cloud Account stops working within TOKENS_CACHE_TTL (<= 60 s).
         # TOKENS_VERIFY_SECRET arrives through the env_file (src/secrets.yaml).
         TOKENS_VERIFY_URL = "http://tokens-api.mesh.diegonmarcos.com:4184/v1/verify";

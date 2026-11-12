@@ -49,8 +49,8 @@
   ],
   "base_image_binaries": ["git"],
   "containers": [
-    { "name": "my-ai_claude-api", "dir": "user-ai_my-ai_claude-api", "kind": "type-a", "dockerfile": "src/code/Dockerfile" },
-    { "name": "my-ai-api", "dir": "user-ai_my-ai-api", "kind": "type-a", "dockerfile": "src/code/Dockerfile" },
+    { "name": "my-ai_claude-api", "dir": "user-ai_cloudy-ai-claude-api", "kind": "type-a", "dockerfile": "src/code/Dockerfile" },
+    { "name": "my-ai-api", "dir": "user-ai_cloudy-ai-agents-api", "kind": "type-a", "dockerfile": "src/code/Dockerfile" },
     { "name": "hermes-agent", "dir": "user-ai_hermes-agent", "kind": "type-b", "build_json": "build.json" }
   ]
 }

@@ -12,7 +12,7 @@ path = "src/main.rs"
 # which this repo forbids (GHA is the only builder). The in-container compile
 # therefore resolves semver-compatible versions fresh on each build. Commit the
 # lock from the first green GHA run to make the image bit-reproducible — the
-# peer crate (user-fin_capital-stack-finterminal-api/src/code/Cargo.lock) does exactly that.
+# peer crate (user-fin_capital-stack-finterm-api/src/code/Cargo.lock) does exactly that.
 
 [dependencies]
 # Blocking HTTP on purpose: this is a 30s poll loop, not a server. An async

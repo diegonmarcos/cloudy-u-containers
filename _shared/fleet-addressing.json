@@ -34,9 +34,7 @@
     ]
   },
   "transitional": {
-    "naming": [
-      "my-ai_claude-api"
-    ],
+    "naming": [],
     "mesh": [
       "cloud-drive-mcp",
       "cloud-infra-mcp",
@@ -48,20 +46,20 @@
       "google-personal-mcp",
       "google-workspace-mcp",
       "cloud-spec",
-      "my-ai_claude-api",
+      "cloudy-ai-claude-api",
       "chat-mattermost",
       "cloud-webmail",
       "calendar-radicale",
       "contacts-radicale"
     ],
     "no_api_host": [
-      "c3-infra-api",
+      "cloudy-c3-api",
       "c3-public-api",
-      "c3-services-api",
-      "git-proxy-api",
-      "http-to-smtp-proxy-api",
-      "scrappers-api",
-      "capital-stack-finterminal-api"
+      "cloudy-all-api",
+      "cloudy-drive-git-proxy-api",
+      "cloudy-mail-http-to-smtp-api",
+      "cloudy-browser-scrapper-api",
+      "capital-stack-finterm-api"
     ],
     "protected": [
       "cloud-cgc-pub-mcp"
@@ -73,7 +71,7 @@
     "mesh_direct": [
       "authelia",
       "c3-public-api",
-      "c3-services-api",
+      "cloudy-all-api",
       "caddy",
       "caddy-public",
       "cloud-cgc-pub-mcp",
@@ -86,12 +84,12 @@
       "dbgate",
       "etherpad",
       "filebrowser",
-      "capital-stack-finterminal-api",
+      "capital-stack-finterm-api",
       "gitea",
       "grist",
       "hedgedoc",
       "hermes-agent",
-      "http-to-smtp-proxy-api",
+      "cloudy-mail-http-to-smtp-api",
       "introspect-proxy",
       "jev-sidecar",
       "matomo",
@@ -106,9 +104,9 @@
       "playlist-syncer",
       "redis",
       "revealmd",
-      "scrappers-api",
-      "session-memory",
-      "tokens-api",
+      "cloudy-browser-scrapper-api",
+      "cloudy-ai-memory-api",
+      "cloudy-ai-tokens-api",
       "umami"
     ]
   },
@@ -170,12 +168,12 @@
     },
     "path_redirects_pending": {
       "_doc": "Stage 3 (#1100/#1104): old-host path prefixes that become 308 to https://c3-pvt.diegonmarcos.com/<container>{rest} once every client is migrated (a cross-host redirect drops the Authorization header, so rendering them earlier would break installed APKs). Keys: host/prefix; values: c3-pvt container. The guard requires each target to be mounted on c3-pvt. Activation is a move of the entry into render and a Caddy deploy.",
-      "api.diegonmarcos.com/c3-infra-api": "c3-infra-api",
-      "api.diegonmarcos.com/c3-services-api": "c3-services-api",
+      "api.diegonmarcos.com/c3-infra-api": "cloudy-c3-api",
+      "api.diegonmarcos.com/c3-services-api": "cloudy-all-api",
       "api.diegonmarcos.com/pub": "c3-public-api",
-      "api.diegonmarcos.com/git": "git-proxy-api",
-      "api.diegonmarcos.com/scrappers": "scrappers-api",
-      "api.diegonmarcos.com/capital-stack-finterminal-api": "capital-stack-finterminal-api",
+      "api.diegonmarcos.com/git": "cloudy-drive-git-proxy-api",
+      "api.diegonmarcos.com/scrappers": "cloudy-browser-scrapper-api",
+      "api.diegonmarcos.com/capital-stack-finterminal-api": "capital-stack-finterm-api",
       "mcp.diegonmarcos.com/cloud-drive-mcp": "cloud-drive-mcp",
       "mcp.diegonmarcos.com/c3-infra-mcp": "cloud-infra-mcp",
       "mcp.diegonmarcos.com/mail-mcp": "cloud-mail-mcp",

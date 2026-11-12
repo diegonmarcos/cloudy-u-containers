@@ -9,9 +9,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const here = process.cwd(); // <repo>/user-ai_my-ai_claude-api/src/code
+const here = process.cwd(); // <repo>/user-ai_cloudy-ai-claude-api/src/code
 const mine = join(here, "sessions-store.mjs");
-const sibling = join(here, "../../../user-ai_my-ai-api/src/code/sessions-store.mjs");
+const sibling = join(here, "../../../user-ai_cloudy-ai-agents-api/src/code/sessions-store.mjs");
 
 const a = readFileSync(mine, "utf8");
 const b = readFileSync(sibling, "utf8");

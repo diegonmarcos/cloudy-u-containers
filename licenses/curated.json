@@ -65,7 +65,7 @@
   "infra-sec_auth-broker": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_c3-infra-api": {
+  "infra-api_cloudy-c3-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-api_c3-infra-mcp-api": {
@@ -74,7 +74,7 @@
   "infra-api_c3-public-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_c3-services-api": {
+  "infra-api_cloudy-all-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-api_c3-services-mcp-api": {
@@ -107,10 +107,10 @@
   "infra-api_cloud-me-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-ai_embeddings-api": {
+  "infra-ai_cloudy-ai-embeddings-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_git-proxy-api": {
+  "infra-api_cloudy-drive-git-proxy-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-api_google-personal-mcp": {
@@ -119,7 +119,7 @@
   "infra-api_google-workspace-mcp": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_tools-http-to-smtp-proxy-api": {
+  "infra-api_cloudy-mail-http-to-smtp-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-bld_cloud-builder-x": {
@@ -213,7 +213,7 @@
   "infra-sec_mcp-oauth": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-sec_tokens-api": {
+  "infra-sec_cloudy-ai-tokens-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-sec_authelia": {
@@ -252,31 +252,31 @@
   "user-ai_hermes-agent": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-ai_kg-store": {
+  "user-ai_cloud-me-cgc-pvt-graph-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-ai_kg-store-pub": {
+  "user-ai_cloudy-cgc-pub-graph-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-ai_my-ai-api": {
+  "user-ai_cloudy-ai-agents-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-ai_my-ai-api/dist/code/arm64/vendor/headroom": {
+  "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom": {
    "licence": "Apache-2.0",
-   "note": "Build-staged copy of user-ai_my-ai-api/src/code/vendor/headroom (upstream module headroom-my-ai-api); same licence, LICENSE + NOTICE retained."
+   "note": "Build-staged copy of user-ai_cloudy-ai-agents-api/src/code/vendor/headroom (upstream module headroom-my-ai-api); same licence, LICENSE + NOTICE retained."
   },
-  "user-ai_my-ai_claude-api/dist/code/arm64/claude-config/ponytail": {
+  "user-ai_cloudy-ai-claude-api/dist/code/arm64/claude-config/ponytail": {
    "licence": "MIT",
-   "note": "Build-staged copy of user-ai_my-ai_claude-api/src/code/claude-config/ponytail (upstream github.com/DietrichGebert/ponytail, MIT, Copyright (c) 2026 DietrichGebert); same licence, LICENSE retained."
+   "note": "Build-staged copy of user-ai_cloudy-ai-claude-api/src/code/claude-config/ponytail (upstream github.com/DietrichGebert/ponytail, MIT, Copyright (c) 2026 DietrichGebert); same licence, LICENSE retained."
   },
-  "user-ai_my-ai_claude-api": {
+  "user-ai_cloudy-ai-claude-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "user-ai_openclaw": {
    "licence": "LicenseRef-NoLicenseGranted",
    "note": "The fleet's own declarations (build.json, compose.nix, openclaw-config.nix, the tester). OpenClaw itself is not vendored: it runs from upstream's image, see docker_licences ghcr.io/openclaw/openclaw."
   },
-  "user-ai_session-memory": {
+  "user-ai_cloudy-ai-memory-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "user-comm_chat-mattermost": {
@@ -303,13 +303,13 @@
   "user-comm_tools-stalwart": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-data_scrappers-api": {
+  "user-data_cloudy-browser-scrapper-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "user-fin_crawlee-cloud": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-fin_capital-stack-finterminal-api": {
+  "user-fin_capital-stack-finterm-api": {
    "licence": "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial",
    "note": "Rust port of FinceptTerminal (https://github.com/Fincept-Corporation/FinceptTerminal), vendored in src/code. Upstream is dual-licensed: AGPL-3.0 (personal use) OR the Fincept Commercial License (any business/internal/hosted use). LICENSE is upstream's text verbatim; NOTICE records the obligations (AGPL section 13 network source offer)."
   },
@@ -322,7 +322,7 @@
   "user-media_playlist-syncer": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "user-news_news-gdelt": {
+  "user-news_capital-stack-news-gdelt-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "user-prod_calendar-radicale": {
@@ -365,6 +365,27 @@
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "user-web_front-end": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "_rebrand-1450": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-ai_cloudy-ai-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_c3bot-relay": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloudy-all-mcp": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloudy-apps-communication-mcp": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloudy-apps-drive-mcp": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "user-ai_antigravity": {
    "licence": "LicenseRef-NoLicenseGranted"
   }
  },

@@ -18,16 +18,17 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 102,
+   "LicenseRef-NoLicenseGranted": 114,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 55,
-   "Apache-2.0": 7,
+   "LicenseRef-NoLicenseGranted": 60,
+   "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
    "GPL-3.0-only": 4,
    "LicenseRef-OS-Distribution": 4,
+   "Apache-2.0 AND LicenseRef-OS-Distribution": 2,
    "BSD-3-Clause": 2,
    "GPL-2.0-only": 2,
    "GPL-3.0-only AND MIT": 2,
@@ -35,7 +36,6 @@
    "(MIT OR Apache-2.0) AND LicenseRef-OS-Distribution": 1,
    "AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial": 1,
    "AGPL-3.0-only OR LicenseRef-Stalwart-Enterprise": 1,
-   "Apache-2.0 AND LicenseRef-OS-Distribution": 1,
    "Apache-2.0 OR GPL-2.0-only": 1,
    "BSD-2-Clause": 1,
    "BSD-3-Clause AND LicenseRef-OS-Distribution": 1,
@@ -52,8 +52,8 @@
    "MIT": 1
   },
   "npm": {
-   "MIT": 83,
-   "Apache-2.0": 5,
+   "MIT": 85,
+   "Apache-2.0": 7,
    "ISC": 3,
    "BSD-3-Clause": 2,
    "MIT-0": 2,
@@ -85,12 +85,12 @@
  },
  "upstream_modules": {
   "headroom-my-ai-api": {
-   "path": "user-ai_my-ai-api/src/code/vendor/headroom",
+   "path": "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom",
    "upstream": "Headroom (context compression engine)",
    "licence": "Apache-2.0"
   },
   "headroom-claude-api": {
-   "path": "user-ai_my-ai_claude-api/src/code/vendor/headroom",
+   "path": "user-ai_cloudy-ai-claude-api/src/code/vendor/headroom",
    "upstream": "Headroom (context compression engine)",
    "licence": "Apache-2.0"
   },
@@ -105,7 +105,7 @@
    "licence": "MIT"
   },
   "ponytail": {
-   "path": "user-ai_my-ai_claude-api/src/code/claude-config/ponytail",
+   "path": "user-ai_cloudy-ai-claude-api/src/code/claude-config/ponytail",
    "upstream": "ponytail (Claude Code hooks + skills, DietrichGebert)",
    "licence": "MIT"
   }
@@ -113,8 +113,8 @@
  "rootfs_packages": {
   "_doc": "Packages installed INTO images by Dockerfile RUN lines (package -> Dockerfiles). Not gated; licences are each distribution's per-package metadata and are not resolved here.",
   "counts": {
-   "apk": 17,
-   "apt": 88,
+   "apk": 18,
+   "apt": 96,
    "npm-global": 5,
    "pip": 4
   },
@@ -145,7 +145,8 @@
     "infra-obs_dagu/dist/code/arm64/Dockerfile",
     "infra-obs_dagu/src/code/Dockerfile",
     "infra-ops_disk-janitor/src/code/Dockerfile",
-    "user-ai_db-agent/src/code/Dockerfile"
+    "user-ai_db-agent/src/code/Dockerfile",
+    "user-fin_capital-stack-finterminal-web/dist/code/arm64/Dockerfile"
    ],
    "docker-cli": [
     "infra-obs_dagu/dist/assets/Dockerfile",
@@ -196,6 +197,9 @@
    "sqlite": [
     "user-ai_db-agent/src/code/Dockerfile"
    ],
+   "tar": [
+    "user-fin_capital-stack-finterminal-web/dist/code/arm64/Dockerfile"
+   ],
    "tzdata": [
     "infra-obs_configs-sync/src/code/Dockerfile",
     "infra-obs_dagu/dist/assets/Dockerfile",
@@ -208,41 +212,37 @@
   },
   "apt": {
    "bash": [
-    "infra-obs_reports/src/recon/Dockerfile"
+    "infra-obs_reports/src/recon/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile"
    ],
    "bc": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "bsdutils": [
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ],
    "build-essential": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile",
-    "user-news_news-gdelt/dist/code/arm64/Dockerfile",
-    "user-news_news-gdelt/src/Dockerfile.native"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/dist/code/arm64/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native"
    ],
    "ca-certificates": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/code/Dockerfile",
-    "infra-api_c3-services-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-services-api/src/Dockerfile.native",
-    "infra-api_c3-services-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
@@ -250,52 +250,63 @@
     "infra-api_cloud-services-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-services-mcp/src/Dockerfile.native",
     "infra-api_cloud-services-mcp/src/code/Dockerfile",
-    "infra-api_git-proxy-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-all-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-all-api/src/Dockerfile.native",
+    "infra-api_cloudy-all-api/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
+    "infra-api_cloudy-drive-git-proxy-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-mail-http-to-smtp-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Dockerfile",
     "infra-api_google-personal-mcp/dist/code/arm64/Dockerfile",
     "infra-api_google-personal-mcp/src/Dockerfile.native",
     "infra-api_google-personal-mcp/src/code/Dockerfile",
-    "infra-api_tools-http-to-smtp-proxy-api/dist/code/amd64/Dockerfile",
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Dockerfile",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
     "infra-obs_reports/src/recon/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile",
     "user-comm_mail-puller/dist/code/amd64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/dist/code/arm64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native",
-    "user-news_news-gdelt/dist/code/arm64/Dockerfile",
-    "user-news_news-gdelt/src/Dockerfile.native"
+    "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun",
+    "user-fin_capital-stack-finterm-api/dist/code/arm64/Dockerfile",
+    "user-fin_capital-stack-finterm-api/src/code/Dockerfile.native",
+    "user-news_capital-stack-news-gdelt-api/dist/code/arm64/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native"
+   ],
+   "cmake": [
+    "user-ai_antigravity/src/Dockerfile"
    ],
    "coreutils": [
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "curl": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/code/Dockerfile",
-    "infra-api_c3-services-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-services-api/src/Dockerfile.native",
-    "infra-api_c3-services-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
     "infra-api_cloud-services-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-services-mcp/src/Dockerfile.native",
     "infra-api_cloud-services-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-all-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-all-api/src/Dockerfile.native",
+    "infra-api_cloudy-all-api/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-api_google-personal-mcp/src/code/Dockerfile",
     "infra-api_google-workspace-mcp/dist/code/arm64/Dockerfile",
     "infra-api_google-workspace-mcp/src/Dockerfile.native",
@@ -304,25 +315,24 @@
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
     "infra-obs_reports/src/recon/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/dist/code/arm64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native",
-    "user-news_news-gdelt/dist/code/arm64/Dockerfile",
-    "user-news_news-gdelt/src/Dockerfile.native",
-    "user-news_news-gdelt/src/code/Dockerfile"
+    "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun",
+    "user-fin_capital-stack-finterm-api/dist/code/arm64/Dockerfile",
+    "user-fin_capital-stack-finterm-api/src/code/Dockerfile.native",
+    "user-news_capital-stack-news-gdelt-api/dist/code/arm64/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native",
+    "user-news_capital-stack-news-gdelt-api/src/code/Dockerfile"
    ],
    "dnsutils": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
@@ -330,29 +340,39 @@
     "infra-api_cloud-mail-mcp/src/Dockerfile.native",
     "infra-api_cloud-mail-mcp/src/code/Dockerfile",
     "infra-api_cloud-mail-mcp/src/code/Dockerfile.native",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-api_google-personal-mcp/dist/code/arm64/Dockerfile",
     "infra-api_google-personal-mcp/src/Dockerfile.native",
     "infra-api_google-personal-mcp/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
     "infra-obs_reports/src/recon/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "dnsx": [
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "ffmpeg": [
-    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile"
+    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
+    "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun"
    ],
    "file": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
+   ],
+   "fish": [
+    "user-ai_antigravity/src/Dockerfile"
    ],
    "g++": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ],
    "gcc": [
     "infra-db_postlite/dist/Dockerfile",
@@ -360,26 +380,29 @@
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "git": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/recon/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
+    "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun"
    ],
    "gitleaks": [
     "infra-obs_reports/src/recon/Dockerfile"
@@ -387,9 +410,13 @@
    "graphviz": [
     "infra-obs_reports/src/Dockerfile"
    ],
+   "gzip": [
+    "user-ai_antigravity/src/Dockerfile"
+   ],
    "htop": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "httpx-toolkit": [
     "infra-obs_reports/src/recon/Dockerfile"
@@ -399,37 +426,38 @@
    ],
    "iproute2": [
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "iptables": [
     "infra-obs_reports/src/Dockerfile"
    ],
    "iputils-ping": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "jq": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
     "infra-obs_reports/src/recon/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
    "less": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "libc6-dev": [
     "infra-db_postlite/dist/Dockerfile",
@@ -450,12 +478,12 @@
    "libssl3": [
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
     "user-comm_mail-puller/dist/code/amd64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/dist/code/arm64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native"
+    "user-fin_capital-stack-finterm-api/dist/code/arm64/Dockerfile",
+    "user-fin_capital-stack-finterm-api/src/code/Dockerfile.native"
    ],
    "lsof": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "mailcap": [
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
@@ -465,8 +493,9 @@
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "mariadb-server": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
@@ -477,23 +506,27 @@
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
    "nano": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
+   ],
+   "neovim": [
+    "user-ai_antigravity/src/Dockerfile"
    ],
    "net-tools": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "netcat-openbsd": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "nginx": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
@@ -503,20 +536,18 @@
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "nodejs": [
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ],
    "nuclei": [
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "openssh-client": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
@@ -526,31 +557,37 @@
     "infra-api_cloud-mail-mcp/src/code/Dockerfile.native",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
     "infra-api_cloud-superapp-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "openssl": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile"
    ],
    "pandoc": [
     "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile"
    ],
    "patch": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "patchelf": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ],
    "php8.2-bcmath": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
@@ -617,40 +654,47 @@
    "procps": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "psmisc": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "python3": [
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native",
     "user-ai_cloud-cgc-pub-mcp/src/code/Dockerfile",
-    "user-news_news-gdelt/dist/code/arm64/Dockerfile",
-    "user-news_news-gdelt/src/Dockerfile.native"
+    "user-news_capital-stack-news-gdelt-api/dist/code/arm64/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native"
    ],
    "python3-pip": [
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native"
    ],
+   "python3-venv": [
+    "user-ai_antigravity/src/Dockerfile"
+   ],
    "ripgrep": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "rsync": [
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "sed": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
@@ -661,20 +705,23 @@
     "user-vault_vaultwarden/dist/code/arm64/Dockerfile"
    ],
    "strace": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "supervisor": [
     "infra-obs_matomo/dist/code/arm64/Dockerfile",
     "infra-obs_matomo/src/code/Dockerfile"
    ],
    "sysstat": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
+   ],
+   "tar": [
+    "user-ai_antigravity/src/Dockerfile"
    ],
    "tcpdump": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "testssl.sh": [
     "infra-obs_reports/src/recon/Dockerfile"
@@ -683,9 +730,13 @@
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
+   "tmux": [
+    "user-ai_antigravity/src/Dockerfile"
+   ],
    "tree": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "tzdata": [
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
@@ -696,21 +747,24 @@
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
    "unzip": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "util-linux": [
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ],
    "vim": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "wget": [
     "infra-obs_dbgate/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
    ],
    "wireguard-tools": [
     "infra-obs_reports/src/Dockerfile"
@@ -720,8 +774,8 @@
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
    "xz-utils": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost/src/code/arm64/Dockerfile"
    ],
@@ -729,8 +783,12 @@
     "infra-obs_reports/src/Dockerfile"
    ],
    "zip": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile"
+    "user-ai_antigravity/src/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile"
+   ],
+   "zsh": [
+    "user-ai_antigravity/src/Dockerfile"
    ]
   },
   "npm-global": {
@@ -761,10 +819,10 @@
     "user-ai_cloud-cgc-pub-mcp/src/Dockerfile.native"
    ],
    "uv": [
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile"
    ]
   }
  },
@@ -916,8 +974,8 @@
   "cargo:aho-corasick": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -934,12 +992,12 @@
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -950,7 +1008,7 @@
   "cargo:argmin": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.10",
    "scope": "shipped",
@@ -973,9 +1031,9 @@
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-health-full-daily/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.1",
    "scope": "shipped",
@@ -986,20 +1044,20 @@
   "cargo:aws-config": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.13.0",
+   "licence_source": "crates.io 1.13.2",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:aws-credential-types": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1010,34 +1068,34 @@
   "cargo:aws-sigv4": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.6.4",
+   "licence_source": "crates.io 1.6.5",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:aws-smithy-runtime-api": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.19.2",
+   "licence_source": "crates.io 1.21.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:axum": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.8",
    "scope": "shipped",
@@ -1060,8 +1118,8 @@
   "cargo:blake3": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1072,8 +1130,8 @@
   "cargo:bytes": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1084,8 +1142,8 @@
   "cargo:bytesize": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1096,13 +1154,13 @@
   "cargo:cc": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-py/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-py/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-py/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-py/Cargo.toml"
    ],
    "version": "1",
    "scope": "build",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.10.0",
+   "licence_source": "crates.io 1.11.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:chrono": {
@@ -1115,7 +1173,7 @@
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.4",
    "scope": "shipped",
@@ -1126,8 +1184,8 @@
   "cargo:clap": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "4",
    "scope": "shipped",
@@ -1138,21 +1196,21 @@
   "cargo:crc32fast": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.5.3",
+   "licence_source": "crates.io 1.5.5",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:criterion": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.5",
    "scope": "dev",
@@ -1163,7 +1221,7 @@
   "cargo:csv": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1.3",
    "scope": "shipped",
@@ -1174,9 +1232,9 @@
   "cargo:dashmap": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "6",
    "scope": "shipped",
@@ -1198,7 +1256,7 @@
   "cargo:eframe": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.30",
    "scope": "shipped",
@@ -1209,7 +1267,7 @@
   "cargo:egui": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.30",
    "scope": "shipped",
@@ -1220,7 +1278,7 @@
   "cargo:egui_dock": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.15",
    "scope": "shipped",
@@ -1231,7 +1289,7 @@
   "cargo:egui_extras": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.30",
    "scope": "shipped",
@@ -1242,7 +1300,7 @@
   "cargo:egui_plot": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.30",
    "scope": "shipped",
@@ -1253,26 +1311,26 @@
   "cargo:fastembed": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "5",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 7.5.0",
+   "licence_source": "crates.io 7.7.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:flate2": {
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.1.10",
+   "licence_source": "crates.io 1.1.11",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:fs2": {
@@ -1295,10 +1353,10 @@
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.3",
    "scope": "shipped",
@@ -1309,8 +1367,8 @@
   "cargo:futures-util": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.3",
    "scope": "shipped",
@@ -1321,8 +1379,8 @@
   "cargo:gcp_auth": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "0.12",
    "scope": "shipped",
@@ -1333,7 +1391,7 @@
   "cargo:governor": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.8",
    "scope": "shipped",
@@ -1355,8 +1413,8 @@
   "cargo:hf-hub": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "0.4",
    "scope": "shipped",
@@ -1367,7 +1425,7 @@
   "cargo:hickory-resolver": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml"
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml"
    ],
    "version": "0.24",
    "scope": "shipped",
@@ -1378,10 +1436,10 @@
   "cargo:http": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1392,8 +1450,8 @@
   "cargo:http-body-util": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.1",
    "scope": "shipped",
@@ -1404,8 +1462,8 @@
   "cargo:humantime": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "2",
    "scope": "shipped",
@@ -1416,8 +1474,8 @@
   "cargo:hyper": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1428,8 +1486,8 @@
   "cargo:hyper-util": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.1",
    "scope": "dev",
@@ -1440,7 +1498,7 @@
   "cargo:insta": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1451,7 +1509,7 @@
   "cargo:lettre": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml"
    ],
@@ -1464,8 +1522,8 @@
   "cargo:lru": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.12",
    "scope": "shipped",
@@ -1476,8 +1534,8 @@
   "cargo:magika": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1488,10 +1546,10 @@
   "cargo:md-5": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.10",
    "scope": "shipped",
@@ -1514,7 +1572,7 @@
   "cargo:nalgebra": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.33",
    "scope": "shipped",
@@ -1525,7 +1583,7 @@
   "cargo:ndarray": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.16",
    "scope": "shipped",
@@ -1536,7 +1594,7 @@
   "cargo:once_cell": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1547,7 +1605,7 @@
   "cargo:parking_lot": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.12",
    "scope": "shipped",
@@ -1558,8 +1616,8 @@
   "cargo:pin-project-lite": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.2",
    "scope": "shipped",
@@ -1570,7 +1628,7 @@
   "cargo:polars": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.46",
    "scope": "shipped",
@@ -1581,8 +1639,8 @@
   "cargo:prometheus": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "=0.13.4",
    "scope": "shipped",
@@ -1593,10 +1651,10 @@
   "cargo:proptest": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "dev",
@@ -1607,8 +1665,8 @@
   "cargo:pyo3": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml"
    ],
    "version": "0.24",
    "scope": "shipped",
@@ -1619,8 +1677,8 @@
   "cargo:rayon": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1631,21 +1689,21 @@
   "cargo:redis": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "0.27",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "crates.io 1.8.0",
+   "licence_source": "crates.io 1.8.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:regex": {
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml"
    ],
    "version": "1",
@@ -1663,13 +1721,13 @@
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.12",
    "scope": "shipped",
@@ -1680,16 +1738,16 @@
   "cargo:rusqlite": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.32",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.41.1",
+   "licence_source": "crates.io 0.42.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:russh": {
@@ -1700,7 +1758,7 @@
    "version": "0.46",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 0.65.0",
+   "licence_source": "crates.io 0.65.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:russh-keys": {
@@ -1747,25 +1805,25 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.15.1",
+   "licence_source": "crates.io 1.16.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:serde": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
     "infra-obs_reports/src/src/cloud-health-full-daily/Cargo.toml",
     "infra-obs_reports/src/src/cloud-mail-health-full/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1776,19 +1834,19 @@
   "cargo:serde_json": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
     "infra-obs_reports/src/src/cloud-health-full-daily/Cargo.toml",
     "infra-obs_reports/src/src/cloud-mail-health-full/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1800,10 +1858,10 @@
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.10",
    "scope": "shipped",
@@ -1825,7 +1883,7 @@
   "cargo:sqlx": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.8",
    "scope": "shipped",
@@ -1836,7 +1894,7 @@
   "cargo:statrs": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.18",
    "scope": "shipped",
@@ -1848,8 +1906,8 @@
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "3",
    "scope": "shipped",
@@ -1871,10 +1929,10 @@
   "cargo:thiserror": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1885,8 +1943,8 @@
   "cargo:tiktoken-rs": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "0.11",
    "scope": "shipped",
@@ -1897,7 +1955,7 @@
   "cargo:time": {
    "kind": "cargo",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.3",
    "scope": "shipped",
@@ -1908,8 +1966,8 @@
   "cargo:tokenizers": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "0.22",
    "scope": "shipped",
@@ -1920,17 +1978,17 @@
   "cargo:tokio": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
     "infra-obs_reports/src/src/cloud-health-full-daily/Cargo.toml",
     "infra-obs_reports/src/src/cloud-mail-health-full/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-sec-network-report/Cargo.toml",
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
     "infra-obs_reports/src/src/reports-common/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1954,8 +2012,8 @@
   "cargo:tokio-stream": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "0.1",
    "scope": "dev",
@@ -1966,9 +2024,9 @@
   "cargo:tokio-tungstenite": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.24",
    "scope": "shipped",
@@ -1979,8 +2037,8 @@
   "cargo:tokio-util": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml"
    ],
    "version": "0.7",
@@ -1992,22 +2050,22 @@
   "cargo:toml": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.8",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.1.8+spec-1.1.0",
+   "licence_source": "crates.io 1.2.1+spec-1.1.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:tower": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.5",
    "scope": "shipped",
@@ -2018,9 +2076,9 @@
   "cargo:tower-http": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.6",
    "scope": "shipped",
@@ -2031,13 +2089,13 @@
   "cargo:tracing": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.1",
    "scope": "shipped",
@@ -2048,13 +2106,13 @@
   "cargo:tracing-subscriber": {
    "kind": "cargo",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
     "user-comm_mail-puller/src/crate/Cargo.toml",
     "user-comm_tools-maddy/src/crate/Cargo.toml",
     "user-comm_tools-stalwart/src/crate/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.3",
    "scope": "shipped",
@@ -2079,8 +2137,8 @@
   "cargo:unidiff": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
    ],
    "version": "0.4",
    "scope": "shipped",
@@ -2091,9 +2149,9 @@
   "cargo:url": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "2",
    "scope": "shipped",
@@ -2105,13 +2163,13 @@
    "kind": "cargo",
    "declared_in": [
     "infra-obs_reports/src/src/cloud-url-health-report/Cargo.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0 OR MIT",
-   "licence_source": "crates.io 1.29.0",
+   "licence_source": "crates.io 1.29.2",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:walkdir": {
@@ -2133,15 +2191,15 @@
    "version": "0.26",
    "scope": "shipped",
    "licence": "CDLA-Permissive-2.0",
-   "licence_source": "crates.io 1.0.11",
+   "licence_source": "crates.io 1.0.12",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:wiremock": {
    "kind": "cargo",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
-    "user-fin_capital-stack-finterminal-api/src/code/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-proxy/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "0.6",
    "scope": "dev",
@@ -2199,6 +2257,14 @@
    "licence_source": "licenses/curated.json::directories",
    "note": "Generated dotfiles mirror (my-ai dotfiles engine from the cloudy-u-linux claude SoT); own code, no third-party content."
   },
+  "dir:_rebrand-1450": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:_shared": {
    "kind": "dir",
    "declared_in": [
@@ -2224,7 +2290,15 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-ai_embeddings-api": {
+  "dir:infra-ai_cloudy-ai-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-ai_cloudy-ai-embeddings-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2248,14 +2322,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_c3-infra-api": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:infra-api_c3-infra-mcp-api": {
    "kind": "dir",
    "declared_in": [
@@ -2272,14 +2338,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_c3-services-api": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:infra-api_c3-services-mcp-api": {
    "kind": "dir",
    "declared_in": [
@@ -2289,6 +2347,14 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-api_c3-specs-docs-mcp": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_c3bot-relay": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2360,7 +2426,71 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_git-proxy-api": {
+  "dir:infra-api_cloudy-all-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-all-mcp": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-apps-communication-mcp": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-apps-drive-mcp": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-c3-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-drive-git-proxy-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-mail-http-to-smtp-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_google-apps-script-personal": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_google-apps-script-workspace": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2377,14 +2507,6 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-api_google-workspace-mcp": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:infra-api_tools-http-to-smtp-proxy-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2409,22 +2531,6 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-cloud_cloudflare-worker": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:infra-api_google-apps-script-personal": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:infra-api_google-apps-script-workspace": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2656,6 +2762,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-sec_cloudy-ai-tokens-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-sec_crowdsec": {
    "kind": "dir",
    "declared_in": [
@@ -2688,14 +2802,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-sec_tokens-api": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:infra-sec_zap": {
    "kind": "dir",
    "declared_in": [
@@ -2712,7 +2818,55 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:user-ai_antigravity": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:user-ai_cloud-cgc-pub-mcp": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-ai_cloud-me-cgc-pvt-graph-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-ai_cloudy-ai-agents-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-ai_cloudy-ai-claude-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-ai_cloudy-ai-memory-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:user-ai_cloudy-cgc-pub-graph-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2736,38 +2890,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-ai_kg-store": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:user-ai_kg-store-pub": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:user-ai_my-ai-api": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:user-ai_my-ai_claude-api": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:user-ai_openclaw": {
    "kind": "dir",
    "declared_in": [
@@ -2776,14 +2898,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories",
    "note": "The fleet's own declarations (build.json, compose.nix, openclaw-config.nix, the tester). OpenClaw itself is not vendored: it runs from upstream's image, see docker_licences ghcr.io/openclaw/openclaw."
-  },
-  "dir:user-ai_session-memory": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
   },
   "dir:user-comm_chat-mattermost": {
    "kind": "dir",
@@ -2857,7 +2971,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-data_scrappers-api": {
+  "dir:user-data_cloudy-browser-scrapper-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2865,7 +2979,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-fin_capital-stack-finterminal-api": {
+  "dir:user-fin_capital-stack-finterm-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2906,7 +3020,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:user-news_news-gdelt": {
+  "dir:user-news_capital-stack-news-gdelt-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -3097,7 +3211,9 @@
     "infra-sec_caddy-public/src/code/Dockerfile",
     "infra-sec_caddy/dist/code/amd64/Dockerfile",
     "infra-sec_caddy/src/Dockerfile.runtime",
-    "infra-sec_caddy/src/code/Dockerfile"
+    "infra-sec_caddy/src/code/Dockerfile",
+    "infra-sec_steel-browser/build.json",
+    "infra-sec_steel-browser/src/build.json"
    ],
    "version": "caddy:2",
    "scope": "base",
@@ -3155,10 +3271,10 @@
   "docker:debian": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/build.json",
-    "infra-api_tools-http-to-smtp-proxy-api/dist/code/amd64/Dockerfile",
-    "infra-api_tools-http-to-smtp-proxy-api/src/build.json",
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Dockerfile",
+    "infra-api_cloudy-mail-http-to-smtp-api/build.json",
+    "infra-api_cloudy-mail-http-to-smtp-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/build.json",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Dockerfile",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
     "infra-obs_matomo/build.json",
@@ -3166,16 +3282,16 @@
     "infra-obs_matomo/src/build.json",
     "infra-obs_matomo/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
-    "user-ai_session-memory/build.json",
+    "user-ai_cloudy-ai-memory-api/build.json",
     "user-comm_mail-puller/build.json",
     "user-comm_mail-puller/dist/code/amd64/Dockerfile",
     "user-comm_mail-puller/src/build.json",
     "user-comm_tools-stalwart/build.json",
     "user-comm_tools-stalwart/src/build.json",
-    "user-fin_capital-stack-finterminal-api/build.json",
-    "user-fin_capital-stack-finterminal-api/dist/code/arm64/Dockerfile",
-    "user-fin_capital-stack-finterminal-api/src/build.json",
-    "user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native"
+    "user-fin_capital-stack-finterm-api/build.json",
+    "user-fin_capital-stack-finterm-api/dist/code/arm64/Dockerfile",
+    "user-fin_capital-stack-finterm-api/src/build.json",
+    "user-fin_capital-stack-finterm-api/src/code/Dockerfile.native"
    ],
    "version": "debian:bookworm-slim",
    "scope": "base",
@@ -3304,18 +3420,6 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
-  "docker:ghcr.io/diegonmarcos/c3-infra-api": {
-   "kind": "docker",
-   "declared_in": [
-    "infra-api_c3-infra-api/build.json",
-    "infra-api_c3-infra-api/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/c3-infra-api:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
   "docker:ghcr.io/diegonmarcos/c3-public-api": {
    "kind": "docker",
    "declared_in": [
@@ -3328,13 +3432,13 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
-  "docker:ghcr.io/diegonmarcos/c3-services-api": {
+  "docker:ghcr.io/diegonmarcos/c3bot-relay": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_c3-services-api/build.json",
-    "infra-api_c3-services-api/src/build.json"
+    "infra-api_c3bot-relay/build.json",
+    "infra-api_c3bot-relay/src/build.json"
    ],
-   "version": "ghcr.io/diegonmarcos/c3-services-api:latest",
+   "version": "ghcr.io/diegonmarcos/c3bot-relay:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3364,26 +3468,14 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
-  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-api": {
+  "docker:ghcr.io/diegonmarcos/capital-stack-finterm-api": {
    "kind": "docker",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/build.json",
-    "user-fin_capital-stack-finterminal-api/src/build.json"
+    "user-fin_capital-stack-finterm-api/build.json",
+    "user-fin_capital-stack-finterm-api/src/build.json"
    ],
-   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-api:latest",
+   "version": "ghcr.io/diegonmarcos/capital-stack-finterm-api:latest",
    "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/capital-stack-finterminal-web": {
-   "kind": "docker",
-   "declared_in": [
-    "user-fin_capital-stack-finterminal-web/build.json",
-    "user-fin_capital-stack-finterminal-web/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web:latest",
-   "scope": "base",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
@@ -3395,6 +3487,18 @@
     "user-fin_capital-stack-finterminal-web/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/capital-stack-finterminal-web-binaries:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/capital-stack-news-gdelt-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-news_capital-stack-news-gdelt-api/build.json",
+    "user-news_capital-stack-news-gdelt-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/capital-stack-news-gdelt-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3427,8 +3531,8 @@
   "docker:ghcr.io/diegonmarcos/claude-superset-api": {
    "kind": "docker",
    "declared_in": [
-    "user-ai_my-ai_claude-api/build.json",
-    "user-ai_my-ai_claude-api/src/build.json"
+    "user-ai_cloudy-ai-claude-api/build.json",
+    "user-ai_cloudy-ai-claude-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/claude-superset-api:latest",
    "scope": "runtime",
@@ -3514,6 +3618,18 @@
     "infra-api_cloud-me-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloud-me-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloud-me-cgc-pvt-graph-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-ai_cloud-me-cgc-pvt-graph-api/build.json",
+    "user-ai_cloud-me-cgc-pvt-graph-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloud-me-cgc-pvt-graph-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3616,12 +3732,139 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/cloudy-ai-agents-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-ai_cloudy-ai-agents-api/build.json",
+    "user-ai_cloudy-ai-agents-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-ai-agents-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-ai-api-binaries": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-ai_cloudy-ai-api/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-ai-api-binaries:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-ai-memory-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-ai_cloudy-ai-memory-api/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-ai-memory-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-all-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-all-api/build.json",
+    "infra-api_cloudy-all-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-all-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-all-mcp": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-all-mcp:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-apps-communication-mcp": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-apps-communication-mcp/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-apps-communication-mcp:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-apps-drive-mcp": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-apps-drive-mcp/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-apps-drive-mcp:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/cloudy-browser-headless": {
    "kind": "docker",
    "declared_in": [
-    "user-data_cloudy-browser-headless/build.json"
+    "user-data_cloudy-browser-headless/build.json",
+    "user-data_cloudy-browser-headless/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloudy-browser-headless:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-browser-scrapper-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-data_cloudy-browser-scrapper-api/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-browser-scrapper-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-c3-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-c3-api/build.json",
+    "infra-api_cloudy-c3-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-c3-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-cgc-pub-graph-api": {
+   "kind": "docker",
+   "declared_in": [
+    "user-ai_cloudy-cgc-pub-graph-api/build.json",
+    "user-ai_cloudy-cgc-pub-graph-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-cgc-pub-graph-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-drive-git-proxy-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-drive-git-proxy-api/build.json",
+    "infra-api_cloudy-drive-git-proxy-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-drive-git-proxy-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3653,22 +3896,10 @@
   "docker:ghcr.io/diegonmarcos/embeddings-api-binaries": {
    "kind": "docker",
    "declared_in": [
-    "infra-ai_embeddings-api/build.json",
-    "infra-ai_embeddings-api/src/build.json"
+    "infra-ai_cloudy-ai-embeddings-api/build.json",
+    "infra-ai_cloudy-ai-embeddings-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/embeddings-api-binaries:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/git-proxy-api": {
-   "kind": "docker",
-   "declared_in": [
-    "infra-api_git-proxy-api/build.json",
-    "infra-api_git-proxy-api/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/git-proxy-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3728,30 +3959,6 @@
     "infra-ai_jev-sidecar/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/jev-sidecar:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/kg-store": {
-   "kind": "docker",
-   "declared_in": [
-    "user-ai_kg-store/build.json",
-    "user-ai_kg-store/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/kg-store:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/kg-store-pub": {
-   "kind": "docker",
-   "declared_in": [
-    "user-ai_kg-store-pub/build.json",
-    "user-ai_kg-store-pub/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/kg-store-pub:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3829,30 +4036,6 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
-  "docker:ghcr.io/diegonmarcos/my-ai-api": {
-   "kind": "docker",
-   "declared_in": [
-    "user-ai_my-ai-api/build.json",
-    "user-ai_my-ai-api/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/my-ai-api:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/news-gdelt": {
-   "kind": "docker",
-   "declared_in": [
-    "user-news_news-gdelt/build.json",
-    "user-news_news-gdelt/src/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/news-gdelt:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
   "docker:ghcr.io/diegonmarcos/octocode-fastembed-graphrag-indexed-arm": {
    "kind": "docker",
    "declared_in": [
@@ -3889,28 +4072,6 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
-  "docker:ghcr.io/diegonmarcos/scrappers-api": {
-   "kind": "docker",
-   "declared_in": [
-    "user-data_scrappers-api/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/scrappers-api:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
-  "docker:ghcr.io/diegonmarcos/session-memory": {
-   "kind": "docker",
-   "declared_in": [
-    "user-ai_session-memory/build.json"
-   ],
-   "version": "ghcr.io/diegonmarcos/session-memory:latest",
-   "scope": "runtime",
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
-   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
-  },
   "docker:ghcr.io/diegonmarcos/stalwart-sorter-binaries": {
    "kind": "docker",
    "declared_in": [
@@ -3926,8 +4087,8 @@
   "docker:ghcr.io/diegonmarcos/tokens-api-binaries": {
    "kind": "docker",
    "declared_in": [
-    "infra-sec_tokens-api/build.json",
-    "infra-sec_tokens-api/src/build.json"
+    "infra-sec_cloudy-ai-tokens-api/build.json",
+    "infra-sec_cloudy-ai-tokens-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/tokens-api-binaries:latest",
    "scope": "runtime",
@@ -3976,6 +4137,7 @@
    "kind": "docker",
    "declared_in": [
     "infra-sec_steel-browser/build.json",
+    "infra-sec_steel-browser/dist/code/arm64/Dockerfile",
     "infra-sec_steel-browser/src/build.json"
    ],
    "version": "ghcr.io/steel-dev/steel-browser@sha256:c94f9ef7f18cf0a2c3c44e5b754119099488f62b4dea411e37459d6281c19799",
@@ -4001,6 +4163,7 @@
    "kind": "docker",
    "declared_in": [
     "infra-sec_zap/build.json",
+    "infra-sec_zap/dist/code/arm64/Dockerfile",
     "infra-sec_zap/src/build.json"
    ],
    "version": "ghcr.io/zaproxy/zaproxy@sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af",
@@ -4123,7 +4286,9 @@
   "docker:mcr.microsoft.com/playwright": {
    "kind": "docker",
    "declared_in": [
-    "user-data_cloudy-browser-headless/build.json"
+    "user-data_cloudy-browser-headless/build.json",
+    "user-data_cloudy-browser-headless/dist/code/arm64/Dockerfile",
+    "user-data_cloudy-browser-headless/src/build.json"
    ],
    "version": "mcr.microsoft.com/playwright:v1.55.0-noble",
    "scope": "base",
@@ -4161,21 +4326,14 @@
   "docker:node": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_c3-infra-api/build.json",
-    "infra-api_c3-infra-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-infra-api/src/Dockerfile.native",
-    "infra-api_c3-infra-api/src/build.json",
-    "infra-api_c3-infra-api/src/code/Dockerfile",
+    "infra-ai_cloudy-ai-api/build.json",
     "infra-api_c3-public-api/build.json",
     "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/build.json",
     "infra-api_c3-public-api/src/code/Dockerfile",
-    "infra-api_c3-services-api/build.json",
-    "infra-api_c3-services-api/dist/code/arm64/Dockerfile",
-    "infra-api_c3-services-api/src/Dockerfile.native",
-    "infra-api_c3-services-api/src/build.json",
-    "infra-api_c3-services-api/src/code/Dockerfile",
+    "infra-api_c3bot-relay/build.json",
+    "infra-api_c3bot-relay/src/build.json",
     "infra-api_cloud-drive-mcp/build.json",
     "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-drive-mcp/src/build.json",
@@ -4209,9 +4367,24 @@
     "infra-api_cloud-vault-mcp/build.json",
     "infra-api_cloud-vault-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-vault-mcp/src/build.json",
-    "infra-api_git-proxy-api/build.json",
-    "infra-api_git-proxy-api/dist/code/amd64/Dockerfile",
-    "infra-api_git-proxy-api/src/build.json",
+    "infra-api_cloudy-all-api/build.json",
+    "infra-api_cloudy-all-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-all-api/src/Dockerfile.native",
+    "infra-api_cloudy-all-api/src/build.json",
+    "infra-api_cloudy-all-api/src/code/Dockerfile",
+    "infra-api_cloudy-all-mcp/build.json",
+    "infra-api_cloudy-apps-communication-mcp/build.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
+    "infra-api_cloudy-apps-drive-mcp/build.json",
+    "infra-api_cloudy-c3-api/build.json",
+    "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-c3-api/src/Dockerfile.native",
+    "infra-api_cloudy-c3-api/src/build.json",
+    "infra-api_cloudy-c3-api/src/code/Dockerfile",
+    "infra-api_cloudy-drive-git-proxy-api/build.json",
+    "infra-api_cloudy-drive-git-proxy-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-drive-git-proxy-api/src/build.json",
     "infra-api_google-personal-mcp/build.json",
     "infra-api_google-personal-mcp/dist/code/arm64/Dockerfile",
     "infra-api_google-personal-mcp/src/Dockerfile.native",
@@ -4221,13 +4394,13 @@
     "infra-net_wireguard-mesh/src/code/Dockerfile",
     "user-comm_cloud-webmail/build.json",
     "user-comm_cloud-webmail/src/code/arm64/Dockerfile",
-    "user-news_news-gdelt/build.json",
-    "user-news_news-gdelt/dist/code/arm64/Dockerfile",
-    "user-news_news-gdelt/src/Dockerfile.native",
-    "user-news_news-gdelt/src/build.json",
-    "user-news_news-gdelt/src/code/Dockerfile"
+    "user-news_capital-stack-news-gdelt-api/build.json",
+    "user-news_capital-stack-news-gdelt-api/dist/code/arm64/Dockerfile",
+    "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native",
+    "user-news_capital-stack-news-gdelt-api/src/build.json",
+    "user-news_capital-stack-news-gdelt-api/src/code/Dockerfile"
    ],
-   "version": "node:22-bookworm-slim",
+   "version": "node:22-slim",
    "scope": "base",
    "licence": "MIT AND LicenseRef-OS-Distribution",
    "licence_source": "licenses/curated.json::docker_licences[node]",
@@ -4279,9 +4452,9 @@
    "declared_in": [
     "bc-obs_alerts-api/dist/Dockerfile",
     "bc-obs_alerts-api/src/Dockerfile",
-    "infra-ai_embeddings-api/build.json",
-    "infra-ai_embeddings-api/dist/code/arm64/Dockerfile",
-    "infra-ai_embeddings-api/src/build.json",
+    "infra-ai_cloudy-ai-embeddings-api/build.json",
+    "infra-ai_cloudy-ai-embeddings-api/dist/code/arm64/Dockerfile",
+    "infra-ai_cloudy-ai-embeddings-api/src/build.json",
     "infra-ai_jev-sidecar/build.json",
     "infra-ai_jev-sidecar/dist/code/arm64/Dockerfile",
     "infra-ai_jev-sidecar/src/build.json",
@@ -4293,6 +4466,10 @@
     "infra-sec_auth-broker/dist/code/arm64/Dockerfile",
     "infra-sec_auth-broker/src/Dockerfile.native",
     "infra-sec_auth-broker/src/build.json",
+    "infra-sec_cloudy-ai-tokens-api/build.json",
+    "infra-sec_cloudy-ai-tokens-api/dist/code/arm64/Dockerfile",
+    "infra-sec_cloudy-ai-tokens-api/src/Dockerfile.native",
+    "infra-sec_cloudy-ai-tokens-api/src/build.json",
     "infra-sec_introspect-proxy/build.json",
     "infra-sec_introspect-proxy/dist/code/amd64/Dockerfile",
     "infra-sec_introspect-proxy/src/Dockerfile.native",
@@ -4302,21 +4479,18 @@
     "infra-sec_mcp-oauth/dist/code/amd64/Dockerfile",
     "infra-sec_mcp-oauth/src/Dockerfile.native",
     "infra-sec_mcp-oauth/src/build.json",
-    "infra-sec_tokens-api/build.json",
-    "infra-sec_tokens-api/dist/code/arm64/Dockerfile",
-    "infra-sec_tokens-api/src/Dockerfile.native",
-    "infra-sec_tokens-api/src/build.json",
-    "user-ai_my-ai-api/build.json",
-    "user-ai_my-ai-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai-api/src/build.json",
-    "user-ai_my-ai-api/src/code/Dockerfile",
-    "user-ai_my-ai_claude-api/build.json",
-    "user-ai_my-ai_claude-api/dist/code/arm64/Dockerfile",
-    "user-ai_my-ai_claude-api/src/build.json",
-    "user-ai_my-ai_claude-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/build.json",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-agents-api/src/build.json",
+    "user-ai_cloudy-ai-agents-api/src/code/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/build.json",
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloudy-ai-claude-api/src/build.json",
+    "user-ai_cloudy-ai-claude-api/src/code/Dockerfile",
     "user-comm_chat-mattermost/build.json",
     "user-comm_chat-mattermost/src/build.json",
-    "user-data_scrappers-api/build.json"
+    "user-data_cloudy-browser-scrapper-api/build.json",
+    "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun"
    ],
    "version": "python:3.11-slim",
    "scope": "base",
@@ -4379,15 +4553,15 @@
   "docker:rust": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_tools-http-to-smtp-proxy-api/src/code/Dockerfile",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/code/Dockerfile",
     "infra-obs_reports/src/Dockerfile",
     "user-comm_tools-maddy/build.json",
     "user-comm_tools-maddy/src/build.json",
     "user-comm_tools-stalwart/build.json",
     "user-comm_tools-stalwart/src/build.json",
-    "user-fin_capital-stack-finterminal-api/build.json",
-    "user-fin_capital-stack-finterminal-api/src/build.json",
-    "user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native"
+    "user-fin_capital-stack-finterm-api/build.json",
+    "user-fin_capital-stack-finterm-api/src/build.json",
+    "user-fin_capital-stack-finterm-api/src/code/Dockerfile.native"
    ],
    "version": "rust:1.86-slim-bookworm",
    "scope": "base",
@@ -4411,11 +4585,11 @@
   "docker:surrealdb/surrealdb": {
    "kind": "docker",
    "declared_in": [
-    "user-ai_kg-store-pub/build.json",
-    "user-ai_kg-store-pub/src/build.json",
-    "user-ai_kg-store/build.json",
-    "user-ai_kg-store/dist/code/arm64/Dockerfile",
-    "user-ai_kg-store/src/build.json"
+    "user-ai_cloud-me-cgc-pvt-graph-api/build.json",
+    "user-ai_cloud-me-cgc-pvt-graph-api/dist/code/arm64/Dockerfile",
+    "user-ai_cloud-me-cgc-pvt-graph-api/src/build.json",
+    "user-ai_cloudy-cgc-pub-graph-api/build.json",
+    "user-ai_cloudy-cgc-pub-graph-api/src/build.json"
    ],
    "version": "surrealdb/surrealdb:v2",
    "scope": "base",
@@ -4442,6 +4616,7 @@
   "docker:ubuntu": {
    "kind": "docker",
    "declared_in": [
+    "user-ai_antigravity/src/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/build.json",
     "user-ai_cloud-cgc-pub-mcp/dist/code/arm64/Dockerfile",
     "user-ai_cloud-cgc-pub-mcp/src/build.json",
@@ -4496,12 +4671,12 @@
    "kind": "flake",
    "declared_in": [
     "bc-obs_alerts-api/src/flake.nix",
-    "infra-ai_embeddings-api/src/flake.nix",
+    "infra-ai_cloudy-ai-api/src/flake.nix",
+    "infra-ai_cloudy-ai-embeddings-api/src/flake.nix",
     "infra-ai_jev-sidecar/src/flake.nix",
     "infra-ai_languagetool/src/flake.nix",
-    "infra-api_c3-infra-api/src/flake.nix",
     "infra-api_c3-public-api/src/flake.nix",
-    "infra-api_c3-services-api/src/flake.nix",
+    "infra-api_c3bot-relay/src/flake.nix",
     "infra-api_cloud-drive-mcp/src/flake.nix",
     "infra-api_cloud-infra-mcp/src/flake.nix",
     "infra-api_cloud-mail-mcp/src/flake.nix",
@@ -4510,10 +4685,12 @@
     "infra-api_cloud-services-mcp/src/flake.nix",
     "infra-api_cloud-superapp-mcp/src/flake.nix",
     "infra-api_cloud-vault-mcp/src/flake.nix",
-    "infra-api_git-proxy-api/src/flake.nix",
+    "infra-api_cloudy-all-api/src/flake.nix",
+    "infra-api_cloudy-c3-api/src/flake.nix",
+    "infra-api_cloudy-drive-git-proxy-api/src/flake.nix",
+    "infra-api_cloudy-mail-http-to-smtp-api/src/flake.nix",
     "infra-api_google-personal-mcp/src/flake.nix",
     "infra-api_google-workspace-mcp/src/flake.nix",
-    "infra-api_tools-http-to-smtp-proxy-api/src/flake.nix",
     "infra-bld_cloud-builder-x/src/flake.nix",
     "infra-bld_gha-runner/src/flake.nix",
     "infra-dat_backup-borg/src/flake.nix",
@@ -4541,19 +4718,21 @@
     "infra-sec_caddy-l4-image/src/flake.nix",
     "infra-sec_caddy-public/src/flake.nix",
     "infra-sec_caddy/src/flake.nix",
+    "infra-sec_cloudy-ai-tokens-api/src/flake.nix",
     "infra-sec_crowdsec/src/flake.nix",
     "infra-sec_introspect-proxy/src/flake.nix",
     "infra-sec_mcp-oauth/src/flake.nix",
-    "infra-sec_tokens-api/src/flake.nix",
+    "infra-sec_steel-browser/src/flake.nix",
+    "infra-sec_zap/src/flake.nix",
     "user-ai_cloud-cgc-pub-mcp/src/flake.nix",
+    "user-ai_cloud-me-cgc-pvt-graph-api/src/flake.nix",
+    "user-ai_cloudy-ai-agents-api/src/flake.nix",
+    "user-ai_cloudy-ai-claude-api/src/flake.nix",
+    "user-ai_cloudy-ai-memory-api/src/flake.nix",
+    "user-ai_cloudy-cgc-pub-graph-api/src/flake.nix",
     "user-ai_db-agent/src/flake.nix",
     "user-ai_hermes-agent/src/flake.nix",
-    "user-ai_kg-store-pub/src/flake.nix",
-    "user-ai_kg-store/src/flake.nix",
-    "user-ai_my-ai-api/src/flake.nix",
-    "user-ai_my-ai_claude-api/src/flake.nix",
     "user-ai_openclaw/src/flake.nix",
-    "user-ai_session-memory/src/flake.nix",
     "user-comm_chat-mattermost/src/flake.nix",
     "user-comm_cloud-webmail/src/flake.nix",
     "user-comm_mail-puller/src/flake.nix",
@@ -4562,10 +4741,12 @@
     "user-comm_matrix-mautrix-whatsapp/src/flake.nix",
     "user-comm_tools-maddy/src/flake.nix",
     "user-comm_tools-stalwart/src/flake.nix",
-    "user-data_scrappers-api/src/flake.nix",
-    "user-fin_capital-stack-finterminal-api/src/flake.nix",
+    "user-data_cloudy-browser-headless/src/flake.nix",
+    "user-data_cloudy-browser-scrapper-api/src/flake.nix",
+    "user-fin_capital-stack-finterm-api/src/flake.nix",
+    "user-fin_capital-stack-finterminal-web/src/flake.nix",
     "user-media_photoprism/src/flake.nix",
-    "user-news_news-gdelt/src/flake.nix",
+    "user-news_capital-stack-news-gdelt-api/src/flake.nix",
     "user-prod_calendar-radicale/src/flake.nix",
     "user-prod_cloud-notes-sync/src/flake.nix",
     "user-prod_cloud-notes-web/src/flake.nix",
@@ -4635,16 +4816,16 @@
   "npm:@fastify/cors": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
-    "infra-api_cloud-services-mcp/src/code/package.json"
+    "infra-api_cloud-services-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^10.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.3.1)",
+   "licence_source": "registry.npmjs.org latest (11.4.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/http-proxy": {
@@ -4655,7 +4836,7 @@
    "version": "^11.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.6.5)",
+   "licence_source": "registry.npmjs.org latest (11.6.6)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/rate-limit": {
@@ -4666,54 +4847,52 @@
    "version": "^10.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.2.1)",
+   "licence_source": "registry.npmjs.org latest (11.2.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/static": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_cloud-infra-mcp/src/code/package.json"
+    "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^8.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (10.1.8)",
+   "licence_source": "registry.npmjs.org latest (10.1.10)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/swagger": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
-    "infra-api_cloud-services-mcp/src/code/package.json"
+    "infra-api_cloud-services-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^9.4.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (9.9.2)",
+   "licence_source": "registry.npmjs.org latest (9.9.3)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/swagger-ui": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
-    "infra-api_cloud-services-mcp/src/code/package.json"
+    "infra-api_cloud-services-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^5.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (6.1.2)",
+   "licence_source": "registry.npmjs.org latest (6.1.3)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@modelcontextprotocol/sdk": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-drive-mcp/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
@@ -4723,6 +4902,11 @@
     "infra-api_cloud-superapp-mcp/src/code/lib-mcp/package.json",
     "infra-api_cloud-superapp-mcp/src/code/package.json",
     "infra-api_cloud-vault-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-all-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-drive-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json"
    ],
@@ -4740,7 +4924,7 @@
    "version": "0.5.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org (package licence field)",
+   "licence_source": "registry.npmjs.org latest (0.6.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@playwright/test": {
@@ -4751,7 +4935,7 @@
    "version": "^1.59.1",
    "scope": "dev",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (1.64.1)",
+   "licence_source": "registry.npmjs.org latest (1.65.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4763,7 +4947,7 @@
    "version": "^4.2.4",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (4.3.3)",
+   "licence_source": "registry.npmjs.org latest (4.3.5)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4775,7 +4959,7 @@
    "version": "^3.13.24",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.14.24)",
+   "licence_source": "registry.npmjs.org latest (3.14.26)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4889,7 +5073,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4901,7 +5085,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4913,7 +5097,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4925,7 +5109,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4937,7 +5121,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4949,7 +5133,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4961,7 +5145,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4973,7 +5157,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4985,7 +5169,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4997,7 +5181,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5009,7 +5193,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5021,7 +5205,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5033,7 +5217,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5045,17 +5229,17 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.32.1)",
+   "licence_source": "registry.npmjs.org latest (3.33.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
   "npm:@types/better-sqlite3": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^7.6.13",
    "scope": "dev",
@@ -5067,6 +5251,7 @@
    "kind": "npm",
    "declared_in": [
     "infra-api_cloud-mail-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json"
    ],
    "version": "^3.4.6",
@@ -5078,9 +5263,7 @@
   "npm:@types/node": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
     "infra-api_cloud-mattermost-mcp/src/code/package.json",
@@ -5088,10 +5271,13 @@
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-api/package.json",
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-mcp/package.json",
     "infra-api_cloud-vault-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json",
     "user-comm_cloud-webmail/src/code/arm64/webapp/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^22.0.0",
    "scope": "dev",
@@ -5104,6 +5290,7 @@
    "declared_in": [
     "infra-api_c3-public-api/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json"
    ],
    "version": "^6.4.17",
@@ -5115,8 +5302,8 @@
   "npm:@types/nunjucks": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_cloud-infra-mcp/src/code/package.json"
+    "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^3.2.6",
    "scope": "dev",
@@ -5168,7 +5355,7 @@
    "version": "^8.59.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.72.1)",
+   "licence_source": "registry.npmjs.org latest (8.72.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5180,7 +5367,7 @@
    "version": "^8.59.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.72.1)",
+   "licence_source": "registry.npmjs.org latest (8.72.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5192,7 +5379,7 @@
    "version": "^6.0.1",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (6.1.2)",
+   "licence_source": "registry.npmjs.org latest (6.3.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5204,7 +5391,7 @@
    "version": "^4.1.5",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.0.5)",
+   "licence_source": "registry.npmjs.org latest (5.1.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5223,15 +5410,15 @@
   "npm:better-sqlite3": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^11.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (13.0.3)",
+   "licence_source": "registry.npmjs.org latest (13.1.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:clsx": {
@@ -5291,7 +5478,7 @@
    "version": "^9.39.4",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (10.13.0)",
+   "licence_source": "registry.npmjs.org latest (10.14.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5327,46 +5514,46 @@
    "version": "^6.2.5",
    "scope": "dev",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (6.2.6)",
+   "licence_source": "registry.npmjs.org latest (6.2.8)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
   "npm:fast-xml-parser": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-services-api/src/code/package.json",
-    "infra-api_cloud-services-mcp/src/code/package.json"
+    "infra-api_cloud-services-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json"
    ],
    "version": "^4.5.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.11.2)",
+   "licence_source": "registry.npmjs.org latest (5.12.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:fastify": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-services-mcp/src/code/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^5.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.12.7)",
+   "licence_source": "registry.npmjs.org latest (5.12.8)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:fastify-plugin": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
-    "infra-api_cloud-services-mcp/src/code/package.json"
+    "infra-api_cloud-services-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^5.0.0",
    "scope": "shipped",
@@ -5382,7 +5569,7 @@
    "version": "^17.5.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (17.13.0)",
+   "licence_source": "registry.npmjs.org latest (17.14.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5402,12 +5589,13 @@
    "kind": "npm",
    "declared_in": [
     "infra-api_cloud-mail-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json"
    ],
    "version": "^1.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (2.9.1)",
+   "licence_source": "registry.npmjs.org latest (2.11.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:jalaali-js": {
@@ -5431,7 +5619,7 @@
    "version": "^28.1.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (30.1.3)",
+   "licence_source": "registry.npmjs.org latest (31.0.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5455,7 +5643,7 @@
    "version": "^1.8.0",
    "scope": "shipped",
    "licence": "ISC",
-   "licence_source": "registry.npmjs.org latest (1.64.0)",
+   "licence_source": "registry.npmjs.org latest (1.72.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5463,12 +5651,13 @@
    "kind": "npm",
    "declared_in": [
     "infra-api_cloud-mail-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json"
    ],
    "version": "^3.7.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.13.0)",
+   "licence_source": "registry.npmjs.org latest (3.14.3)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:next": {
@@ -5479,7 +5668,7 @@
    "version": "^16.2.6",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (16.4.3)",
+   "licence_source": "registry.npmjs.org latest (16.4.6)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5491,7 +5680,7 @@
    "version": "^4.13.3",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (4.14.9)",
+   "licence_source": "registry.npmjs.org latest (4.15.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5500,19 +5689,20 @@
    "declared_in": [
     "infra-api_c3-public-api/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json"
    ],
    "version": "^6.9.16",
    "scope": "shipped",
    "licence": "MIT-0",
-   "licence_source": "registry.npmjs.org latest (10.3.0)",
+   "licence_source": "registry.npmjs.org latest (10.5.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:nunjucks": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_cloud-infra-mcp/src/code/package.json"
+    "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json"
    ],
    "version": "^3.2.4",
    "scope": "shipped",
@@ -5528,7 +5718,7 @@
    "version": "^9.5.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (9.5.2)",
+   "licence_source": "registry.npmjs.org latest (9.6.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5540,7 +5730,7 @@
    "version": "^6.0.227",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (6.4.299)",
+   "licence_source": "registry.npmjs.org latest (6.5.438)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5575,7 +5765,7 @@
    "version": "1.55.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org (package licence field)",
+   "licence_source": "registry.npmjs.org latest (1.65.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:postal-mime": {
@@ -5586,7 +5776,7 @@
    "version": "^2.7.4",
    "scope": "shipped",
    "licence": "MIT-0",
-   "licence_source": "registry.npmjs.org latest (4.1.4)",
+   "licence_source": "registry.npmjs.org latest (4.2.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5647,7 +5837,7 @@
    "version": "^1.77.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (1.107.0)",
+   "licence_source": "registry.npmjs.org latest (1.108.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:sonner": {
@@ -5682,7 +5872,7 @@
    "version": "^4.2.4",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (4.3.3)",
+   "licence_source": "registry.npmjs.org latest (4.3.5)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5700,9 +5890,7 @@
   "npm:tsx": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-drive-mcp/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
@@ -5712,12 +5900,17 @@
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-mcp/package.json",
     "infra-api_cloud-superapp-mcp/src/code/package.json",
     "infra-api_cloud-vault-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-all-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-drive-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^4.19.0",
-   "scope": "dev",
+   "scope": "shipped",
    "licence": "MIT",
    "licence_source": "registry.npmjs.org latest (4.23.15)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
@@ -5730,7 +5923,7 @@
    "version": "7.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org (package licence field)",
+   "licence_source": "registry.npmjs.org latest (7.2.5)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:turndown-plugin-gfm": {
@@ -5741,7 +5934,7 @@
    "version": "1.0.2",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org (package licence field)",
+   "licence_source": "registry.npmjs.org latest (1.0.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:tw-animate-css": {
@@ -5759,9 +5952,7 @@
   "npm:typescript": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
     "infra-api_cloud-mattermost-mcp/src/code/package.json",
@@ -5769,15 +5960,18 @@
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-api/package.json",
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-mcp/package.json",
     "infra-api_cloud-vault-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json",
     "infra-net_wireguard-mesh/dist/code/arm64/package.json",
     "infra-net_wireguard-mesh/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json",
     "user-comm_cloud-webmail/src/code/arm64/webapp/package.json",
-    "user-news_news-gdelt/src/code/package.json"
+    "user-news_capital-stack-news-gdelt-api/src/code/package.json"
    ],
    "version": "^5.7.0",
-   "scope": "dev",
+   "scope": "shipped",
    "licence": "Apache-2.0",
    "licence_source": "registry.npmjs.org latest (7.0.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
@@ -5790,7 +5984,7 @@
    "version": "^7.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.12.3)",
+   "licence_source": "registry.npmjs.org latest (8.12.4)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:vitest": {
@@ -5801,7 +5995,7 @@
    "version": "^4.1.5",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.0.5)",
+   "licence_source": "registry.npmjs.org latest (5.1.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5825,14 +6019,14 @@
    "version": "4.144.0",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (4.155.0)",
+   "licence_source": "registry.npmjs.org latest (4.160.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:yaml": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json"
    ],
    "version": "^2.6.0",
@@ -5844,9 +6038,7 @@
   "npm:zod": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
     "infra-api_c3-public-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-drive-mcp/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-mail-mcp/src/code/package.json",
@@ -5856,6 +6048,11 @@
     "infra-api_cloud-superapp-mcp/src/code/lib-mcp/package.json",
     "infra-api_cloud-superapp-mcp/src/code/package.json",
     "infra-api_cloud-vault-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-all-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-communication-mcp/src/code/package.json",
+    "infra-api_cloudy-apps-drive-mcp/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "infra-api_google-personal-mcp/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json"
    ],
@@ -5868,12 +6065,12 @@
   "npm:zod-to-json-schema": {
    "kind": "npm",
    "declared_in": [
-    "infra-api_c3-infra-api/src/code/package.json",
-    "infra-api_c3-services-api/src/code/package.json",
     "infra-api_cloud-infra-mcp/src/code/package.json",
     "infra-api_cloud-services-mcp/src/code/package.json",
     "infra-api_cloud-superapp-mcp/src/code/cloud-superapp-mcp/package.json",
     "infra-api_cloud-superapp-mcp/src/code/package.json",
+    "infra-api_cloudy-all-api/src/code/package.json",
+    "infra-api_cloudy-c3-api/src/code/package.json",
     "user-ai_cloud-cgc-pub-mcp/src/code/package.json"
    ],
    "version": "^3.24.0",
@@ -5890,15 +6087,15 @@
    "version": "^5.0.12",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.0.16)",
+   "licence_source": "registry.npmjs.org latest (5.1.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
   "pypi:accelerate": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "accelerate>=0.20.0",
    "scope": "shipped",
@@ -5909,80 +6106,80 @@
   "pypi:agno": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "agno>=1.0.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 3.1.11 classifiers",
+   "licence_source": "pypi.org 3.1.12 classifiers",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:anthropic": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "anthropic>=0.18.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.3.0 license",
+   "licence_source": "pypi.org 2.8.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:any-llm-sdk": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "any-llm-sdk>=1.0.0; python_version >= '3.11'",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.40.2 license",
+   "licence_source": "pypi.org 1.50.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:ast-grep-cli": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "ast-grep-cli>=0.30.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.51.0 classifiers",
+   "licence_source": "pypi.org 0.51.2 classifiers",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:boto3": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "boto3>=1.28.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.43.121 license",
+   "licence_source": "pypi.org 1.44.1 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:click": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "click>=8.1.0",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "pypi.org 8.5.0 license_expression",
+   "licence_source": "pypi.org 8.5.1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:cryptography": {
    "kind": "pypi",
    "declared_in": [
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "infra-sec_tokens-api/src/code/requirements.txt"
+    "infra-sec_cloudy-ai-tokens-api/src/code/requirements.txt"
    ],
    "version": "cryptography>=45.0.0",
    "scope": "shipped",
@@ -5994,13 +6191,13 @@
   "pypi:datasets": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "datasets>=2.14.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 5.1.0 license",
+   "licence_source": "pypi.org 5.2.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:defusedxml": {
@@ -6018,23 +6215,24 @@
   "pypi:fastapi": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt",
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt",
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml",
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt",
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "fastapi==0.115.6",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.162.0 license_expression",
+   "licence_source": "pypi.org 0.162.5 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:fastembed": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "fastembed>=0.4.0",
    "scope": "shipped",
@@ -6050,7 +6248,7 @@
    "version": "fastmcp>=3.1.1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 4.1.4 license_expression",
+   "licence_source": "pypi.org 4.1.8 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6059,9 +6257,9 @@
    "declared_in": [
     "bc-obs_alerts-api/dist/requirements.txt",
     "bc-obs_alerts-api/src/requirements.txt",
+    "infra-sec_cloudy-ai-tokens-api/src/code/requirements.txt",
     "infra-sec_introspect-proxy/src/code/requirements.txt",
-    "infra-sec_mcp-oauth/src/code/requirements.txt",
-    "infra-sec_tokens-api/src/code/requirements.txt"
+    "infra-sec_mcp-oauth/src/code/requirements.txt"
    ],
    "version": "flask==3.0.0",
    "scope": "shipped",
@@ -6084,12 +6282,12 @@
   "pypi:gallery-dl": {
    "kind": "pypi",
    "declared_in": [
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "gallery-dl==1.28.5",
    "scope": "shipped",
    "licence": "GPL-2.0-only",
-   "licence_source": "pypi.org 1.32.18 license",
+   "licence_source": "pypi.org 1.32.19 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:google-api-python-client": {
@@ -6100,7 +6298,7 @@
    "version": "google-api-python-client>=2.168.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.201.0 license",
+   "licence_source": "pypi.org 2.202.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6133,23 +6331,23 @@
    "declared_in": [
     "bc-obs_alerts-api/dist/requirements.txt",
     "bc-obs_alerts-api/src/requirements.txt",
+    "infra-sec_cloudy-ai-tokens-api/src/code/requirements.txt",
     "infra-sec_introspect-proxy/src/code/requirements.txt",
     "infra-sec_mcp-oauth/src/code/requirements.txt",
-    "infra-sec_tokens-api/src/code/requirements.txt",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "gunicorn==21.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 26.2.0 license_expression",
+   "licence_source": "pypi.org 27.0.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:hnswlib": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "hnswlib>=0.8.0",
    "scope": "shipped",
@@ -6162,9 +6360,9 @@
    "kind": "pypi",
    "declared_in": [
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml",
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "httpx>=0.28.1",
    "scope": "shipped",
@@ -6176,30 +6374,30 @@
   "pypi:huggingface-hub": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "huggingface-hub>=1.5.0,<2.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.3.0 license",
+   "licence_source": "pypi.org 2.4.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:infinity-emb": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt"
    ],
    "version": "infinity-emb[server,torch]==0.0.78",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.0.78 license",
+   "licence_source": "pypi.org 0.0.80 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:instaloader": {
    "kind": "pypi",
    "declared_in": [
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "instaloader==4.14.1",
    "scope": "shipped",
@@ -6210,8 +6408,8 @@
   "pypi:jinja2": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "jinja2>=3.0.0",
    "scope": "shipped",
@@ -6222,20 +6420,20 @@
   "pypi:langchain-core": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "langchain-core>=1.3.3,<4.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.7.1 license",
+   "licence_source": "pypi.org 1.8.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:langchain-ollama": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "langchain-ollama>=0.2.0",
    "scope": "shipped",
@@ -6246,32 +6444,32 @@
   "pypi:langchain-openai": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "langchain-openai>=1.1.14,<2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.7.3 license",
+   "licence_source": "pypi.org 1.7.4 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:litellm": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "litellm>=1.86.2,<2.0; python_version < '3.14'",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.106.6 license_expression",
+   "licence_source": "pypi.org 1.109.1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:lm-eval": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "lm-eval[api]>=0.4.0",
    "scope": "shipped",
@@ -6282,8 +6480,8 @@
   "pypi:magika": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "magika>=0.6.0",
    "scope": "shipped",
@@ -6294,8 +6492,8 @@
   "pypi:mcp": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "mcp>=1.0.0",
    "scope": "shipped",
@@ -6306,8 +6504,8 @@
   "pypi:mem0ai": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "mem0ai>=1.0.0,<2.0",
    "scope": "shipped",
@@ -6318,8 +6516,8 @@
   "pypi:mypy": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "mypy>=1.0.0",
    "scope": "shipped",
@@ -6330,8 +6528,8 @@
   "pypi:neo4j": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "neo4j>=5.20.0,<7.0",
    "scope": "shipped",
@@ -6342,8 +6540,9 @@
   "pypi:numpy": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt"
    ],
    "version": "numpy>=1.24.0",
    "scope": "shipped",
@@ -6354,8 +6553,8 @@
   "pypi:ollama": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "ollama>=0.4.0",
    "scope": "shipped",
@@ -6366,8 +6565,8 @@
   "pypi:onnxruntime": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "onnxruntime>=1.16.0",
    "scope": "shipped",
@@ -6378,49 +6577,49 @@
   "pypi:openai": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "openai>=2.14.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 3.41.0 license_expression",
+   "licence_source": "pypi.org 3.49.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:opentelemetry-api": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "opentelemetry-api>=1.24.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.45.1 license_expression",
+   "licence_source": "pypi.org 1.45.2 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:opentelemetry-exporter-otlp-proto-http": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "opentelemetry-exporter-otlp-proto-http>=1.24.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.45.1 license_expression",
+   "licence_source": "pypi.org 1.45.2 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:opentelemetry-sdk": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "opentelemetry-sdk>=1.24.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.45.1 license_expression",
+   "licence_source": "pypi.org 1.45.2 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:paddleocr": {
@@ -6448,10 +6647,11 @@
   "pypi:pillow": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
     "user-comm_chat-mattermost/dist/assets/requirements-bridge.txt",
-    "user-comm_chat-mattermost/src/code/requirements-bridge.txt"
+    "user-comm_chat-mattermost/src/code/requirements-bridge.txt",
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt"
    ],
    "version": "pillow>=10.0.0",
    "scope": "shipped",
@@ -6462,8 +6662,8 @@
   "pypi:pre-commit": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "pre-commit>=3.0.0",
    "scope": "shipped",
@@ -6486,13 +6686,13 @@
   "pypi:pydantic": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "pydantic>=2.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 2.14.1 license_expression",
+   "licence_source": "pypi.org 2.14.3 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pyjwt": {
@@ -6511,20 +6711,20 @@
   "pypi:pypdf": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt"
    ],
    "version": "pypdf==5.1.0",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "pypi.org 6.21.4 license_expression",
+   "licence_source": "pypi.org 7.0.1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pytest": {
    "kind": "pypi",
    "declared_in": [
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "pytest>=8.3.0",
    "scope": "shipped",
@@ -6537,21 +6737,21 @@
    "kind": "pypi",
    "declared_in": [
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "pytest-asyncio>=0.23.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.4.1 license_expression",
+   "licence_source": "pypi.org 1.4.1.post1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
   "pypi:pytest-cov": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "pytest-cov>=4.0.0",
    "scope": "shipped",
@@ -6574,12 +6774,12 @@
   "pypi:python-multipart": {
    "kind": "pypi",
    "declared_in": [
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "python-multipart==0.0.20",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 0.0.32 license_expression",
+   "licence_source": "pypi.org 0.0.33 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pyyaml": {
@@ -6597,8 +6797,8 @@
   "pypi:qdrant-client": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "qdrant-client>=1.9.0,<2.0",
    "scope": "shipped",
@@ -6609,8 +6809,8 @@
   "pypi:rapidocr": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "rapidocr>=3.0,<4; python_version>='3.13'",
    "scope": "shipped",
@@ -6621,8 +6821,8 @@
   "pypi:rapidocr-onnxruntime": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "rapidocr-onnxruntime>=1.4.0,<2; python_version<'3.13'",
    "scope": "shipped",
@@ -6648,8 +6848,8 @@
   "pypi:rich": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "rich>=13.0.0",
    "scope": "shipped",
@@ -6661,21 +6861,21 @@
    "kind": "pypi",
    "declared_in": [
     "infra-api_google-workspace-mcp/src/code/pyproject.toml",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "ruff>=0.12.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.17.3 license_expression",
+   "licence_source": "pypi.org 0.17.4 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
   "pypi:scikit-learn": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "scikit-learn>=1.3.0",
    "scope": "shipped",
@@ -6686,7 +6886,7 @@
   "pypi:selectolax": {
    "kind": "pypi",
    "declared_in": [
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "selectolax==0.3.27",
    "scope": "shipped",
@@ -6697,34 +6897,34 @@
   "pypi:sentence-transformers": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "sentence-transformers==3.4.1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 6.2.0 license_expression",
+   "licence_source": "pypi.org 6.3.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:sentencepiece": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "sentencepiece==0.2.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 0.2.2 license_expression",
+   "licence_source": "pypi.org 0.2.3 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:sqlite-vec": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "sqlite-vec>=0.1.6",
    "scope": "shipped",
@@ -6735,20 +6935,20 @@
   "pypi:strands-agents": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "strands-agents>=0.1.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.62.0 license",
+   "licence_source": "pypi.org 1.64.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:tiktoken": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "tiktoken>=0.5.0",
    "scope": "shipped",
@@ -6760,8 +6960,8 @@
   "pypi:tomli": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "tomli>=2.0.0; python_version < '3.11'",
    "scope": "shipped",
@@ -6784,9 +6984,9 @@
   "pypi:torch": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "torch==2.5.1",
    "scope": "shipped",
@@ -6797,9 +6997,9 @@
   "pypi:trafilatura": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml",
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "trafilatura>=1.6.0",
    "scope": "shipped",
@@ -6810,26 +7010,26 @@
   "pypi:transformers": {
    "kind": "pypi",
    "declared_in": [
-    "infra-ai_embeddings-api/src/code/requirements.txt",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "infra-ai_cloudy-ai-embeddings-api/src/code/requirements.txt",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "transformers==4.49.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 5.21.1 license",
+   "licence_source": "pypi.org 5.22.2 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:tree-sitter-language-pack": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "tree-sitter-language-pack>=0.10.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.22.1 license_expression",
+   "licence_source": "pypi.org 1.25.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:twine": {
@@ -6847,9 +7047,10 @@
   "pypi:uvicorn": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml",
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml",
+    "user-data_cloudy-browser-headless/src/sidecar-paddle/requirements.txt",
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "uvicorn>=0.23.0,<1.0",
    "scope": "shipped",
@@ -6860,13 +7061,13 @@
   "pypi:watchdog": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "watchdog>=4.0.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 6.0.0 license",
+   "licence_source": "pypi.org 7.1.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:websocket-client": {
@@ -6884,31 +7085,31 @@
   "pypi:websockets": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "websockets>=13.0",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "pypi.org 17.3 license_expression",
+   "licence_source": "pypi.org 17.4 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:yt-dlp": {
    "kind": "pypi",
    "declared_in": [
-    "user-data_scrappers-api/src/code/requirements.txt"
+    "user-data_cloudy-browser-scrapper-api/src/code/requirements.txt"
    ],
    "version": "yt-dlp==2025.10.22",
    "scope": "shipped",
    "licence": "Unlicense",
-   "licence_source": "pypi.org 2025.10.22 license_expression",
+   "licence_source": "pypi.org 2026.10.26 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:zstandard": {
    "kind": "pypi",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/pyproject.toml",
-    "user-ai_my-ai-api/src/code/vendor/headroom/pyproject.toml"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/pyproject.toml",
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/pyproject.toml"
    ],
    "version": "zstandard>=0.20.0",
    "scope": "shipped",
@@ -6926,30 +7127,30 @@
    "licence_source": "licenses/curated.json::directories",
    "note": "mdBook theme fonts: Open Sans (Apache-2.0, OPEN-SANS-LICENSE.txt) and Source Code Pro (OFL-1.1, SOURCE-CODE-PRO-LICENSE.txt)."
   },
-  "vendored:user-ai_my-ai-api/dist/code/arm64/vendor/headroom": {
+  "vendored:user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom": {
    "kind": "vendored",
    "declared_in": [
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/LICENSE",
-    "user-ai_my-ai-api/dist/code/arm64/vendor/headroom/NOTICE"
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/LICENSE",
+    "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/NOTICE"
    ],
    "licence": "Apache-2.0",
    "licence_source": "licenses/curated.json::directories",
-   "note": "Build-staged copy of user-ai_my-ai-api/src/code/vendor/headroom (upstream module headroom-my-ai-api); same licence, LICENSE + NOTICE retained."
+   "note": "Build-staged copy of user-ai_cloudy-ai-agents-api/src/code/vendor/headroom (upstream module headroom-my-ai-api); same licence, LICENSE + NOTICE retained."
   },
-  "vendored:user-ai_my-ai_claude-api/dist/code/arm64/claude-config/ponytail": {
+  "vendored:user-ai_cloudy-ai-claude-api/dist/code/arm64/claude-config/ponytail": {
    "kind": "vendored",
    "declared_in": [
-    "user-ai_my-ai_claude-api/dist/code/arm64/claude-config/ponytail/LICENSE"
+    "user-ai_cloudy-ai-claude-api/dist/code/arm64/claude-config/ponytail/LICENSE"
    ],
    "licence": "MIT",
    "licence_source": "licenses/curated.json::directories",
-   "note": "Build-staged copy of user-ai_my-ai_claude-api/src/code/claude-config/ponytail (upstream github.com/DietrichGebert/ponytail, MIT, Copyright (c) 2026 DietrichGebert); same licence, LICENSE retained."
+   "note": "Build-staged copy of user-ai_cloudy-ai-claude-api/src/code/claude-config/ponytail (upstream github.com/DietrichGebert/ponytail, MIT, Copyright (c) 2026 DietrichGebert); same licence, LICENSE retained."
   },
-  "vendored:user-fin_capital-stack-finterminal-api": {
+  "vendored:user-fin_capital-stack-finterm-api": {
    "kind": "vendored",
    "declared_in": [
-    "user-fin_capital-stack-finterminal-api/LICENSE",
-    "user-fin_capital-stack-finterminal-api/NOTICE"
+    "user-fin_capital-stack-finterm-api/LICENSE",
+    "user-fin_capital-stack-finterm-api/NOTICE"
    ],
    "licence": "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial",
    "licence_source": "licenses/curated.json::directories",

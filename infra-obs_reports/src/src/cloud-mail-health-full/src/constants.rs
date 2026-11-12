@@ -154,7 +154,7 @@ pub const AWS_RELAY_PORT: u16 = 587;
 pub const HTTP_TO_SMTP_PROXY_API_DOMAIN: &str = "api.diegonmarcos.com";
 pub const HTTP_TO_SMTP_PROXY_API_PATH: &str = "/http-to-smtp-proxy-api";
 // Bridge listen port. Source of truth: cloud-repo
-// a_solutions/infra-api_tools-http-to-smtp-proxy-api/build.json::ports.app = 8090
+// a_solutions/infra-api_cloudy-mail-http-to-smtp-api/build.json::ports.app = 8090
 // (also main.rs LISTEN_PORT default 8090 + Dockerfile EXPOSE 8090).
 // Was 8080 — a stale value that probed a DIFFERENT service on gcp-proxy,
 // making IN→4 a false-OK (8080 also happens to be open, so the wrong-port

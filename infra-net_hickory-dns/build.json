@@ -115,6 +115,56 @@
           "name": "capital-stack-finterminal-web",
           "type": "A",
           "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-ai-api",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-ai-embeddings-api",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "c3bot-relay",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-all-mcp",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-apps-communication-mcp",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-apps-drive-mcp",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-c3-api",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-drive-git-proxy-api",
+          "type": "A",
+          "value": "10.0.0.4"
+        },
+        {
+          "name": "cloudy-ai-agents-api",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-browser-headless",
+          "type": "A",
+          "value": "10.0.0.6"
         }
       ],
       "diegonmarcos.com": [

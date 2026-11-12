@@ -20,7 +20,7 @@
 // declaration anywhere, and the path published as an env var so nothing
 // downstream has to infer it from $HOME again.
 //
-// Usage: node test-git-tree-one-mount-pattern.mjs   (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+// Usage: node test-git-tree-one-mount-pattern.mjs   (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 

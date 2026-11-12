@@ -8,9 +8,9 @@ name: finterminal guard
 on:
   push:
     branches: [main]
-    paths: ['user-fin_capital-stack-finterminal-api/**', 'user-fin_capital-stack-finterminal-web/**', '_shared/fleet-addressing.json', '.github/workflows/finterminal-guard.yml']
+    paths: ['user-fin_capital-stack-finterm-api/**', 'user-fin_capital-stack-finterminal-web/**', '_shared/fleet-addressing.json', '.github/workflows/finterminal-guard.yml']
   pull_request:
-    paths: ['user-fin_capital-stack-finterminal-api/**', 'user-fin_capital-stack-finterminal-web/**']
+    paths: ['user-fin_capital-stack-finterm-api/**', 'user-fin_capital-stack-finterminal-web/**']
   schedule:
     - cron: '17 4 * * *'   # the declarations live in cloudy-u-android: a change there fails here within a day
   repository_dispatch:
@@ -39,11 +39,11 @@ jobs:
       - name: fetchers.json is current (generated from cloudy-u-android main)
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node user-fin_capital-stack-finterminal-api/src/fetchers/gen-fetchers.mjs --check
+        run: node user-fin_capital-stack-finterm-api/src/fetchers/gen-fetchers.mjs --check
       - name: generator rules F1-F4, each proven red by a planted mutation
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node user-fin_capital-stack-finterminal-api/src/fetchers/test-gen-fetchers.mjs
+        run: node user-fin_capital-stack-finterm-api/src/fetchers/test-gen-fetchers.mjs
       - name: the web container stays behind the c3-pvt gate (G1-G4, mutations)
         run: node user-fin_capital-stack-finterminal-web/test/test-web-gate.mjs
 
@@ -52,13 +52,13 @@ jobs:
     timeout-minutes: 45
     defaults:
       run:
-        working-directory: user-fin_capital-stack-finterminal-api/src/code
+        working-directory: user-fin_capital-stack-finterm-api/src/code
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: user-fin_capital-stack-finterminal-api/src/code
+          workspaces: user-fin_capital-stack-finterm-api/src/code
       - name: server crate tests (lib + http_smoke)
         run: cargo test -p fin-api --lib --test http_smoke
       - name: cargo-mutants over finterm/${{ inputs.mutants_file }} (every mutant caught)

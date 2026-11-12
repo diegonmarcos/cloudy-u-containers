@@ -31,7 +31,7 @@
 // is the only one of the three surfaces that injects the index ITSELF, so it is
 // the only one that can bulk-read the entry tree by accident.
 //
-// Usage: node test-agent-memory-system.mjs   (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+// Usage: node test-agent-memory-system.mjs   (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

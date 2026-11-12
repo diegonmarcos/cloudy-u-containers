@@ -60,7 +60,7 @@ const nixTry = (expr) => {
   return r.success ? { ok: true, value: r.value } : { ok: false };
 };
 
-const SERVICES = ["user-ai_kg-store", "user-ai_kg-store-pub"];
+const SERVICES = ["user-ai_cloud-me-cgc-pvt-graph-api", "user-ai_cloudy-cgc-pub-graph-api"];
 const bj = (svc) => JSON.parse(readFileSync(join(ROOT, svc, "build.json"), "utf8"));
 
 // The roster above is a literal, so it cannot notice a third SurrealDB service

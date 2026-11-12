@@ -13,7 +13,7 @@
 //      never drift again — they already had.
 //
 // Usage: node test-bot-auth-required-workflow.mjs
-//        (cwd = <repo>/user-ai_my-ai-api/src/code)
+//        (cwd = <repo>/user-ai_cloudy-ai-agents-api/src/code)
 import { readFileSync } from "node:fs";
 import { oauthLoginWorkflow, authRequiredReply } from "./bots/route.mjs";
 

@@ -171,6 +171,10 @@ try {
   const sinkContainers = new Set<string>(Object.values(
     JSON.parse(readFileSync(join(here, "../../_shared/fleet-addressing.json"), "utf8")).tiers?.pub?.sinks ?? {})
     .filter((x: any) => x && typeof x === "object" && x.container).map((x: any) => x.container));
+  // Same fail-closed rule for the c3-pvt path aliases (caddyfile.nix c3PvtAliases, e.g. /ai -> cloudy-ai-api, #1450):
+  // each alias container needs a route, so stub one per alias, read from the renderer's own declaration.
+  const aliasDecl = /c3PvtAliases\s*=\s*\[([\s\S]*?)\];/.exec(readFileSync(join(caddySrc, "caddyfile.nix"), "utf8"));
+  for (const m of (aliasDecl?.[1] ?? "").matchAll(/container\s*=\s*"([^"]+)"/g)) sinkContainers.add(m[1]);
   fixture.routes = [{ domain, upstream: `127.0.0.1:${port(upstream)}`,
     strip_authorization: build.proxy.primary.strip_authorization, identity },
     ...[...sinkContainers].map((container, i) => ({ domain: `sink${i}.example.invalid`, container, upstream: "127.0.0.1:9" }))];

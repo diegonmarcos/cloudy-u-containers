@@ -18,7 +18,7 @@
 // Ship "succeeded" with Build and Deploy both SKIPPED, which reads exactly like
 // a successful deploy.
 //
-// Usage: node test-my-ai-flake-copies-complete.mjs   (cwd = <repo>/user-ai_my-ai-api/src/code)
+// Usage: node test-my-ai-flake-copies-complete.mjs   (cwd = <repo>/user-ai_cloudy-ai-agents-api/src/code)
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 

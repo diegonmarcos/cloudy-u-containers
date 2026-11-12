@@ -11,7 +11,7 @@
 // with 409 Conflict. The explicit GATEWAY_ENABLED=false opt-out is the fix, and
 // its absence is invisible until the bot starts dropping messages.
 //
-// Usage: node test-bots-lifetime-split.mjs   (cwd = <repo>/user-ai_my-ai-api/src/code)
+// Usage: node test-bots-lifetime-split.mjs   (cwd = <repo>/user-ai_cloudy-ai-agents-api/src/code)
 import { readFileSync } from "node:fs";
 
 let pass = 0, fail = 0;

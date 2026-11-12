@@ -44,7 +44,7 @@ function check(description: string, body: () => void): void {
 // that physically lives in the pre-rename c3-services-api tree.
 // ---------------------------------------------------------------------------
 const fleet = mkdtempSync(join(tmpdir(), "peer-map-fleet-"));
-const oldTree = join(fleet, "infra-api_c3-services-api", "src");
+const oldTree = join(fleet, "infra-api_cloudy-all-api", "src");
 const newTree = join(fleet, "infra-api_cloud-services-mcp", "src");
 
 mkdirSync(join(oldTree, "code", "registry"), { recursive: true });

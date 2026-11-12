@@ -16,7 +16,7 @@
 // root-owned path is EPERM. That is why the repair must be a separate service
 // running as root, not a line in an agent's start.sh.
 //
-// Usage: node test-git-tree-owner-repair.mjs   (cwd = <repo>/user-ai_my-ai_claude-api/src/code)
+// Usage: node test-git-tree-owner-repair.mjs   (cwd = <repo>/user-ai_cloudy-ai-claude-api/src/code)
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

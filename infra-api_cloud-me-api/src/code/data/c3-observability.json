@@ -224,7 +224,7 @@
         },
         {
           "key": "rss-gateway",
-          "container_name": "rss-gateway",
+          "container_name": "capital-stack-news-rss-api",
           "dns": null,
           "port": 8091,
           "protocol": "http",
@@ -232,7 +232,7 @@
         },
         {
           "key": "github-rss",
-          "container_name": "github-rss",
+          "container_name": "capital-stack-news-github-rss-api",
           "dns": null,
           "port": null,
           "mesh_route": false

@@ -131,7 +131,7 @@ in
     # git_gh is gone on purpose — see the volumes list above. Declaring a
     # volume this project no longer mounts would be dead code that invites
     # someone to "restore the missing mount". The pinned-name declaration
-    # still lives in user-ai_my-ai_claude-api and _shared/engine.nix, which
+    # still lives in user-ai_cloudy-ai-claude-api and _shared/engine.nix, which
     # are the projects that actually use the tree.
   };
 }

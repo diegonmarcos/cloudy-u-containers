@@ -165,21 +165,21 @@
       }
     },
     {
-      "service": "infra-sec_tokens-api",
-      "name": "tokens-api",
+      "service": "infra-sec_cloudy-ai-tokens-api",
+      "name": "cloudy-ai-tokens-api",
       "description": "Fleet token engine: lists, generates, reveals and revokes every fleet bearer token (fleet ft_ tokens and adopted Authelia JWTs); introspect-proxy asks it before accepting a Bearer, so a revoked token stops working within 60 seconds. Public address: c3-pvt.diegonmarcos.com/tokens-api (shared gate, #1104); mesh tokens-api.mesh.diegonmarcos.com",
       "category": "sec",
       "enabled": true,
       "host": "oci-apps",
-      "dns": "tokens-api.mesh.diegonmarcos.com",
+      "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
       "ports": {
         "app": 4184
       },
       "containers": [
         {
           "key": "app",
-          "container_name": "tokens-api",
-          "dns": "tokens-api.mesh.diegonmarcos.com",
+          "container_name": "cloudy-ai-tokens-api",
+          "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
           "port": 4184,
           "protocol": "http",
           "mesh_route": true

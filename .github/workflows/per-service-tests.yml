@@ -13,7 +13,7 @@ name: Per-service tests (runs every build.json::tests tester)
 # passed. The runner (.github/scripts/run-service-tests.sh) prints how many
 # testers it discovered and how many it executed, and FAILS when that number
 # is zero — zero discovered is a broken discovery step, not a clean repo.
-# Today it discovers exactly one tester (infra-api_c3-infra-api's
+# Today it discovers exactly one tester (infra-api_cloudy-c3-api's
 # drift-multi-container, registered by #476) and grows as services declare more.
 #
 # Runs on ubuntu-latest, NOT the self-hosted ship-wg-runner: cgc-db index jobs

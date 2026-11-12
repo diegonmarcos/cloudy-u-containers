@@ -125,7 +125,7 @@ def mcp_oauth_auth(token):
     return response
 
 
-# ── Fleet token engine (infra-sec_tokens-api) ────────────────────────────────
+# ── Fleet token engine (infra-sec_cloudy-ai-tokens-api) ────────────────────────────────
 # Every Bearer is also checked against the engine's live list, so a token the owner
 # revokes stops working within TOKENS_CACHE_TTL seconds (<= 60). `ft_` tokens exist
 # only in the engine: unreachable engine = 503, never an allow. A signed Authelia JWT
@@ -232,7 +232,7 @@ def auth():
     if token.startswith(MCP_OAUTH_PREFIX):
         return mcp_oauth_auth(token)
 
-    # Opaque fleet token minted by the token engine (infra-sec_tokens-api).
+    # Opaque fleet token minted by the token engine (infra-sec_cloudy-ai-tokens-api).
     if token.startswith(FLEET_PREFIX):
         return fleet_token_auth(token)
 

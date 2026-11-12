@@ -34,8 +34,8 @@ const name = (dir) => {
 // The AGI runtimes, enumerated. A new one added without an entry here is not
 // covered — which is why A3 asserts the roster size rather than trusting it.
 const AGI = {
-  "user-ai_my-ai_claude-api": "cloud-agi-claude",
-  "user-ai_my-ai-api":        "cloud-agi-goose",
+  "user-ai_cloudy-ai-claude-api": "cloud-agi-claude",
+  "user-ai_cloudy-ai-agents-api":        "cloud-agi-goose",
   "user-ai_hermes-agent":     "cloud-agi-hermes",
 };
 
@@ -48,7 +48,7 @@ for (const [dir, want] of Object.entries(AGI)) {
 // The bots container is declared in my-ai-api's compose, not its own build.json.
 check("A2 cloud-agi-bots is declared (the #542 split)",
   /container_name\s*=\s*"cloud-agi-bots"/.test(
-    readFileSync(join(root, "user-ai_my-ai-api/src/compose.nix"), "utf8")),
+    readFileSync(join(root, "user-ai_cloudy-ai-agents-api/src/compose.nix"), "utf8")),
   "the split-out bots container is missing");
 
 // Every AGI name shares the prefix — the point of the convention.

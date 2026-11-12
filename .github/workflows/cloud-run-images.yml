@@ -10,9 +10,9 @@ on:
     branches: [main]
     paths:
       - 'user-ai_antigravity/src/**'
-      - 'user-fin_capital-stack-finterminal-api/src/code/**'
+      - 'user-fin_capital-stack-finterm-api/src/code/**'
       - 'user-fin_capital-stack-finterminal-web/dist/code/**'
-      - 'user-data_scrappers-api/src/**'
+      - 'user-data_cloudy-browser-scrapper-api/src/**'
       - '.github/workflows/cloud-run-images.yml'
   workflow_dispatch:
     inputs:
@@ -47,16 +47,16 @@ jobs:
             dockerfile: user-ai_antigravity/src/Dockerfile
             image: ghcr.io/diegonmarcos/agy-cloudrun
           - name: capital-stack-finterminal-api
-            context: user-fin_capital-stack-finterminal-api/src/code
-            dockerfile: user-fin_capital-stack-finterminal-api/src/code/Dockerfile.native
+            context: user-fin_capital-stack-finterm-api/src/code
+            dockerfile: user-fin_capital-stack-finterm-api/src/code/Dockerfile.native
             image: ghcr.io/diegonmarcos/capital-stack-finterminal-api-cloudrun
           - name: capital-stack-finterminal-web
             context: user-fin_capital-stack-finterminal-web/dist/code/arm64
             dockerfile: user-fin_capital-stack-finterminal-web/dist/code/arm64/Dockerfile
             image: ghcr.io/diegonmarcos/capital-stack-finterminal-web-cloudrun
           - name: scrappers-api
-            context: user-data_scrappers-api/src
-            dockerfile: user-data_scrappers-api/src/Dockerfile.cloudrun
+            context: user-data_cloudy-browser-scrapper-api/src
+            dockerfile: user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun
             image: ghcr.io/diegonmarcos/scrappers-api-cloudrun
     steps:
       - name: Selected?

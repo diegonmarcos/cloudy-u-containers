@@ -89,7 +89,7 @@ check("O3 the OpenAI-compatible /v1/chat/completions is enabled", o.gateway.http
 check("O3b the Control UI is off", o.gateway.controlUi.enabled === false);
 
 // ── O4 model calls go back through the fleet gateway ────────────────────────
-const myai = JSON.parse(readFileSync(join(here, "..", "..", "user-ai_my-ai-api", "build.json"), "utf8"));
+const myai = JSON.parse(readFileSync(join(here, "..", "..", "user-ai_cloudy-ai-agents-api", "build.json"), "utf8"));
 const myaiBind = myai.runtime.wg_bind || "10.0.0.6";
 const prov = o.models.providers[build.runtime.provider.id];
 check("O4 the provider is my-ai-api's OpenAI-compatible face on its WireGuard bind",
@@ -128,7 +128,7 @@ check("O7b the memory ceiling is declared and rendered", svc.deploy.resources.li
 check("O7c restarts on its own after a reboot", svc.restart === "unless-stopped");
 
 // ── O8 the fleet gateway points at this port ────────────────────────────────
-const server = readFileSync(join(here, "..", "..", "user-ai_my-ai-api", "src", "code", "server.mjs"), "utf8");
+const server = readFileSync(join(here, "..", "..", "user-ai_cloudy-ai-agents-api", "src", "code", "server.mjs"), "utf8");
 check("O8 my-ai-api's default OpenClaw address is 127.0.0.1:<this port>",
   server.includes(`OPENCLAW_BASE_URL ?? "http://127.0.0.1:${port}"`));
 check("O8b and it routes X-Agent-Mode: openclaw there", /hdr === "openclaw"\) return "openclaw"/.test(server) && /agentMode === "openclaw"\)\s+return callNative\("openclaw"/.test(server));
@@ -138,7 +138,7 @@ check("O8b and it routes X-Agent-Mode: openclaw there", /hdr === "openclaw"\) re
 // is not extended here on purpose: any change under _shared/ ships EVERY
 // engine consumer (cloud-ship-detect-engine-consumers.sh), a fleet-wide
 // redeploy for a roster line. The same two rules are held for this one.
-const agiNames = ["user-ai_my-ai_claude-api", "user-ai_my-ai-api", "user-ai_hermes-agent"]
+const agiNames = ["user-ai_cloudy-ai-claude-api", "user-ai_cloudy-ai-agents-api", "user-ai_hermes-agent"]
   .map((d) => JSON.parse(readFileSync(join(here, "..", "..", d, "build.json"), "utf8")).containers.app.container_name);
 check("O9 the container is named cloud-agi-*", /^cloud-agi-[a-z]+$/.test(svc.container_name) && svc.container_name === build.containers.app.container_name, svc.container_name);
 check("O9b and the name is not another AGI runtime's", !agiNames.includes(svc.container_name) && svc.container_name !== "cloud-agi-bots", agiNames.join(","));

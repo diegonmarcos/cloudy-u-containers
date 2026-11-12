@@ -28,7 +28,7 @@ const check = (name, ok, detail) => {
 };
 
 // ── Resolved declarations (paths are discovered, not hardcoded) ─────────────
-const root = process.cwd(); // <repo>/user-ai_my-ai-api/src/code
+const root = process.cwd(); // <repo>/user-ai_cloudy-ai-agents-api/src/code
 const serviceRoot = join(root, ".."); // .../src
 const repoRoot = join(serviceRoot, "../.."); // cloud-u-containers repo root
 const composeDecl = join(serviceRoot, "compose.nix");
@@ -71,7 +71,7 @@ if (defaults) {
 // compose.nix but never regenerating dist means the deployed compose still
 // carries restart:"no" — the #545 dist trap applied to the restart policy. The
 // rendered artifact must resolve to unless-stopped, or this check is red.
-const distComposePath = join(repoRoot, "user-ai_my-ai-api/dist/compose/docker-compose.yml");
+const distComposePath = join(repoRoot, "user-ai_cloudy-ai-agents-api/dist/compose/docker-compose.yml");
 const distCompose = mustRead(distComposePath, "dist/compose/docker-compose.yml");
 if (distCompose) {
   // The banner (a # comment block) is stripped; the body is one JSON object.

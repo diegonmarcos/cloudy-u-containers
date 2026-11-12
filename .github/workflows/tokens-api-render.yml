@@ -32,7 +32,7 @@ jobs:
         working-directory: infra/a_solutions
         run: |
           set -uo pipefail
-          for s in infra-sec_tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea; do
+          for s in infra-sec_cloudy-ai-tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea; do
             echo "::group::build $s"
             (cd "$s" && bash ./build.sh build) || { echo "build.sh build failed for $s"; echo "::endgroup::"; exit 1; }
             echo "::endgroup::"
@@ -44,8 +44,8 @@ jobs:
         if: always()
         working-directory: infra/a_solutions
         run: |
-          git add -N infra-sec_tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea
-          git diff -- infra-sec_tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea > /tmp/final.patch
+          git add -N infra-sec_cloudy-ai-tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea
+          git diff -- infra-sec_cloudy-ai-tokens-api infra-sec_introspect-proxy infra-sec_caddy infra-dat_gitea > /tmp/final.patch
           wc -l /tmp/final.patch; git status --short | head -20
       - uses: actions/upload-artifact@v4
         if: always()

@@ -2,7 +2,7 @@
 # ║                                                                  ║
 # ║   GENERATED FILE — DO NOT EDIT                                   ║
 # ║                                                                  ║
-# ║   Source : a_solutions/user-fin_capital-stack-finterminal-api/dist/Dockerfile.native
+# ║   Source : a_solutions/user-fin_capital-stack-finterm-api/dist/Dockerfile.native
 # ║   Engine : 9_others/src/deploy/scripts/cloud-ship-container-engine.sh
 # ║   Rebuild: ./9_others/build.sh
 # ║                                                                  ║

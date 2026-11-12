@@ -6,7 +6,7 @@
 // via env (C3_TELEGRAM_CHAT_ID), not hardcoded, so it can be overridden per
 // environment.
 //
-// Feature parity note: this mirrors a_solutions/user-ai_my-ai-api/src/code/bots/telegram.mjs,
+// Feature parity note: this mirrors a_solutions/user-ai_cloudy-ai-agents-api/src/code/bots/telegram.mjs,
 // the working long-poll gateway implementation. Group visibility, forum
 // topics, DM topics (Bot API 9.4), and topic management all follow the same
 // semantics and traps documented there — see the comments below for the

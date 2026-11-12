@@ -20,7 +20,7 @@
  *
  * Deriving the name is only half of it — the OTHER half is deriving it from the
  * RIGHT declaration. This module physically lives in
- * `infra-api_c3-services-api/src/code/registry/` and is symlinked into sibling
+ * `infra-api_cloudy-all-api/src/code/registry/` and is symlinked into sibling
  * containers, so its own location names the container it was written for, not
  * the container that is running. `import.meta.dirname` reports the resolved
  * real path (Node follows symlinks unless `--preserve-symlinks` is set), so
