@@ -12,6 +12,10 @@ $TTL 60
 @    IN NS   hickory-dns.mesh.diegonmarcos.com.
 @    IN A    10.0.0.1
 @    IN AAAA fd0c:1d00::1
+steel-browser  IN A  10.0.0.6
+steel-browser  IN AAAA  fd0c:1d00::6
+zap  IN A  10.0.0.6
+zap  IN AAAA  fd0c:1d00::6
 maddy  IN A  10.0.0.3
 stalwart  IN A  10.0.0.3
 maddy  IN AAAA  fd0c:1d00::3
@@ -28,5 +32,15 @@ embeddings-api  IN A  10.0.0.6
 my-ai-api  IN A  10.0.0.6
 cloud-cgc-pvt-mcp  IN A  10.0.0.6
 capital-stack-finterminal-web  IN A  10.0.0.6
+cloudy-ai-api  IN A  10.0.0.6
+cloudy-ai-embeddings-api  IN A  10.0.0.6
+c3bot-relay  IN A  10.0.0.6
+cloudy-all-mcp  IN A  10.0.0.6
+cloudy-apps-communication-mcp  IN A  10.0.0.6
+cloudy-apps-drive-mcp  IN A  10.0.0.6
+cloudy-c3-api  IN A  10.0.0.6
+cloudy-drive-git-proxy-api  IN A  10.0.0.4
+cloudy-ai-agents-api  IN A  10.0.0.6
+cloudy-browser-headless  IN A  10.0.0.6
 *    IN A    10.0.0.1
 *    IN AAAA fd0c:1d00::1
