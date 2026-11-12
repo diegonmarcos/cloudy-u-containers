@@ -150,10 +150,9 @@ class MinimalOAuthServer:
         except Exception:
             hostname = "localhost"
 
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind((hostname, self.port))
-        except OSError:
+        from core.port_check import port_is_free
+
+        if not port_is_free(hostname, self.port)[0]:
             error_msg = f"Port {self.port} is already in use on {hostname}. Cannot start minimal OAuth server."
             logger.error(error_msg)
             return False, error_msg

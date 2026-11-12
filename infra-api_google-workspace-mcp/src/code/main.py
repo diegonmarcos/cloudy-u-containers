@@ -2,7 +2,6 @@ import io
 import argparse
 import logging
 import os
-import socket
 import sys
 from importlib import metadata, import_module
 from dotenv import load_dotenv
@@ -539,10 +538,12 @@ def main():
 
         if args.transport == "streamable-http":
             # Check port availability before starting HTTP server
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.bind((host, port))
-            except OSError as e:
+            # SO_REUSEADDR like uvicorn: TIME_WAIT left by the previous process
+            # is not "in use" (#1683, see core/port_check.py).
+            from core.port_check import port_is_free
+
+            free, e = port_is_free(host, port)
+            if not free:
                 safe_print(f"Socket error: {e}")
                 safe_print(
                     f"❌ Port {port} is already in use. Cannot start HTTP server."
