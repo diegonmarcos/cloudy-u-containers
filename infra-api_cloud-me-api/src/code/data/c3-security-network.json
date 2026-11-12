@@ -139,7 +139,7 @@
       "description": "MCP OAuth 2.1 authorization server for mcp.diegonmarcos.com (option 31.1, approved 2026-10-28): RFC 8414/9728 discovery, RFC 7591 DCR, /authorize behind Authelia, PKCE S256 /token, opaque tokens introspected by introspect-proxy",
       "category": "sec",
       "enabled": true,
-      "host": "local",
+      "host": "gcp-proxy",
       "dns": "mcp-oauth.mesh.diegonmarcos.com",
       "ports": {
         "app": 4183

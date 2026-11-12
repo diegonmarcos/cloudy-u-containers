@@ -210,8 +210,12 @@ class UnzipJob:
         os.makedirs(self._work_dir, exist_ok=True)
         streaming.protect_tmp(self._work_dir)
         try:
-            with open(os.path.join(self._work_dir, "ACTIVE"), "w") as fh:
+            # Atomic: write a temp file, then rename. A reader (the drain probe, or the test right after
+            # start_job) must never see ACTIVE existing but still empty.
+            active = os.path.join(self._work_dir, "ACTIVE")
+            with open(active + ".tmp", "w") as fh:
                 fh.write(f"{os.getpid()} {_process_start_time()}\n")
+            os.replace(active + ".tmp", active)
         except OSError:
             pass
 

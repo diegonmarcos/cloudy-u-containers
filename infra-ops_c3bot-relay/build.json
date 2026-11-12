@@ -19,7 +19,7 @@
       "user": "node"
     },
     "labels": {
-      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/infra-api_c3bot-relay",
+      "org.opencontainers.image.source": "https://github.com/diegonmarcos/cloudy-u-containers/tree/main/infra-ops_c3bot-relay",
       "org.opencontainers.image.licenses": "LicenseRef-NoLicenseGranted"
     }
   },
@@ -74,7 +74,7 @@
   "secrets": {
     "escape_dollars": false,
     "container_readable": false,
-    "_doc": "Two secrets by NAME, values only in the private vault at Linux-Containers/infra-api_c3bot-relay/src/secrets.yaml (sops, public fleet recipient); the Ship overlay copies it in and the engine mounts .secrets (env_file). C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it); the server exits 78 when empty. C3BOT_RELAY_BOT_TOKEN: the Telegram bot token of the DEDICATED relay bot (Bot B, minted in @BotFather by the owner). It must NOT be C3_TELEGRAM_BOT_TOKEN: cloud-infra-mcp long-polls that token and Telegram answers 409 to a second getUpdates consumer. While the bot token is absent the relay still starts and serves all three transports; /health reports telegram:'unconfigured' and /send answers 503.",
+    "_doc": "Two secrets by NAME, values only in the private vault at Linux-Containers/infra-api_c3bot-relay/src/secrets.yaml (the vault keeps the pre-#1483 dir; _rebrand-1450/vault-dir-renames.txt maps it to this dir) (sops, public fleet recipient); the Ship overlay copies it in and the engine mounts .secrets (env_file). C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it); the server exits 78 when empty. C3BOT_RELAY_BOT_TOKEN: the Telegram bot token of the DEDICATED relay bot (Bot B, minted in @BotFather by the owner). It must NOT be C3_TELEGRAM_BOT_TOKEN: cloud-infra-mcp long-polls that token and Telegram answers 409 to a second getUpdates consumer. While the bot token is absent the relay still starts and serves all three transports; /health reports telegram:'unconfigured' and /send answers 503.",
     "required": ["C3BOT_RELAY_TOKEN"]
   }
 }

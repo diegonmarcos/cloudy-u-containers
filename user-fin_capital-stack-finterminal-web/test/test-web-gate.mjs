@@ -61,7 +61,7 @@ mutant('writable', (d) => { d.compose = d.compose.replace('read_only = true;', '
 mutant('a secret in the static container', (d) => { d.b.containers.app.env_file = true; }, 'G3');
 mutant('an undeclared API', (d) => { d.b.finterm.api_container = 'nope-api'; }, 'G4');
 mutant('an unpinned web build', (d) => { d.b.finterm.webapps_ref = 'main'; }, 'G5');
-mutant('the API read on the mesh name', (d) => { d.b.docker.runtime_extra_run = d.b.docker.runtime_extra_run.map((x) => x.replace('#/capital-stack-finterminal-api#g', '#https://capital-stack-finterminal-api.mesh.diegonmarcos.com#g')); }, 'G5');
+mutant('the API read on the mesh name', (d) => { d.b.docker.runtime_extra_run = d.b.docker.runtime_extra_run.map((x) => x.replace('#/capital-stack-finterm-api#g', '#https://capital-stack-finterm-api.mesh.diegonmarcos.com#g')); }, 'G5');
 mutant('the placeholder is back', (d) => { d.b.docker.runtime_extra_run.push("printf '<p>Gated FinTerm web. Data: /x</p>' > /usr/share/nginx/html/index.html"); }, 'G5');
 console.log(fails ? `${fails} FAILED` : 'ALL GREEN');
 process.exit(fails ? 1 : 0);

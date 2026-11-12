@@ -87,15 +87,8 @@
     "description": "One public prefix /ai/{tokens,embeddings,agents,claude,memory} in front of the five AI backend containers; legacy /<old-name>/ paths kept for one release; GET /health.",
     "auth": "bearer"
   },
-  "_gateway": "Public route: api.diegonmarcos.com/ai and c3-pvt.diegonmarcos.com/ai, bearer-gated at the hub Caddy; backends are bound on the WireGuard IP (ROUTES env in compose.nix).",
+  "_gateway": "Public route: c3-pvt.diegonmarcos.com/ai (alias) and c3-pvt.diegonmarcos.com/cloudy-ai-api, cookie or bearer at the hub Caddy (#1104: no api.* host; #1483 moved the clients off api.diegonmarcos.com/ai, which is a pending stage-3 redirect in _shared/fleet-addressing.json); backends are bound on the WireGuard IP (ROUTES env in compose.nix).",
   "proxy": {
-    "primary": {
-      "type": "path",
-      "parent_domain": "api.diegonmarcos.com",
-      "base_path": "/ai",
-      "auth": "two_factor",
-      "wg_only": true
-    },
     "app_hub": false
   }
 }

@@ -154,7 +154,9 @@ const stub = createServer((req, res) => {
 });
 await new Promise((r) => stub.listen(0, '127.0.0.1', r));
 const SP = stub.address().port;
-const PORT = 20000 + Math.floor(Math.random() * 20000);
+// A port the kernel just handed out and released: a random pick in 20000-40000 collided with the
+// ephemeral range (EADDRINUSE on a busy runner).
+const PORT = await new Promise((r, j) => { const s = createServer(); s.on('error', j); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => r(p)); }); });
 // The e2e server keeps the repo-backed dataset path covered (leak filter, absent file) under the
 // old names and serves the REAL builtin datasets next to them as real-<name>.
 const E2E_BUILD = join(T, 'e2e-build.json');

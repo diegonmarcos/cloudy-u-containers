@@ -168,6 +168,7 @@
     },
     "path_redirects_pending": {
       "_doc": "Stage 3 (#1100/#1104): old-host path prefixes that become 308 to https://c3-pvt.diegonmarcos.com/<container>{rest} once every client is migrated (a cross-host redirect drops the Authorization header, so rendering them earlier would break installed APKs). Keys: host/prefix; values: c3-pvt container. The guard requires each target to be mounted on c3-pvt. Activation is a move of the entry into render and a Caddy deploy.",
+      "api.diegonmarcos.com/ai": "cloudy-ai-api",
       "api.diegonmarcos.com/c3-infra-api": "cloudy-c3-api",
       "api.diegonmarcos.com/c3-services-api": "cloudy-all-api",
       "api.diegonmarcos.com/pub": "c3-public-api",

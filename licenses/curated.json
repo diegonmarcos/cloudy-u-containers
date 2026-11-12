@@ -131,10 +131,10 @@
   "infra-cloud_cloudflare-worker": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_google-apps-script-personal": {
+  "infra-cloud_google-apps-script-personal": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_google-apps-script-workspace": {
+  "infra-cloud_google-apps-script-workspace": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-cloud_gcloud": {
@@ -373,7 +373,7 @@
   "infra-ai_cloudy-ai-api": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_c3bot-relay": {
+  "infra-ops_c3bot-relay": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
   "infra-api_cloudy-all-mcp": {

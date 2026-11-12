@@ -269,8 +269,9 @@ check("M17 the guard covers EVERY container, not just the first",
     /import\s+\.\/memory-ceiling\.nix/.test(eng)
       && /policy\s*=\s*composeDefaultsFile\.memory_limit/.test(eng),
     "the guard exists but nothing calls it");
+  // The ceiling may sit inside another wrapper (applyOomPriority, #1641); it must still wrap the set.
   check("M19 engine.nix applies the ceiling to the rendered services attrset",
-    /services\s*=\s*applyMemoryCeiling\s*\(/.test(eng),
+    /services\s*=\s*(?:\w+\s*\(\s*)*applyMemoryCeiling\s*\(/.test(eng),
     "applyMemoryCeiling is defined but never applied — decoration");
 }
 

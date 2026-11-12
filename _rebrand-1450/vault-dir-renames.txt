@@ -8,3 +8,7 @@ user-ai_kg-store user-ai_cloud-me-cgc-pvt-graph-api
 user-ai_kg-store-pub user-ai_cloudy-cgc-pub-graph-api
 user-ai_my-ai-api user-ai_cloudy-ai-agents-api
 user-ai_my-ai_claude-api user-ai_cloudy-ai-claude-api
+# #1483: not HTTP APIs, moved out of the infra-api_ prefix; the vault keeps the old dir
+infra-api_c3bot-relay infra-ops_c3bot-relay
+infra-api_google-apps-script-personal infra-cloud_google-apps-script-personal
+infra-api_google-apps-script-workspace infra-cloud_google-apps-script-workspace

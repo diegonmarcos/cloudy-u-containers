@@ -2354,7 +2354,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_c3bot-relay": {
+  "dir:infra-ops_c3bot-relay": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2482,7 +2482,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_google-apps-script-personal": {
+  "dir:infra-cloud_google-apps-script-personal": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2490,7 +2490,7 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-api_google-apps-script-workspace": {
+  "dir:infra-cloud_google-apps-script-workspace": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -3435,8 +3435,8 @@
   "docker:ghcr.io/diegonmarcos/c3bot-relay": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_c3bot-relay/build.json",
-    "infra-api_c3bot-relay/src/build.json"
+    "infra-ops_c3bot-relay/build.json",
+    "infra-ops_c3bot-relay/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/c3bot-relay:latest",
    "scope": "runtime",
@@ -4332,8 +4332,8 @@
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/build.json",
     "infra-api_c3-public-api/src/code/Dockerfile",
-    "infra-api_c3bot-relay/build.json",
-    "infra-api_c3bot-relay/src/build.json",
+    "infra-ops_c3bot-relay/build.json",
+    "infra-ops_c3bot-relay/src/build.json",
     "infra-api_cloud-drive-mcp/build.json",
     "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-drive-mcp/src/build.json",
@@ -4676,7 +4676,7 @@
     "infra-ai_jev-sidecar/src/flake.nix",
     "infra-ai_languagetool/src/flake.nix",
     "infra-api_c3-public-api/src/flake.nix",
-    "infra-api_c3bot-relay/src/flake.nix",
+    "infra-ops_c3bot-relay/src/flake.nix",
     "infra-api_cloud-drive-mcp/src/flake.nix",
     "infra-api_cloud-infra-mcp/src/flake.nix",
     "infra-api_cloud-mail-mcp/src/flake.nix",

@@ -183,16 +183,6 @@
       "wg_only": false
     },
     {
-      "service": "infra-ai_cloudy-ai-api",
-      "mesh_name": "cloudy-ai-api.mesh.diegonmarcos.com",
-      "block": "primary",
-      "host": "api.diegonmarcos.com",
-      "type": "path",
-      "base_path": "/ai",
-      "auth": "two_factor",
-      "wg_only": true
-    },
-    {
       "service": "user-fin_capital-stack-finterm-api",
       "mesh_name": "capital-stack-finterm-api.mesh.diegonmarcos.com",
       "block": "primary",
@@ -454,7 +444,7 @@
       "wg_only": true
     },
     {
-      "service": "infra-api_c3bot-relay",
+      "service": "infra-ops_c3bot-relay",
       "mesh_name": "c3bot-relay.mesh.diegonmarcos.com",
       "block": "primary",
       "host": "mcp.diegonmarcos.com",
@@ -723,7 +713,7 @@
       "dns": "c3-spec.mesh.diegonmarcos.com"
     },
     {
-      "service": "infra-api_c3bot-relay",
+      "service": "infra-ops_c3bot-relay",
       "dns": "c3bot-relay.mesh.diegonmarcos.com"
     },
     {

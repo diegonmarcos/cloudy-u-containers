@@ -1,6 +1,6 @@
 # compose.nix — Capital-Stack-FinTerminal web (#1351): the static FinTerm pages (nginx, port 80 inside) published on the WG IP
 # only, so the edge (Caddy, c3-pvt path /capital-stack-finterminal-web behind the shared gate) reaches it over WireGuard.
-# No secret, no volume, read-only: the gate authenticates, the page reads /capital-stack-finterminal-api same-origin.
+# No secret, no volume, read-only: the gate authenticates, the page reads /capital-stack-finterm-api same-origin.
 { buildJson, container, base_domain }:
 
 let

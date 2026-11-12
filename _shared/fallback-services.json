@@ -67,15 +67,6 @@
       "bearer": true
     },
     {
-      "slug": "c3bot-relay",
-      "dir": "infra-api_c3bot-relay",
-      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-po",
-      "mesh": "c3bot-relay.mesh.diegonmarcos.com",
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
       "slug": "cloud-drive-mcp",
       "dir": "infra-api_cloud-drive-mcp",
       "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
@@ -223,24 +214,6 @@
       "bearer": true
     },
     {
-      "slug": "google-apps-script-personal",
-      "dir": "infra-api_google-apps-script-personal",
-      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is sh",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
-      "slug": "google-apps-script-workspace",
-      "dir": "infra-api_google-apps-script-workspace",
-      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
       "slug": "google-personal-mcp",
       "dir": "infra-api_google-personal-mcp",
       "description": "Google Personal Account MCP server — Gmail (IMAP/SMTP via App Password) for personal Google accounts, multi-account",
@@ -293,6 +266,24 @@
       "slug": "gcloud",
       "dir": "infra-cloud_gcloud",
       "description": "Google Cloud SDK and tools (local CLI only)",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "google-apps-script-personal",
+      "dir": "infra-cloud_google-apps-script-personal",
+      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is sh",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "google-apps-script-workspace",
+      "dir": "infra-cloud_google-apps-script-workspace",
+      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on",
       "mesh": null,
       "hosts": [],
       "signin": false,
@@ -495,6 +486,15 @@
       "dir": "infra-ops_agents-tmp-reaper",
       "description": "Agent /tmp reaper — periodically clears stale agent scratch from the /tmp of the agent containers on oci-apps, so a runaway agent cache cannot fill the host root filesystem (task 442 / issue 410). Cron-driven maintenance container in the db",
       "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "c3bot-relay",
+      "dir": "infra-ops_c3bot-relay",
+      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-po",
+      "mesh": "c3bot-relay.mesh.diegonmarcos.com",
       "hosts": [],
       "signin": false,
       "bearer": false

@@ -17,6 +17,10 @@ const OUT = join(HERE, 'code', 'data');
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const DENY = new RegExp(readJson(join(HERE, '..', 'build.json')).runtime.files.deny_content, 'im');
 
+// #1483: moved out of infra-api_ (not HTTP APIs) but still part of the MCP/API integrations page:
+// the relay feeds the c3 clients, the Apps Script projects back google-*-mcp.
+const MCP_API_EXTRA = ['infra-ops_c3bot-relay', 'infra-cloud_google-apps-script-personal', 'infra-cloud_google-apps-script-workspace'];
+
 export const GROUPS = {
   'c3-mail': ['user-comm_tools-stalwart', 'user-comm_tools-maddy', 'user-comm_cloud-webmail', 'user-comm_mail-puller',
     'infra-api_cloud-mail-mcp', 'infra-api_cloudy-mail-http-to-smtp-api', 'infra-sec_caddy-l4-image'],
@@ -68,7 +72,7 @@ export function build() {
   for (const g of Object.keys(GROUPS)) {
     let list;
     if (g === 'c3-observability') list = dirs.filter((d) => d.startsWith('infra-obs_') || d.startsWith('bc-obs_'));
-    else if (g === 'c3-mcp-apis') list = dirs.filter((d) => d.startsWith('infra-api_') || /^user-.*(mcp|api)/.test(d));
+    else if (g === 'c3-mcp-apis') list = dirs.filter((d) => d.startsWith('infra-api_') || /^user-.*(mcp|api)/.test(d) || MCP_API_EXTRA.includes(d));
     else list = GROUPS[g];
     outs[g] = { ...meta(g), count: 0, services: list.map(svc).filter(Boolean) };
     outs[g].count = outs[g].services.length;

@@ -56,53 +56,6 @@
       }
     },
     {
-      "service": "infra-api_c3bot-relay",
-      "name": "c3bot-relay",
-      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame. Zero npm dependencies. Bearer-gated, mesh-only.",
-      "category": "sec",
-      "enabled": true,
-      "host": "oci-apps",
-      "dns": "c3bot-relay.mesh.diegonmarcos.com",
-      "domain": "mcp.diegonmarcos.com/c3bot-relay",
-      "ports": {
-        "app": 3119
-      },
-      "containers": [
-        {
-          "key": "app",
-          "container_name": "c3bot-relay",
-          "dns": "c3bot-relay.mesh.diegonmarcos.com",
-          "port": 3119,
-          "protocol": "http",
-          "mesh_route": true
-        }
-      ],
-      "routes": [
-        {
-          "block": "primary",
-          "host": "mcp.diegonmarcos.com",
-          "type": "path",
-          "base_path": "/c3bot-relay",
-          "auth": "none",
-          "streaming": true,
-          "wg_only": true
-        }
-      ],
-      "exposure": "wg-only (mesh)",
-      "health": "/health",
-      "monitoring": {
-        "tls_check": true,
-        "dns_check": true,
-        "endpoint_check": true
-      },
-      "api": {
-        "type": "rest",
-        "base_path": "/c3bot-relay",
-        "display_name": "c3bot Telegram relay",
-        "auth": "bearer"
-      }
-    },
-    {
       "service": "infra-api_cloud-drive-mcp",
       "name": "cloud-drive-mcp",
       "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
@@ -838,28 +791,6 @@
       }
     },
     {
-      "service": "infra-api_google-apps-script-personal",
-      "name": "google-apps-script-personal",
-      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
-      "category": "app",
-      "enabled": true,
-      "host": "local",
-      "containers": [],
-      "routes": [],
-      "exposure": "wg-only (mesh)"
-    },
-    {
-      "service": "infra-api_google-apps-script-workspace",
-      "name": "google-apps-script-workspace",
-      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
-      "category": "app",
-      "enabled": true,
-      "host": "local",
-      "containers": [],
-      "routes": [],
-      "exposure": "wg-only (mesh)"
-    },
-    {
       "service": "infra-api_google-personal-mcp",
       "name": "google-personal-mcp",
       "description": "Google Personal Account MCP server — Gmail (IMAP/SMTP via App Password) for personal Google accounts, multi-account",
@@ -943,6 +874,75 @@
         "prompts_count": 0,
         "display_name": "Google Workspace MCP",
         "auth": "oidc"
+      }
+    },
+    {
+      "service": "infra-cloud_google-apps-script-personal",
+      "name": "google-apps-script-personal",
+      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+      "category": "app",
+      "enabled": true,
+      "host": "local",
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-cloud_google-apps-script-workspace",
+      "name": "google-apps-script-workspace",
+      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+      "category": "app",
+      "enabled": true,
+      "host": "local",
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-ops_c3bot-relay",
+      "name": "c3bot-relay",
+      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame. Zero npm dependencies. Bearer-gated, mesh-only.",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3bot-relay.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com/c3bot-relay",
+      "ports": {
+        "app": 3119
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "c3bot-relay",
+          "dns": "c3bot-relay.mesh.diegonmarcos.com",
+          "port": 3119,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/c3bot-relay",
+          "auth": "none",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "rest",
+        "base_path": "/c3bot-relay",
+        "display_name": "c3bot Telegram relay",
+        "auth": "bearer"
       }
     },
     {
