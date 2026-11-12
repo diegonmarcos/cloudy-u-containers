@@ -1118,7 +1118,7 @@ handle {
 handle_path /cloud-superapp-mcp/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
-          reverse_proxy 10.0.0.6:3110 {
+          reverse_proxy 10.0.0.6:3113 {
           flush_interval -1
           header_up X-Real-IP {http.request.remote.host}
           header_up Accept "application/json, text/event-stream"
@@ -1135,7 +1135,7 @@ handle_path /cloud-superapp-mcp/* {
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
     }
-          reverse_proxy 10.0.0.6:3110 {
+          reverse_proxy 10.0.0.6:3113 {
           flush_interval -1
           header_up X-Real-IP {http.request.remote.host}
           header_up Accept "application/json, text/event-stream"
