@@ -2697,26 +2697,6 @@ error @not_wg "Forbidden" 403
       import edge_errors
   }
 
-  # c3 container c3bot-relay (mesh-only; c3bot-relay-http-3119.mesh.diegonmarcos.com)
-  c3-c3bot-relay.diegonmarcos.com {
-  bind 0.0.0.0 10.0.0.1
-import security
-import request_limits
-
-
-@not_wg not remote_ip 10.0.0.0/24 fd0c:1d00::/64
-error @not_wg "Forbidden" 403
-
-
-
-    handle {
-  reverse_proxy 10.0.0.6:3119 {
-    header_up X-Real-IP {http.request.remote.host}
-  }
-}
-      import edge_errors
-  }
-
   # c3 container cloud-drive-mcp (mesh-only; cloud-drive-mcp-http-3109.mesh.diegonmarcos.com)
   c3-cloud-drive-mcp.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
@@ -3191,6 +3171,26 @@ error @not_wg "Forbidden" 403
 
     handle {
   reverse_proxy 10.0.0.6:3006 {
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+      import edge_errors
+  }
+
+  # c3 container c3bot-relay (mesh-only; c3bot-relay-http-3119.mesh.diegonmarcos.com)
+  c3-c3bot-relay.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+import security
+import request_limits
+
+
+@not_wg not remote_ip 10.0.0.0/24 fd0c:1d00::/64
+error @not_wg "Forbidden" 403
+
+
+
+    handle {
+  reverse_proxy 10.0.0.6:3119 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -4995,95 +4995,6 @@ reverse_proxy https://diegonmarcos.github.io {
 }
 
 }
-
-handle_path /ai/* {
-  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
-        handle @wg {
-              @bearer header Authorization Bearer*
-    handle @bearer {
-      forward_auth 10.0.0.1:4182 {
-      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
-      # backend that gets Connection: Upgrade never answers and the edge hangs.
-      header_up -Connection
-      header_up -Upgrade
-      method GET
-      uri /auth
-      copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
-    }
-      reverse_proxy 10.0.0.6:4185 {
-        header_up X-Real-IP {http.request.remote.host}
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-    handle {
-      forward_auth 172.18.0.3:9091 {
-      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
-      # backend that gets Connection: Upgrade never answers and the edge hangs.
-      header_up -Connection
-      header_up -Upgrade
-      uri /api/authz/forward-auth
-      header_up X-Forwarded-Uri {http.request.orig_uri}
-      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-    }
-      reverse_proxy 10.0.0.6:4185 {
-        header_up X-Real-IP {http.request.remote.host}
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-
-        }
-        handle {
-          error "Forbidden" 403
-        }
-}
 handle /pub/health {
   uri strip_prefix /pub
         reverse_proxy 10.0.0.4:8087
@@ -6394,19 +6305,6 @@ import security_mcp
 import request_limits
 import edge_auth_offmesh /.well-known/acme-challenge/* /.well-known/oauth-protected-resource* /.well-known/oauth-authorization-server* /.well-known/openid-configuration* /register /authorize /token /callback /oauth/* /*/.well-known/oauth-protected-resource* /*/.well-known/oauth-authorization-server* /*/register /*/authorize /*/token /*/callback
 
-handle_path /c3bot-relay/* {
-  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
-        handle @wg {
-          reverse_proxy 10.0.0.6:3119 {
-          flush_interval -1
-          header_up X-Real-IP {http.request.remote.host}
-          header_up Accept "application/json, text/event-stream"
-        }
-        }
-        handle {
-          error "Forbidden" 403
-        }
-}
 handle_path /cloud-drive-mcp/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
@@ -6750,6 +6648,19 @@ handle {
   error "Forbidden" 403
 }
 }
+handle_path /c3bot-relay/* {
+  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
+        handle @wg {
+          reverse_proxy 10.0.0.6:3119 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+        handle {
+          error "Forbidden" 403
+        }
+}
 handle_path /cloud-cgc-pub-mcp/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
@@ -6823,7 +6734,7 @@ handle_path /cloudy-browser-headless/* {
         }
 }
     handle {
-      respond "MCP Hub -- use /c3bot-relay/mcp, /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloud-vault-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
+      respond "MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloud-vault-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /c3bot-relay/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
     }
       import edge_errors
   }
@@ -7528,55 +7439,6 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.4:8087 {
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-    }
-  import edge_errors
-  }
-
-  c3bot-relay.mesh.diegonmarcos.com {
-    # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
-    # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
-    # own Caddy server (srv1, listen=[10.0.0.1:8443]) that caddy-l4's
-    # forward target 127.0.0.1:8443 never reached — the whole .app/.db zone
-    # was unreachable. Removing the bind entirely (first attempt, 6e3b65364)
-    # was ALSO insufficient: Caddy's Caddyfile adapter groups servers by the
-    # LITERAL listen string, and "no bind" (implicit ":8443") produced a
-    # THIRD, still-different server (srv2) from the public routes' explicit
-    # "0.0.0.0:8443" — even though both cover the same sockets. Only an
-    # byte-identical bind directive guarantees one merged server. 2026-07-09.
-  bind 0.0.0.0 10.0.0.1
-@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
-error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
-    reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -9390,6 +9252,55 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.6:3006 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  c3bot-relay.mesh.diegonmarcos.com {
+    # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
+    # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
+    # own Caddy server (srv1, listen=[10.0.0.1:8443]) that caddy-l4's
+    # forward target 127.0.0.1:8443 never reached — the whole .app/.db zone
+    # was unreachable. Removing the bind entirely (first attempt, 6e3b65364)
+    # was ALSO insufficient: Caddy's Caddyfile adapter groups servers by the
+    # LITERAL listen string, and "no bind" (implicit ":8443") produced a
+    # THIRD, still-different server (srv2) from the public routes' explicit
+    # "0.0.0.0:8443" — even though both cover the same sockets. Only an
+    # byte-identical bind directive guarantees one merged server. 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -11368,47 +11279,6 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
-  cloud.c3bot-relay.mesh.diegonmarcos.com {
-  bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
-    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
-    error @not_mesh "Forbidden" 403
-    handle {
-      reverse_proxy 10.0.0.6:3119 {
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-  import edge_errors
-  }
-
   cloud.drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -12896,6 +12766,47 @@ error @not_mesh "Forbidden" 403
     error @not_mesh "Forbidden" 403
     handle {
       reverse_proxy 10.0.0.6:3006 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
+  cloud.c3bot-relay.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -14853,47 +14764,6 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
-  c3-c3bot-relay.mesh.diegonmarcos.com {
-  bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
-    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
-    error @not_mesh "Forbidden" 403
-    handle {
-      reverse_proxy 10.0.0.6:3119 {
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-      }
-    }
-  import edge_errors
-  }
-
   c3-cloud-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -15848,6 +15718,47 @@ error @not_mesh "Forbidden" 403
     error @not_mesh "Forbidden" 403
     handle {
       reverse_proxy 10.0.0.6:3006 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
+  c3-c3bot-relay.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -17402,48 +17313,6 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
-  c3bot-relay-http-3119.mesh.diegonmarcos.com {
-    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
-    # 2026-07-09.
-  bind 0.0.0.0 10.0.0.1
-@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
-error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
-    reverse_proxy 10.0.0.6:3119 {
-        # Empty-body guard: an upstream that answers 200 with Content-Length 0
-        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
-        # handle_errors renders the diagnostic page instead of a silent blank.
-        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
-        #
-        # CRITICAL: once ANY named handle_response matcher exists on a
-        # reverse_proxy, Caddy defers writing the response entirely — a
-        # response that matches NO handle_response block writes NOTHING
-        # (not "pass through unmodified"). Confirmed via production incident
-        # 2026-07-09: this guard alone silently emptied every real response
-        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
-        # a worse outage than the bug it fixed. The bare fallback block below
-        # is MANDATORY and MUST come after @empty_ok — it copies through every
-        # response that isn't the empty-200 false-green.
-        @empty_ok {
-          status 200
-          header Content-Length 0
-        }
-        handle_response @empty_ok {
-          @get method GET
-          error @get 502
-        }
-        handle_response {
-          copy_response
-        }
-    }
-  import edge_errors
-  }
-
   cloud-drive-mcp-http-3109.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -18423,6 +18292,48 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.6:3006 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  c3bot-relay-http-3119.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      on_demand
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
