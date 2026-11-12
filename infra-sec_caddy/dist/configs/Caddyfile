@@ -157,17 +157,16 @@
         auth-broker.mesh.diegonmarcos.com auth-broker/
         auth.diegonmarcos.com authelia/
         authelia.mesh.diegonmarcos.com authelia/
-        c3-infra-api.mesh.diegonmarcos.com c3-infra-api/
         c3-infra-mcp.mesh.diegonmarcos.com cloud-infra-mcp/
         c3-public-api.mesh.diegonmarcos.com c3-public-api/
-        c3-services-api.mesh.diegonmarcos.com c3-services-api/
         c3-services-mcp.mesh.diegonmarcos.com cloud-services-mcp/
         c3-spec.mesh.diegonmarcos.com cloud-spec/
+        c3bot-relay.mesh.diegonmarcos.com c3bot-relay/
         caddy-public.mesh.diegonmarcos.com caddy-public/
         caddy.mesh.diegonmarcos.com caddy/
         cal.diegonmarcos.com calendar-radicale/
         calendar.mesh.diegonmarcos.com calendar-radicale/
-        capital-stack-finterminal-api.mesh.diegonmarcos.com capital-stack-finterminal-api/
+        capital-stack-finterm-api.mesh.diegonmarcos.com capital-stack-finterm-api/
         capital-stack-finterminal-web.mesh.diegonmarcos.com capital-stack-finterminal-web/
         chat.diegonmarcos.com chat-mattermost/
         cloud-cgc-pub-mcp.mesh.diegonmarcos.com cloud-cgc-pub-mcp/
@@ -177,38 +176,48 @@
         cloud.alerts-api.mesh.diegonmarcos.com alerts-api/
         cloud.auth-broker.mesh.diegonmarcos.com auth-broker/
         cloud.authelia.mesh.diegonmarcos.com authelia/
-        cloud.c3-infra-api.mesh.diegonmarcos.com c3-infra-api/
         cloud.c3-infra-mcp.mesh.diegonmarcos.com cloud-infra-mcp/
         cloud.c3-public-api.mesh.diegonmarcos.com c3-public-api/
-        cloud.c3-services-api.mesh.diegonmarcos.com c3-services-api/
         cloud.c3-services-mcp.mesh.diegonmarcos.com cloud-services-mcp/
         cloud.c3-spec.mesh.diegonmarcos.com cloud-spec/
+        cloud.c3bot-relay.mesh.diegonmarcos.com c3bot-relay/
         cloud.caddy-public.mesh.diegonmarcos.com caddy-public/
         cloud.caddy.mesh.diegonmarcos.com caddy/
         cloud.calendar.mesh.diegonmarcos.com calendar-radicale/
-        cloud.capital-stack-finterminal-api.mesh.diegonmarcos.com capital-stack-finterminal-api/
+        cloud.capital-stack-finterm-api.mesh.diegonmarcos.com capital-stack-finterm-api/
         cloud.capital-stack-finterminal-web.mesh.diegonmarcos.com capital-stack-finterminal-web/
         cloud.cloud-cgc-pub-mcp.mesh.diegonmarcos.com cloud-cgc-pub-mcp/
         cloud.cloud-me-api.mesh.diegonmarcos.com cloud-me-api/
         cloud.cloud-notes-sync.mesh.diegonmarcos.com cloud-notes-sync/
         cloud.cloud-notes-web.mesh.diegonmarcos.com cloud-notes-web/
+        cloud.cloudy-ai-agents-api.mesh.diegonmarcos.com cloudy-ai-agents-api/
+        cloud.cloudy-ai-api.mesh.diegonmarcos.com cloudy-ai-api/
+        cloud.cloudy-ai-embeddings-api.mesh.diegonmarcos.com cloudy-ai-embeddings-api/
+        cloud.cloudy-ai-memory-api.mesh.diegonmarcos.com cloudy-ai-memory-api/
+        cloud.cloudy-ai-tokens-api.mesh.diegonmarcos.com cloudy-ai-tokens-api/
+        cloud.cloudy-all-api.mesh.diegonmarcos.com cloudy-all-api/
+        cloud.cloudy-all-mcp.mesh.diegonmarcos.com cloudy-all-mcp/
+        cloud.cloudy-apps-communication-mcp.mesh.diegonmarcos.com cloudy-apps-communication-mcp/
+        cloud.cloudy-apps-drive-mcp.mesh.diegonmarcos.com cloudy-apps-drive-mcp/
+        cloud.cloudy-browser-headless.mesh.diegonmarcos.com cloudy-browser-headless/
+        cloud.cloudy-browser-scrapper-api.mesh.diegonmarcos.com cloudy-browser-scrapper-api/
+        cloud.cloudy-c3-api.mesh.diegonmarcos.com cloudy-c3-api/
+        cloud.cloudy-drive-git-proxy-api.mesh.diegonmarcos.com cloudy-drive-git-proxy-api/
+        cloud.cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com cloudy-mail-http-to-smtp-api/
         cloud.code-server.mesh.diegonmarcos.com code-server/
         cloud.contacts.mesh.diegonmarcos.com contacts-radicale/
         cloud.crowdsec.mesh.diegonmarcos.com crowdsec/
         cloud.dagu.mesh.diegonmarcos.com dagu/
         cloud.dbgate.mesh.diegonmarcos.com dbgate/
         cloud.drive-mcp.mesh.diegonmarcos.com cloud-drive-mcp/
-        cloud.embeddings-api.mesh.diegonmarcos.com embeddings-api/
         cloud.etherpad.mesh.diegonmarcos.com etherpad/
         cloud.filebrowser.mesh.diegonmarcos.com filebrowser/
         cloud.g-personal-mcp.mesh.diegonmarcos.com google-personal-mcp/
         cloud.g-workspace-mcp.mesh.diegonmarcos.com google-workspace-mcp/
-        cloud.git-proxy-api.mesh.diegonmarcos.com git-proxy-api/
         cloud.gitea.mesh.diegonmarcos.com gitea/
         cloud.grist.mesh.diegonmarcos.com grist/
         cloud.hedgedoc.mesh.diegonmarcos.com hedgedoc/
         cloud.hermes-agent.mesh.diegonmarcos.com hermes-agent/
-        cloud.http-to-smtp-proxy-api.mesh.diegonmarcos.com http-to-smtp-proxy-api/
         cloud.introspect-proxy.mesh.diegonmarcos.com introspect-proxy/
         cloud.jev-sidecar.mesh.diegonmarcos.com jev-sidecar/
         cloud.maddy.mesh.diegonmarcos.com maddy/
@@ -221,8 +230,7 @@
         cloud.mattermost-mcp.mesh.diegonmarcos.com cloud-mattermost-mcp/
         cloud.mattermost.mesh.diegonmarcos.com chat-mattermost/
         cloud.mcp-oauth.mesh.diegonmarcos.com mcp-oauth/
-        cloud.my-ai-api.mesh.diegonmarcos.com my-ai-api/
-        cloud.my-ai-claude-api.mesh.diegonmarcos.com my-ai_claude-api/
+        cloud.my-ai-claude-api.mesh.diegonmarcos.com cloudy-ai-claude-api/
         cloud.ntfy.mesh.diegonmarcos.com ntfy/
         cloud.openclaw.mesh.diegonmarcos.com openclaw/
         cloud.openobserve.mesh.diegonmarcos.com openobserve/
@@ -230,14 +238,27 @@
         cloud.playlist-syncer.mesh.diegonmarcos.com playlist-syncer/
         cloud.redis.mesh.diegonmarcos.com redis/
         cloud.revealmd.mesh.diegonmarcos.com revealmd/
-        cloud.scrappers-api.mesh.diegonmarcos.com scrappers-api/
-        cloud.session-memory.mesh.diegonmarcos.com session-memory/
         cloud.stalwart.mesh.diegonmarcos.com stalwart/
+        cloud.steel-browser.mesh.diegonmarcos.com steel-browser/
         cloud.superapp-mcp.mesh.diegonmarcos.com cloud-superapp-mcp/
-        cloud.tokens-api.mesh.diegonmarcos.com tokens-api/
         cloud.umami.mesh.diegonmarcos.com umami/
         cloud.vault-mcp.mesh.diegonmarcos.com cloud-vault-mcp/
         cloud.webmail.mesh.diegonmarcos.com cloud-webmail/
+        cloud.zap.mesh.diegonmarcos.com zap/
+        cloudy-ai-agents-api.mesh.diegonmarcos.com cloudy-ai-agents-api/
+        cloudy-ai-api.mesh.diegonmarcos.com cloudy-ai-api/
+        cloudy-ai-embeddings-api.mesh.diegonmarcos.com cloudy-ai-embeddings-api/
+        cloudy-ai-memory-api.mesh.diegonmarcos.com cloudy-ai-memory-api/
+        cloudy-ai-tokens-api.mesh.diegonmarcos.com cloudy-ai-tokens-api/
+        cloudy-all-api.mesh.diegonmarcos.com cloudy-all-api/
+        cloudy-all-mcp.mesh.diegonmarcos.com cloudy-all-mcp/
+        cloudy-apps-communication-mcp.mesh.diegonmarcos.com cloudy-apps-communication-mcp/
+        cloudy-apps-drive-mcp.mesh.diegonmarcos.com cloudy-apps-drive-mcp/
+        cloudy-browser-headless.mesh.diegonmarcos.com cloudy-browser-headless/
+        cloudy-browser-scrapper-api.mesh.diegonmarcos.com cloudy-browser-scrapper-api/
+        cloudy-c3-api.mesh.diegonmarcos.com cloudy-c3-api/
+        cloudy-drive-git-proxy-api.mesh.diegonmarcos.com cloudy-drive-git-proxy-api/
+        cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com cloudy-mail-http-to-smtp-api/
         code-server.mesh.diegonmarcos.com code-server/
         contacts.diegonmarcos.com contacts-radicale/
         contacts.mesh.diegonmarcos.com contacts-radicale/
@@ -247,18 +268,15 @@
         db.diegonmarcos.com dbgate/
         dbgate.mesh.diegonmarcos.com dbgate/
         drive-mcp.mesh.diegonmarcos.com cloud-drive-mcp/
-        embeddings-api.mesh.diegonmarcos.com embeddings-api/
         etherpad.mesh.diegonmarcos.com etherpad/
         filebrowser.mesh.diegonmarcos.com filebrowser/
         g-personal-mcp.mesh.diegonmarcos.com google-personal-mcp/
         g-workspace-mcp.mesh.diegonmarcos.com google-workspace-mcp/
-        git-proxy-api.mesh.diegonmarcos.com git-proxy-api/
         git.diegonmarcos.com gitea/
         gitea.mesh.diegonmarcos.com gitea/
         grist.mesh.diegonmarcos.com grist/
         hedgedoc.mesh.diegonmarcos.com hedgedoc/
         hermes-agent.mesh.diegonmarcos.com hermes-agent/
-        http-to-smtp-proxy-api.mesh.diegonmarcos.com http-to-smtp-proxy-api/
         ide.diegonmarcos.com code-server/
         introspect-proxy.mesh.diegonmarcos.com introspect-proxy/
         jev-sidecar.mesh.diegonmarcos.com jev-sidecar/
@@ -279,8 +297,7 @@
         mcp-oauth.mesh.diegonmarcos.com mcp-oauth/
         mesh.diegonmarcos.com wireguard-mesh/
         messenger.diegonmarcos.com matrix-element/
-        my-ai-api.mesh.diegonmarcos.com my-ai-api/
-        my-ai-claude-api.mesh.diegonmarcos.com my-ai_claude-api/
+        my-ai-claude-api.mesh.diegonmarcos.com cloudy-ai-claude-api/
         notes-sync.diegonmarcos.com cloud-notes-sync/
         notes.diegonmarcos.com cloud-notes-web/
         ntfy.mesh.diegonmarcos.com ntfy/
@@ -294,13 +311,11 @@
         redis.mesh.diegonmarcos.com redis/
         revealmd.mesh.diegonmarcos.com revealmd/
         rss.diegonmarcos.com ntfy/
-        scrappers-api.mesh.diegonmarcos.com scrappers-api/
         send.diegonmarcos.com send/
-        session-memory.mesh.diegonmarcos.com session-memory/
         sheets.diegonmarcos.com grist/
         stalwart.mesh.diegonmarcos.com stalwart/
+        steel-browser.mesh.diegonmarcos.com steel-browser/
         superapp-mcp.mesh.diegonmarcos.com cloud-superapp-mcp/
-        tokens-api.mesh.diegonmarcos.com tokens-api/
         umami.mesh.diegonmarcos.com umami/
         vault-mcp.mesh.diegonmarcos.com cloud-vault-mcp/
         vault.diegonmarcos.com vaultwarden/
@@ -308,6 +323,7 @@
         webmail.diegonmarcos.com cloud-webmail/
         webmail.mesh.diegonmarcos.com cloud-webmail/
         workflows.diegonmarcos.com dagu/
+        zap.mesh.diegonmarcos.com zap/
           default ""
         }
         header Vary Accept
@@ -2681,6 +2697,26 @@ error @not_wg "Forbidden" 403
       import edge_errors
   }
 
+  # c3 container c3bot-relay (mesh-only; c3bot-relay-http-3119.mesh.diegonmarcos.com)
+  c3-c3bot-relay.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+import security
+import request_limits
+
+
+@not_wg not remote_ip 10.0.0.0/24 fd0c:1d00::/64
+error @not_wg "Forbidden" 403
+
+
+
+    handle {
+  reverse_proxy 10.0.0.6:3119 {
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+      import edge_errors
+  }
+
   # c3 container cloud-drive-mcp (mesh-only; cloud-drive-mcp-http-3109.mesh.diegonmarcos.com)
   c3-cloud-drive-mcp.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
@@ -2801,7 +2837,7 @@ error @not_wg "Forbidden" 403
       import edge_errors
   }
 
-  # c3 container cloud-superapp-mcp (mesh-only; cloud-superapp-mcp-http-3110.mesh.diegonmarcos.com)
+  # c3 container cloud-superapp-mcp (mesh-only; cloud-superapp-mcp-http-3113.mesh.diegonmarcos.com)
   c3-cloud-superapp-mcp.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
 import security
@@ -2814,7 +2850,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:3110 {
+  reverse_proxy 10.0.0.6:3113 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -6358,6 +6394,19 @@ import security_mcp
 import request_limits
 import edge_auth_offmesh /.well-known/acme-challenge/* /.well-known/oauth-protected-resource* /.well-known/oauth-authorization-server* /.well-known/openid-configuration* /register /authorize /token /callback /oauth/* /*/.well-known/oauth-protected-resource* /*/.well-known/oauth-authorization-server* /*/register /*/authorize /*/token /*/callback
 
+handle_path /c3bot-relay/* {
+  @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
+        handle @wg {
+          reverse_proxy 10.0.0.6:3119 {
+          flush_interval -1
+          header_up X-Real-IP {http.request.remote.host}
+          header_up Accept "application/json, text/event-stream"
+        }
+        }
+        handle {
+          error "Forbidden" 403
+        }
+}
 handle_path /cloud-drive-mcp/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
@@ -6511,7 +6560,7 @@ handle {
 handle_path /cloud-superapp-mcp/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
-          reverse_proxy 10.0.0.6:3110 {
+          reverse_proxy 10.0.0.6:3113 {
           flush_interval -1
           header_up X-Real-IP {http.request.remote.host}
           header_up Accept "application/json, text/event-stream"
@@ -6528,7 +6577,7 @@ handle_path /cloud-superapp-mcp/* {
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
     }
-          reverse_proxy 10.0.0.6:3110 {
+          reverse_proxy 10.0.0.6:3113 {
           flush_interval -1
           header_up X-Real-IP {http.request.remote.host}
           header_up Accept "application/json, text/event-stream"
@@ -6774,7 +6823,7 @@ handle_path /cloudy-browser-headless/* {
         }
 }
     handle {
-      respond "MCP Hub -- use /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloud-vault-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
+      respond "MCP Hub -- use /c3bot-relay/mcp, /cloud-drive-mcp/mcp, /c3-infra-mcp/mcp, /mail-mcp/mcp, /mattermost-mcp/mcp, /c3-services-mcp/mcp, /cloud-superapp-mcp/mcp, /cloud-vault-mcp/mcp, /cloudy-all-mcp/mcp, /cloudy-apps-communication-mcp/mcp, /cloudy-apps-drive-mcp/mcp, /g-personal/mcp, /g-workspace/mcp, /cloud-cgc-pub-mcp/mcp, /cloud-cgc-pvt-mcp/mcp" 200
     }
       import edge_errors
   }
@@ -6833,6 +6882,11 @@ import request_limits
     uri path_regexp ^/tokens-api(/|$) /cloudy-ai-tokens-api$1
       handle_path /c3-public-api/* {
         reverse_proxy 10.0.0.4:8087 {
+          header_up X-Real-IP {http.request.remote.host}
+        }
+      }
+      handle_path /c3bot-relay/* {
+        reverse_proxy 10.0.0.6:3119 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
@@ -6918,7 +6972,7 @@ import request_limits
         }
       }
       handle_path /cloud-superapp-mcp/* {
-        reverse_proxy 10.0.0.6:3110 {
+        reverse_proxy 10.0.0.6:3113 {
           header_up X-Real-IP {http.request.remote.host}
         flush_interval -1
         }
@@ -7474,6 +7528,55 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.4:8087 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  c3bot-relay.mesh.diegonmarcos.com {
+    # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
+    # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
+    # own Caddy server (srv1, listen=[10.0.0.1:8443]) that caddy-l4's
+    # forward target 127.0.0.1:8443 never reached — the whole .app/.db zone
+    # was unreachable. Removing the bind entirely (first attempt, 6e3b65364)
+    # was ALSO insufficient: Caddy's Caddyfile adapter groups servers by the
+    # LITERAL listen string, and "no bind" (implicit ":8443") produced a
+    # THIRD, still-different server (srv2) from the public routes' explicit
+    # "0.0.0.0:8443" — even though both cover the same sockets. Only an
+    # byte-identical bind directive guarantees one merged server. 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -8061,7 +8164,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3110 {
+    reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -8110,7 +8213,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3110 {
+    reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -11265,6 +11368,47 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  cloud.c3bot-relay.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.6:3119 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
   cloud.drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -11726,7 +11870,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3110 {
+      reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -11767,7 +11911,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3110 {
+      reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -14709,6 +14853,47 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  c3-c3bot-relay.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.6:3119 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
   c3-cloud-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -14965,7 +15150,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3110 {
+      reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -17217,6 +17402,48 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  c3bot-relay-http-3119.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      on_demand
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.6:3119 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   cloud-drive-mcp-http-3109.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -17469,7 +17696,7 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
-  cloud-superapp-mcp-http-3110.mesh.diegonmarcos.com {
+  cloud-superapp-mcp-http-3113.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
   bind 0.0.0.0 10.0.0.1
@@ -17481,7 +17708,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3110 {
+    reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
