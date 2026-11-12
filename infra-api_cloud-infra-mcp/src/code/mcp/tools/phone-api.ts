@@ -1,7 +1,7 @@
 // cloudy-c3-mcp: the phone's Cloud-Webserver API page as three obs.debug methods (#1490):
 //   obs.debug.phone_public   public endpoints        -> GET /endpoints/public
 //   obs.debug.phone_mesh     mesh endpoints          -> GET /endpoints/mesh
-//   obs.debug.phone_logs     apps logs, `<app>`      -> GET /logs/<app>  (the Mesh Endpoint of the phone)
+//   obs.debug.phone_logs     apps logs, `<app>`      -> GET /ipc/<app>/logs  (the Cloud-Webserver mesh gateway, #1580)
 // All three go over the mesh with the fleet bearer (phone-api-core.ts); nothing is reached publicly.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -33,7 +33,7 @@ export function registerPhoneApiTools(server: McpServer, env: NodeJS.ProcessEnv 
 
   server.tool(
     "obs.debug.phone_logs",
-    "Phone apps logs: one fleet app's recent logcat and crash ring (its <package>.logexport IPC export), served by the phone's mesh endpoint /logs/<app>",
+    "Phone apps logs: one fleet app's recent logcat and crash ring (its <package>.logexport IPC export), served by the phone's single mesh gateway /ipc/<app>/logs",
     {
       app: z.string().describe("Fleet app id (e.g. calc) or package, as in the phone's fleet manifest"),
       n: z.number().optional().describe("Logcat lines, 1-2000 (default 300)"),

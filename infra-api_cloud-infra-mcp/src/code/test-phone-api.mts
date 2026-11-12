@@ -55,16 +55,16 @@ await t("status codes map to a hint", async () => {
 });
 
 await t("apps logs: <app> is one path segment, the query is clamped, the method is the provider's", () => {
-  assert.deepEqual(logsPath({ app: "calc" }), { ok: true, value: "/logs/calc" });
-  assert.deepEqual(logsPath({ app: "com.diegonmarcos.cloudcalc", n: 99999, errors: true, crashes: 99, method: "export" }), { ok: true, value: "/logs/com.diegonmarcos.cloudcalc?method=export&n=2000&errors=1&crashes=20" });
-  assert.deepEqual(logsPath({ app: "calc", n: -4, crashes: -1 }), { ok: true, value: "/logs/calc?n=1&crashes=0" });
+  assert.deepEqual(logsPath({ app: "calc" }), { ok: true, value: "/ipc/calc/logs" });
+  assert.deepEqual(logsPath({ app: "com.diegonmarcos.cloudcalc", n: 99999, errors: true, crashes: 99, method: "export" }), { ok: true, value: "/ipc/com.diegonmarcos.cloudcalc/logs?method=export&n=2000&errors=1&crashes=20" });
+  assert.deepEqual(logsPath({ app: "calc", n: -4, crashes: -1 }), { ok: true, value: "/ipc/calc/logs?n=1&crashes=0" });
   for (const bad of ["", "../x", "a/b", "a b", "..", "a..b", ".x", "x?y", "x#y", 5, undefined]) assert.equal(appName(bad).ok, false, String(bad));
   assert.equal(logsPath({ app: "calc", method: "shell" }).ok, false);
 });
 
 await t("an app name with a reserved character is encoded, never a second path segment", () => {
   const r = logsPath({ app: "a_b-c.d" });
-  assert.ok(r.ok && r.value === "/logs/a_b-c.d");
+  assert.ok(r.ok && r.value === "/ipc/a_b-c.d/logs");
 });
 
 console.log(`${n} tests passed`);

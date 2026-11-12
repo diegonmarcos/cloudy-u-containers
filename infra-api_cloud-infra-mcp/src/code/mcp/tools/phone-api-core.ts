@@ -43,7 +43,7 @@ export function appName(s: unknown): Result<string> {
 
 export interface LogsParams { app: unknown; n?: unknown; errors?: unknown; crashes?: unknown; method?: unknown }
 
-/** `/logs/<app>?...` with every number clamped like the provider does. */
+/** `/ipc/<app>/logs?...` (the Cloud-Webserver mesh gateway route, #1580; the legacy `/logs/<app>` is being retired) with every number clamped like the provider does. */
 export function logsPath(p: LogsParams): Result<string> {
   const a = appName(p.app);
   if (!a.ok) return a;
@@ -56,7 +56,7 @@ export function logsPath(p: LogsParams): Result<string> {
   if (p.errors === true || p.errors === 1) q.set("errors", "1");
   if (p.crashes !== undefined) q.set("crashes", String(Math.min(20, Math.max(0, Math.floor(Number(p.crashes)) || 0))));
   const qs = q.toString();
-  return { ok: true, value: `/logs/${encodeURIComponent(a.value)}${qs ? `?${qs}` : ""}` };
+  return { ok: true, value: `/ipc/${encodeURIComponent(a.value)}/logs${qs ? `?${qs}` : ""}` };
 }
 
 export type FetchLike = (url: string, init: { headers: Record<string, string>; signal: AbortSignal }) => Promise<{ status: number; ok: boolean; text(): Promise<string> }>;
