@@ -9,10 +9,10 @@
   },
   "bind_host": "10.0.0.1",
   "category": "sec",
-  "_ship_skip": "parked (#1252): deploy.host local keeps Ship from building/deploying this service (same marker as infra-cloud_gcloud and infra-bld_cloud-builder-x; build-gha.json then omits it). Restore host gcp-proxy and remote_path /opt/containers/mcp-oauth together with provisioning dist/.secrets (INTROSPECT_SECRET, FORM_SECRET) on gcp-proxy.",
+  "_ship_skip": "unparked (#1252, 2026-11-12): secrets provisioned in the vault through the sops-create workflow (Linux-Containers/infra-sec_mcp-oauth/src/secrets.yaml INTROSPECT_SECRET + secrets.form.yaml FORM_SECRET; introspect-proxy gets the same introspect value as fragment secrets.mcp-oauth.yaml MCP_OAUTH_INTROSPECT_SECRET). Ship builds and deploys it to gcp-proxy (mem_limit 128M fits the e2-micro, free tier).",
   "deploy": {
-    "host": "local",
-    "remote_path": "",
+    "host": "gcp-proxy",
+    "remote_path": "/opt/containers/mcp-oauth",
     "compose_flags": "--build"
   },
   "compose": {
