@@ -23,15 +23,14 @@ in
       container_name = app.container_name;
       network_mode = "host";
       command = [
-        "gunicorn" "--bind" bind
-        "--workers" "1" "--threads" "4" "--timeout" "30"
-        "main:app"
+        "sh" "-c"
+        "chown 10001:999 /data && exec gunicorn --bind ${bind} --user 10001 --group 999 --workers 1 --threads 4 --timeout 30 main:app"
       ];
       env_file = [ ".secrets" ];
       # The host data dir (./data) is owned by the deploy user, not the image's
-      # appuser (uid 10001): sqlite could not open /data/mcp-oauth.sqlite3, /health
-      # returned 500 and the container never turned healthy. Run as root like the
-      # other bind-mount-data services (no-new-privileges stays on).
+      # appuser (uid 10001), so sqlite could not open /data/mcp-oauth.sqlite3 and
+      # /health returned 500. Same pattern as tokens-api: start as root only to chown
+      # /data, then gunicorn drops to 10001:999 before serving (no request handling as root).
       user = "0:0";
       volumes = app.volumes;
       environment = {
