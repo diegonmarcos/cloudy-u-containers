@@ -28,6 +28,11 @@ in
         "main:app"
       ];
       env_file = [ ".secrets" ];
+      # The host data dir (./data) is owned by the deploy user, not the image's
+      # appuser (uid 10001): sqlite could not open /data/mcp-oauth.sqlite3, /health
+      # returned 500 and the container never turned healthy. Run as root like the
+      # other bind-mount-data services (no-new-privileges stays on).
+      user = "0:0";
       volumes = app.volumes;
       environment = {
         ISSUER        = "https://mcp.diegonmarcos.com";
