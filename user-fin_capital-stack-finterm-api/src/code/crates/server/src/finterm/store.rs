@@ -1814,9 +1814,10 @@ mod tests {
 
     #[test]
     fn sovereign_windows() {
-        let ys: BTreeMap<String, f64> = (1..=12).map(|m| (format!("2025-{m:02}"), 12.0)).collect();
+        let mut ys: BTreeMap<String, f64> = (1..=6).map(|m| (format!("2025-{m:02}"), 12.0)).collect();
+        ys.insert("2024-12".into(), 12.0);
         let l = local_monthly(&ys, 10.0);
-        assert_eq!(l.len(), 11);
+        assert_eq!(l.len(), 6);
         assert!((window_total(&l, 1).unwrap() - 0.01).abs() < 1e-12, "flat yield earns the carry");
         assert!(window_total(&l, 12).is_none(), "a missing month is null");
         let w = windows3(&l);
