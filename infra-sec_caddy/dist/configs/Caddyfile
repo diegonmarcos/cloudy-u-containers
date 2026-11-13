@@ -4796,27 +4796,6 @@ reverse_proxy https://diegonmarcos.github.io {
       import edge_errors
   }
 
-  # APK cloud-writer: web target wasm bundle cloud-writer (Authelia-gated)
-  cloud-writer.diegonmarcos.com {
-  bind 0.0.0.0 10.0.0.1
-import security
-import request_limits
-import edge_auth /.well-known/acme-challenge/*
-
-
-
-
-
-    handle {
-  rewrite * /cloud-web/apps/cloud-writer{uri}
-reverse_proxy https://diegonmarcos.github.io {
-    header_up Host diegonmarcos.github.io
-    header_up X-Real-IP {http.request.remote.host}
-  }
-}
-      import edge_errors
-  }
-
   # JMAP config URLs (well-known grafts public; rest of the vhost mesh-only)
   mails.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
