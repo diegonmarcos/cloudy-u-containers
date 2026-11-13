@@ -934,6 +934,7 @@ pub fn router() -> Router<AppState> {
         .route("/v1/history", get(history_root))
         .route("/v1/history/{symbol}", get(history_route))
         .route("/v1/bonds/em-usd", get(em_usd))
+        .route("/v1/bonds/sovereign-returns", get(sovereign_returns))
         .route("/v1/fx/ppp", get(fx_ppp))
         .route("/v1/fx/ppp-matrix", get(fx_matrix))
         .route("/v1/bonds/g20-real", get(g20_real))
@@ -1308,6 +1309,73 @@ pub fn chain(monthly: &BTreeMap<String, f64>) -> Vec<(String, f64)> {
 
 async fn embond_index(p: &SqlitePool, u: &Value, cc: &str) -> Vec<(String, f64)> {
     chain(&em_monthly(p, u, cc).await.0)
+}
+
+// ---------------------------------------------------------------- sovereign bond returns (#1727, /v1/bonds/sovereign-returns)
+
+/// The monthly local-currency return (a fraction) of a constant-maturity bond, keyed by the month it ends: y(t-1)/12 - D(t-1) x (y(t) - y(t-1)).
+pub fn local_monthly(yields: &BTreeMap<String, f64>, years: f64) -> BTreeMap<String, f64> {
+    let mut out = BTreeMap::new();
+    for (m, y0) in yields {
+        let n = next_month(m);
+        let Some(y1) = yields.get(&n) else { continue };
+        let (a, b) = (y0 / 100.0, y1 / 100.0);
+        out.insert(n, a / 12.0 - par_duration(a, years) * (b - a));
+    }
+    out
+}
+
+/// The compounded return (a fraction) over the `months` ending at the newest month; None when a month of the window is missing.
+pub fn window_total(monthly: &BTreeMap<String, f64>, months: usize) -> Option<f64> {
+    if months == 0 {
+        return None;
+    }
+    let mut m = monthly.keys().next_back()?.clone();
+    let mut growth = 1.0;
+    for _ in 0..months {
+        growth *= 1.0 + monthly.get(&m)?;
+        m = prev_month(&m);
+    }
+    Some(growth - 1.0)
+}
+
+/// The windows m1 (last month), ytd (January to the newest month) and y1 (last 12 months) of a monthly series, each None when incomplete.
+pub fn windows3(monthly: &BTreeMap<String, f64>) -> Value {
+    let mo = monthly.keys().next_back().and_then(|m| m.get(5..7)?.parse::<usize>().ok()).unwrap_or(0);
+    json!({ "m1": window_total(monthly, 1), "ytd": window_total(monthly, mo), "y1": window_total(monthly, 12) })
+}
+
+/// `/v1/bonds/sovereign-returns`: per country of universe.sovereign_returns.ccy with a stored yield, the local-currency bond return, the
+/// currency's move against the dollar (the USD value of one unit of local currency, f(t-1)/f(t) - 1) and the unhedged USD return, over m1, ytd, y1.
+async fn sovereign_returns(State(s): State<AppState>) -> Response {
+    let u = &s.finterm.universe;
+    let Some(p) = pool(&s) else { return unavailable("the sovereign bond store (FINTERM_DB unset)") };
+    let d = &u["sovereign_returns"];
+    let tenor = d["tenor"].as_str().unwrap_or("10Y");
+    let years: f64 = tenor.trim_end_matches('Y').parse().unwrap_or(10.0);
+    let mut rows = Vec::new();
+    for (cc, c) in d["ccy"].as_object().cloned().unwrap_or_default() {
+        let ccy = c.as_str().unwrap_or_default().to_string();
+        let yields: BTreeMap<String, f64> = series(p, &format!("curve:{cc}:{tenor}")).await.into_iter().filter(|(d, _)| d.len() >= 7).map(|(d, v)| (d[..7].to_string(), v)).collect();
+        if yields.is_empty() {
+            continue;
+        }
+        let fx: BTreeMap<String, f64> = series(p, &format!("fx:USD{ccy}")).await.into_iter().filter(|(d, _)| d.len() >= 7).map(|(d, v)| (d[..7].to_string(), v)).collect();
+        let local = local_monthly(&yields, years);
+        let mut fxm = BTreeMap::new();
+        let mut usd = BTreeMap::new();
+        for (m, r) in &local {
+            if let (Some(f0), Some(f1)) = (fx.get(&prev_month(m)), fx.get(m)) {
+                if *f1 > 0.0 {
+                    fxm.insert(m.clone(), f0 / f1 - 1.0);
+                    usd.insert(m.clone(), (1.0 + r) * (f0 / f1) - 1.0);
+                }
+            }
+        }
+        rows.push(json!({ "country": cc, "currency": ccy, "tenor": tenor, "last_month": local.keys().next_back(), "local": windows3(&local), "fx": windows3(&fxm), "usd": windows3(&usd),
+                          "null_reason": if fx.is_empty() { json!("no free USD reference rate for this currency") } else { Value::Null } }));
+    }
+    ok(json!({ "method": d["method"], "rows": rows }), 3600, "finterm-store")
 }
 
 // ---------------------------------------------------------------- FX vs PPP (#1374, /v1/fx/ppp)
@@ -1742,6 +1810,17 @@ mod tests {
         assert_eq!(d["expected"]["estimated"], true);
         let one = r#"{"name":"X","filings":{"recent":{"form":["8-K"],"filingDate":["2026-10-30"],"items":["2.02"],"accessionNumber":["a"],"primaryDocument":["b"]}}}"#;
         assert!(sec_earnings(one, "X", "1", "", day, 120)["expected"].is_null(), "one filing gives no cadence");
+    }
+
+    #[test]
+    fn sovereign_windows() {
+        let ys: BTreeMap<String, f64> = (1..=12).map(|m| (format!("2025-{m:02}"), 12.0)).collect();
+        let l = local_monthly(&ys, 10.0);
+        assert_eq!(l.len(), 11);
+        assert!((window_total(&l, 1).unwrap() - 0.01).abs() < 1e-12, "flat yield earns the carry");
+        assert!(window_total(&l, 12).is_none(), "a missing month is null");
+        let w = windows3(&l);
+        assert!(w["m1"].is_number() && w["ytd"].is_number() && w["y1"].is_null(), "{w}");
     }
 
     #[test]
