@@ -7,10 +7,10 @@ T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 P=0; F=0; ok() { P=$((P+1)); echo "  ok   $1"; }; bad() { F=$((F+1)); echo "  FAIL $1"; }
 R="$T/r"; mkdir -p "$R/svc/dist/compose"; git -C "$R" init -q
 C="$R/svc/dist/compose/docker-compose.yml"
-printf '# header\n{"services":{"a":{"container_name":"old","env_file":[".secrets"],"volumes":["./.secrets.d:/run/secrets:ro","./.secrets.json:/run/secrets.json:ro"]},"b":{"container_name":"b"}}}\n' > "$C"
+printf '# header\n{"services":{"a":{"container_name":"old","env_file":[".secrets"],"volumes":["./.secrets.d:/run/secrets:ro","./.secrets.json:/run/secrets.json:ro"]},"b":{"container_name":"b"}}}' > "$C"
 git -C "$R" add -A; git -C "$R" -c user.email=t@t -c user.name=t commit -q -m base
 cp "$C" "$T/committed"
-printf '# header\n{"services":{"a":{"container_name":"new","volumes":[]},"b":{"container_name":"b"}}}\n' > "$C"
+printf '# header\n{"services":{"a":{"container_name":"new","volumes":[]},"b":{"container_name":"b"}}}' > "$C"
 bash "$H" "$R" svc >/dev/null 2>&1 || bad "helper failed"
 j=$(tail -n1 "$C")
 [ "$(printf '%s' "$j" | jq -c '.services.a.volumes')" = '["./.secrets.d:/run/secrets:ro","./.secrets.json:/run/secrets.json:ro"]' ] && ok "volumes restored in committed order" || bad "volumes"

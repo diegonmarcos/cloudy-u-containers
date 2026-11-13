@@ -31,5 +31,6 @@ jq -S -c --argjson old "$old_json" '
              | if ($add|length)==0 then $cur
                else (($cur + $add) as $u | if (($u|sort)==(($o.env_file)|sort)) then $o.env_file else $u end) end)
          else . end) ) )' < <(sed -n "${head_part}p" "$F") > "$T"
-{ head -n $((head_part-1)) "$F"; cat "$T"; } > "$T.new" && mv "$T.new" "$F"
+# the engine writes the json line without a trailing newline; keep it byte-identical
+{ head -n $((head_part-1)) "$F"; printf '%s' "$(cat "$T")"; } > "$T.new" && mv "$T.new" "$F"
 echo "reinject: secret mounts of $REL restored from the committed copy"
