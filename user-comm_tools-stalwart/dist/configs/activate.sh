@@ -277,9 +277,6 @@ for PAIR in 42=MAIL_DEFAULT_PASSWORD me=ME_PASSWORD admin=ADMIN_PASSWORD no-repl
   printf '%s\n' '10 _ ADMIN|
 20 _ INFORMS|
 40 _ C3|
-50 _ BURO|
-60 _ MY-PM|
-70 _ SOCIALS|
 90 _ OTHERS|
 11    🛡️ Admin|10 _ ADMIN
 92    📥 Archive|90 _ OTHERS
