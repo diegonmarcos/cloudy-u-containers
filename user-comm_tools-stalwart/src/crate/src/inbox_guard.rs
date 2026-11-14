@@ -1,7 +1,7 @@
 //! The Inbox invariant: EVERY message keeps the `Inbox` mailbox.
 //!
 //! Owner rule: Inbox is the default tag of all mail, no exception. Every other
-//! mailbox on a message (numeric category, `01 Inbox - noAlerts`, A*-F* views)
+//! mailbox on a message (numeric category, `01_No-Alerts`, A*-F* views)
 //! is a label ADDED on top of Inbox, never a replacement for it.
 //!
 //! JMAP `mailboxIds` is the message's COMPLETE membership. Writing it back as a

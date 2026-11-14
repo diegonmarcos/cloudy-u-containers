@@ -55,11 +55,10 @@
     "10 _ ADMIN",
     "20 _ INFORMS",
     "40 _ C3",
-    "50 _ BURO",
-    "60 _ MY-PM",
-    "70 _ SOCIALS",
     "90 _ OTHERS"
   ],
+  "root_folders": ["A.___"],
+  "_root_folders_doc": "Plain ROOT mailboxes created by the jmap-sorter, never section headers (so they take no children by the prefix rule and need not match the 2-char header shape). Declared here so the cleanup does not reap them.",
   "routing_default": "others",
   "inbox_copy": {
     "enabled": false,
@@ -90,7 +89,9 @@
       "31    ☁️ Cloud - Reports & CI": "41    ⚙️ CI & CD",
       "32    ☁️ Cloud - VPS Providers": "43    ☁️ VPS",
       "41    ⚙️ CI/CD": "41    ⚙️ CI & CD",
-      "00 Inbox - Alerts": "01 Inbox - Alerts"
+      "00 Inbox - Alerts": "01_Alerts",
+      "01 Inbox - Alerts": "01_Alerts",
+      "01 Inbox - noAlerts": "01_No-Alerts"
     },
     "_doc_slash": "No managed folder name may contain '/': Sieve fileinto and IMAP read it as the hierarchy separator, so `40 _ C3/41 CI/CD/GH Workflows` created 41 CI > CD > GH Workflows, which the sorter then reaped as stale every poll while re-filing the mail it had just misfiled. Same fix as the F* names before it: '/' becomes '&'. run-tests.sh rejects any declared name carrying one.",
     "_doc_502": "Ticket #502 renumbers 30 CLOUD to 40 C3 and splits its one 'Reports & CI' group into two (41 CI/CD, 42 Reports). 'Cloud Reports' and 'Rss Notifications' keep their own leaf names -- only their PARENT changes (31 -> 42), which is a folder_groups.children move, not a rename, so they need no entry here; the compiler's folderParents() re-derives the new parent from the group declaration and a live run applies it as a Mailbox/set parentId update, same as any other reparent. NOT applied here -- this ticket declares the migration, it does not run it against the live server."
@@ -136,14 +137,14 @@
     "_axis_doc": "Each view declares its axis and whether it is volatile. A volatile view depends on wall-clock time or read state and must be re-evaluated every poll; a static view is a property of the message itself (size, attachments) and is computed once. The size axis is a PARTITION: its buckets are half-open [lo,hi) and must tile the whole range, so every message lands in exactly one. That invariant is what lets the sorter use size-view membership as the sentinel for 'static views already computed' -- guarded by 9_others/test/test_mail_filter_views_partition.sh.",
     "views": [
       {
-        "folder": "01 Inbox - Alerts",
+        "folder": "01_Alerts",
         "axis": "inbox",
         "volatile": false,
         "_doc": "Ticket #502: everything 01 noAlerts excludes, and nothing else -- `predicates.inbox_alerts` verbatim, while noAlerts is its `not`. One declared tree, two views, so the pair is a partition by construction: no message in both, none in neither. Excluded from `filters.source_folder_regex` (^[1-9]) for the same reason as noAlerts.",
         "predicate": {"ref": "inbox_alerts"}
       },
       {
-        "folder": "01 Inbox - noAlerts",
+        "folder": "01_No-Alerts",
         "axis": "inbox",
         "volatile": false,
         "_doc": "The inbox minus `predicates.inbox_alerts` (CI failure notifications, flat-hunting alerts). A view, not a route: membership is recomputed over the whole store every poll, so a change to inbox_alerts backfills existing mail and never deletes any -- the message stays in Inbox, only its label moves. Named with a leading 0 so it sorts above the numeric category folders; `filters.source_folder_regex` is ^[1-9] so this folder is NOT itself a source folder -- otherwise its own members would count as in-scope forever.",

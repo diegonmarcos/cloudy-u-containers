@@ -62,6 +62,11 @@ pub struct Rules {
     #[serde(default, deserialize_with = "null_default")]
     pub folders_ui: Vec<String>,
 
+    /// Plain ROOT mailboxes (no sieve routing, no children by prefix rule),
+    /// e.g. `A.___`. Created by `ensure_mailboxes`, never reaped.
+    #[serde(default, deserialize_with = "null_default")]
+    pub root_folders: Vec<String>,
+
     /// The folder tree, `child display name -> parent display name`, resolved
     /// by the generator (`derive-mail-rules.ts::folderParents`) and applied
     /// here verbatim as JMAP `parentId`.
@@ -76,7 +81,7 @@ pub struct Rules {
     /// because `folder_groups` was the one path that set a parent at all.
     ///
     /// A folder absent from this map is a ROOT folder. That is a real state,
-    /// not a gap: `01 Inbox - noAlerts` has no `00` header and stays at ROOT.
+    /// not a gap: `01_No-Alerts` has no `00` header and stays at ROOT.
     #[serde(default, deserialize_with = "null_default")]
     pub folder_parents: BTreeMap<String, String>,
 

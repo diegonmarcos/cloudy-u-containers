@@ -234,8 +234,8 @@ assert "folders spacing: every leaf matches '^AZ  X…'" \
 assert "folders_ui spacing: every parent matches '^AZ X…'" \
   test "$(jq '[.folders_ui[] | select(test("^[0-9A-Za-z]{2} [^ ]") | not)] | length' "$GENERAL")" = 0
 
-assert "folders_ui: exactly 7 parent UI entries (#502: +40 C3, +50 BURO, +60 MY-PM, +70 SOCIALS, -30 CLOUD)" \
-  test "$(jq '.folders_ui | length' "$GENERAL")" = 7
+assert "folders_ui: exactly 4 parent UI entries (10 ADMIN, 20 INFORMS, 40 C3, 90 OTHERS; 50/60/70 retired 2026-11-14)" \
+  test "$(jq '.folders_ui | length' "$GENERAL")" = 4
 
 # Folder taxonomy and rule set are two sources of truth that can drift apart
 # silently (14/23 were declared with zero routing rules for a while and
@@ -411,11 +411,11 @@ assert "Fl House's resolved PARENT (folder_parents, not its name) is the F0 send
   test "$FL_PARENT" = "F0 _ SENDER"
 
 ALERTS_MATCH="$(jq -n --slurpfile r "$RULES_JSON" '
-  ($r[0].filters.views | map(select(.folder == "01 Inbox - Alerts"))[0].predicate // "MISSING_ALERTS") as $a
-  | ($r[0].filters.views | map(select(.folder == "01 Inbox - noAlerts"))[0].predicate.not // "MISSING_NOALERTS") as $na
+  ($r[0].filters.views | map(select(.folder == "01_Alerts"))[0].predicate // "MISSING_ALERTS") as $a
+  | ($r[0].filters.views | map(select(.folder == "01_No-Alerts"))[0].predicate.not // "MISSING_NOALERTS") as $na
   | $a == $na
 ')"
-assert "01 Inbox - Alerts and 01 Inbox - noAlerts split the inbox axis as exact complements" \
+assert "01_Alerts and 01_No-Alerts split the inbox axis as exact complements" \
   test "$ALERTS_MATCH" = true
 
 # Structural identity above proves "complement"; it cannot prove the RIGHT
@@ -439,11 +439,11 @@ const ev = (p, m) => {
   return false;
 };
 const fx = [
-  ["wg-gesucht",  "inbox", "01 Inbox - Alerts",   { from: "x@wg-gesucht.de", headers: { Subject: "Neue Anzeige" } }],
-  ["immoscout24", "inbox", "01 Inbox - Alerts",   { from: "x@nachrichten.immobilienscout24.de", headers: { Subject: "Suchauftrag" } }],
-  ["ci-failure",  "inbox", "01 Inbox - Alerts",   { from: "notifications@github.com", headers: { Subject: "[o/r] Run failed: ci - main" } }],
-  ["github-pr",   "inbox", "01 Inbox - noAlerts", { from: "notifications@github.com", headers: { Subject: "[o/r] PR opened" } }],
-  ["normal",      "inbox", "01 Inbox - noAlerts", { from: "friend@example.org", headers: { Subject: "hi" } }],
+  ["wg-gesucht",  "inbox", "01_Alerts",   { from: "x@wg-gesucht.de", headers: { Subject: "Neue Anzeige" } }],
+  ["immoscout24", "inbox", "01_Alerts",   { from: "x@nachrichten.immobilienscout24.de", headers: { Subject: "Suchauftrag" } }],
+  ["ci-failure",  "inbox", "01_Alerts",   { from: "notifications@github.com", headers: { Subject: "[o/r] Run failed: ci - main" } }],
+  ["github-pr",   "inbox", "01_No-Alerts", { from: "notifications@github.com", headers: { Subject: "[o/r] PR opened" } }],
+  ["normal",      "inbox", "01_No-Alerts", { from: "friend@example.org", headers: { Subject: "hi" } }],
   ["linkedin",    "sender", null,                  { from: "x@linkedin.com", headers: { Subject: "new message" } }],
   ["travel-sale", "sender", null,                  { from: "x@booking.com", headers: { Subject: "Flash sale" } }],
 ];
@@ -484,11 +484,14 @@ C3_PARENTS="$(jq -r '
 assert "CI & CD, Reports and VPS (all three) resolve to one real parent, 40 _ C3 (got: $C3_PARENTS)" \
   test "$C3_PARENTS" = "40 _ C3"
 
-assert "BURO, MY-PM and SOCIALS containers are declared, still empty (their content is Diego's call, not a guess)" \
+assert "the stale 50 _ BURO, 60 _ MY-PM and 70 _ SOCIALS containers are no longer declared (retired 2026-11-14, were empty)" \
   test "$(jq -r '
-    ["50 _ BURO","60 _ MY-PM","70 _ SOCIALS"] as $want
-    | ($want - .folders_ui | length == 0)
+    ["50 _ BURO","60 _ MY-PM","70 _ SOCIALS"] as $gone
+    | ([.folders_ui[]] | map(. as $f | $gone | index($f)) | map(select(. != null)) | length == 0)
   ' "$GENERAL")" = true
+
+assert "root_folders declares A.___ and the inbox views are renamed 01_Alerts / 01_No-Alerts with renames from the old names" \
+  test "$(jq -r '(.root_folders | index("A.___") != null) and (.folder_renames.map["01 Inbox - Alerts"] == "01_Alerts") and (.folder_renames.map["01 Inbox - noAlerts"] == "01_No-Alerts")' "$GENERAL")" = true
 
 # ── Priority axis: the star, and the complement that must track it ─
 # `Ea Important` and `Eb Normal` are hand-tiled -- Normal is NOT(Important)

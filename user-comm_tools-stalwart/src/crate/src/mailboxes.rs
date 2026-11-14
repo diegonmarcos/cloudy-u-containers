@@ -148,6 +148,9 @@ pub fn ensure_mailboxes(
     for (j, label) in rules.folders_ui.iter().enumerate() {
         declared.push((label.as_str(), 100 + j as u32));
     }
+    for (j, label) in rules.root_folders.iter().enumerate() {
+        declared.push((label.as_str(), 150 + j as u32));
+    }
     // Filter views: section headers plus one folder per view. Membership is
     // maintained by `maintain_filters`; here we only ensure they exist.
     for (k, label) in rules.filters.section_headers.iter().enumerate() {
@@ -335,6 +338,7 @@ fn valid_names(rules: &Rules) -> HashSet<String> {
         valid.extend(group.children.values().cloned());
     }
     valid.extend(rules.folders_ui.iter().cloned());
+    valid.extend(rules.root_folders.iter().cloned());
     valid.extend(rules.filters.section_headers.iter().cloned());
     valid.extend(rules.filters.views.iter().map(|v| v.folder.clone()));
     valid.extend(SYSTEM_FOLDERS.iter().map(|s| s.to_string()));
@@ -424,10 +428,9 @@ pub fn cleanup_stale(
     ordered.sort_by_key(|(_, d)| std::cmp::Reverse(*d));
 
     for (mb, _) in ordered {
-        // Two-phase: try the polite destroy; on `mailboxHasEmail` retry with
-        // onDestroyRemoveEmails. Only the email flag is JMAP-standard — if a
-        // child relationship is the blocker we surface it and let the next
-        // poll pick it up after `ensure_mailboxes` reparents.
+        // Polite destroy only (onDestroyRemoveEmails stays false). If a child
+        // relationship is the blocker we surface it and let the next poll
+        // pick it up after `ensure_mailboxes` reparents.
         let result = match client.mailbox_set(None, None, Some(vec![mb.id.clone()]), false) {
             Ok(r) => r,
             Err(e) => {
@@ -447,15 +450,11 @@ pub fn cleanup_stale(
         };
         let reason = err.get("type").and_then(Value::as_str).unwrap_or("").to_string();
         if reason == "mailboxHasEmail" || reason == "tooManyEmails" {
-            match client.mailbox_set(None, None, Some(vec![mb.id.clone()]), true) {
-                Ok(retry) if retry.destroyed.iter().any(|d| d == &mb.id) => {
-                    tracing::info!("Deleted stale (force-empty): {}", mb.name);
-                }
-                Ok(retry) => {
-                    tracing::warn!("Force-destroy failed for {}: {:?}", mb.name, retry.not_destroyed);
-                }
-                Err(e) => tracing::warn!("Force-destroy call failed for {}: {e}", mb.name),
-            }
+            // NEVER onDestroyRemoveEmails=true: a message that is in no other
+            // mailbox would be destroyed with the folder. The mail was already
+            // given Inbox above (membership patch); if a straggler arrived
+            // since, the next poll moves it and the destroy then succeeds.
+            tracing::warn!("Not destroying {} yet: {reason}; mail is moved to Inbox first, retry next poll", mb.name);
         } else {
             // `mailboxHasChild` / unknown — leave for next poll once
             // ensure_mailboxes has reparented the valid children to ROOT.
@@ -495,7 +494,7 @@ mod tests {
     #[test]
     fn unparented_folder_is_root() {
         let p = parents(&[("11    Admin", "10 _ ADMIN")]);
-        assert_eq!(parent_depth(&p, "01 Inbox - noAlerts"), 0);
+        assert_eq!(parent_depth(&p, "01_No-Alerts"), 0);
     }
 
     /// A cycle must terminate. Before the visit set this spun forever, and the

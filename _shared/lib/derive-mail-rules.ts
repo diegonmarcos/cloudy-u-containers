@@ -48,6 +48,7 @@ interface Merged {
   folders: Record<string, string>;
   folder_groups: Json[];
   folders_ui: string[];
+  root_folders: string[];
   routing_default: string;
   inbox_copy: { enabled?: boolean; flags?: string[] };
   cleanup: Json;
@@ -120,6 +121,7 @@ export function merge(general: Json, profile: Json | null): Merged {
     // there is no per-group override story yet.
     folder_groups: [...(general.folder_groups ?? []), ...(p.folder_groups ?? [])],
     folders_ui: unique([...(general.folders_ui ?? []), ...(p.folders_ui ?? [])]),
+    root_folders: unique([...(general.root_folders ?? []), ...(p.root_folders ?? [])]),
     routing_default: p.routing_default ?? general.routing_default ?? 'others',
     inbox_copy: p.inbox_copy ?? general.inbox_copy ?? { enabled: false, flags: [] },
     cleanup: p.cleanup ?? general.cleanup ?? {},
@@ -320,7 +322,7 @@ export function sortByPriority(rules: Json[]): Json[] {
  * (`30 _ CLOUD / 31 Cloud - Reports & CI / GH Workflows`).
  *
  * A folder whose class has no declared `X0` header keeps `parentId: null` and
- * stays at ROOT -- `01 Inbox - noAlerts` is the live example. Unclassified
+ * stays at ROOT -- `01_No-Alerts` is the live example. Unclassified
  * folders are left alone rather than forced somewhere they do not belong.
  */
 export function folderParents(merged: Merged): Record<string, string> {
@@ -699,6 +701,7 @@ export function toLegacyJson(merged: Merged): Json {
     folders: merged.folders,
     folder_groups: merged.folder_groups ?? [],
     folders_ui: merged.folders_ui ?? [],
+    root_folders: merged.root_folders ?? [],
     // The resolved tree, explicit. The Rust sorter applies it verbatim as
     // `parentId` rather than re-deriving the prefix rule -- one derivation,
     // one artifact, no drift between the two engines.
