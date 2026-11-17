@@ -114,7 +114,7 @@
         {
           "name": "capital-stack-finterminal-web",
           "type": "A",
-          "value": "10.0.0.6"
+          "value": "10.0.0.1"
         },
         {
           "name": "cloudy-ai-api",
