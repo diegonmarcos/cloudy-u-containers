@@ -3257,6 +3257,26 @@ error @not_wg "Forbidden" 403
       import edge_errors
   }
 
+  # c3 container mcp-oauth (mesh-only; mcp-oauth-http-4183.mesh.diegonmarcos.com)
+  c3-mcp-oauth.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+import security
+import request_limits
+
+
+@not_wg not remote_ip 10.0.0.0/24 fd0c:1d00::/64
+error @not_wg "Forbidden" 403
+
+
+
+    handle {
+  reverse_proxy 10.0.0.1:4183 {
+    header_up X-Real-IP {http.request.remote.host}
+  }
+}
+      import edge_errors
+  }
+
   # c3 container cloud-cgc-pub-mcp (mesh-only; cloud-cgc-pub-mcp-http-3105.mesh.diegonmarcos.com)
   c3-cloud-cgc-pub-mcp.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
@@ -7007,6 +7027,11 @@ import request_limits
           header_up X-Real-IP {http.request.remote.host}
         }
       }
+      handle_path /mcp-oauth/* {
+        reverse_proxy 10.0.0.1:4183 {
+          header_up X-Real-IP {http.request.remote.host}
+        }
+      }
       handle_path /ntfy/* {
         reverse_proxy 10.0.0.6:8090 {
           header_up X-Real-IP {http.request.remote.host}
@@ -7092,12 +7117,54 @@ reverse_proxy https://10.0.0.3:2443 {
         uri strip_prefix /analytics-api/umami
         reverse_proxy 10.0.0.6:3006
       }
+@pubsink___well_known_oauth_authorization_server_mcp_oauth path /.well-known/oauth-authorization-server/mcp-oauth
+handle @pubsink___well_known_oauth_authorization_server_mcp_oauth {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/.well-known/oauth-authorization-server/mcp-oauth /.well-known/oauth-authorization-server
+  reverse_proxy 10.0.0.1:4183
+}
+@pubsink___well_known_oauth_protected_resource_mcp_oauth path /.well-known/oauth-protected-resource/mcp-oauth
+handle @pubsink___well_known_oauth_protected_resource_mcp_oauth {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/.well-known/oauth-protected-resource/mcp-oauth /.well-known/oauth-protected-resource
+  reverse_proxy 10.0.0.1:4183
+}
 @pubsink__analytics_api_openobserve path /analytics-api/openobserve /analytics-api/openobserve/*
 handle @pubsink__analytics_api_openobserve {
   # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
   # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
   uri path_regexp ^/analytics-api/openobserve /analytics/openobserve
   reverse_proxy 10.0.0.4:8087
+}
+@pubsink__c3bot_webhook path /c3bot-webhook
+handle @pubsink__c3bot_webhook {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/c3bot-webhook /telegram/webhook
+  reverse_proxy 10.0.0.6:3119
+}
+@pubsink__mcp_oauth__well_known path /mcp-oauth/.well-known /mcp-oauth/.well-known/*
+handle @pubsink__mcp_oauth__well_known {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/mcp-oauth/.well-known /.well-known
+  reverse_proxy 10.0.0.1:4183
+}
+@pubsink__mcp_oauth_register path /mcp-oauth/register
+handle @pubsink__mcp_oauth_register {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/mcp-oauth/register /register
+  reverse_proxy 10.0.0.1:4183
+}
+@pubsink__mcp_oauth_token path /mcp-oauth/token
+handle @pubsink__mcp_oauth_token {
+  # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
+  # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
+  uri path_regexp ^/mcp-oauth/token /token
+  reverse_proxy 10.0.0.1:4183
 }
       handle {
         error "Not Found" 404
@@ -9574,6 +9641,55 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.6:8088 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  mcp-oauth.mesh.diegonmarcos.com {
+    # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
+    # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
+    # own Caddy server (srv1, listen=[10.0.0.1:8443]) that caddy-l4's
+    # forward target 127.0.0.1:8443 never reached — the whole .app/.db zone
+    # was unreachable. Removing the bind entirely (first attempt, 6e3b65364)
+    # was ALSO insufficient: Caddy's Caddyfile adapter groups servers by the
+    # LITERAL listen string, and "no bind" (implicit ":8443") produced a
+    # THIRD, still-different server (srv2) from the public routes' explicit
+    # "0.0.0.0:8443" — even though both cover the same sockets. Only an
+    # byte-identical bind directive guarantees one merged server. 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.1:4183 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13062,6 +13178,47 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  cloud.mcp-oauth.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.1:4183 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
   cloud.cloud-cgc-pub-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -15891,6 +16048,47 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  c3-mcp-oauth.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.1:4183 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
   c3-cloud-cgc-pub-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
@@ -18523,6 +18721,48 @@ error @not_mesh "Forbidden" 403
       }
     }
     reverse_proxy 10.0.0.6:8088 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  mcp-oauth-http-4183.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      on_demand
+      issuer internal {
+        ca mesh
+      }
+    }
+    reverse_proxy 10.0.0.1:4183 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
