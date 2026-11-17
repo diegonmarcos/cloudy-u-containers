@@ -2,7 +2,7 @@
   "name": "mcp-oauth",
   "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
   "description": "MCP OAuth 2.1 authorization server for mcp.diegonmarcos.com (option 31.1, approved 2026-10-28): RFC 8414/9728 discovery, RFC 7591 DCR, /authorize behind Authelia, PKCE S256 /token, opaque tokens introspected by introspect-proxy",
-  "_status": "approved/live: owner approved option 31.1 on 2026-10-28; runtime needs dist/.secrets (INTROSPECT_SECRET, FORM_SECRET) provisioned on gcp-proxy via secrets.yaml. HOST RETARGET (#1252 vs #1104, 2026-10-30): the mcp.diegonmarcos.com host is deleted by #1104, so caddy_config.mcp_oauth (host mcp.diegonmarcos.com) must NOT be derived into build-caddy*.json as is. Decision: container, image and secrets work stay; the AS front door moves to the surviving tiers (open discovery/register/token on the c3-pub allowlist under /mcp-oauth/, /authorize and the MCP tool endpoints on c3-pvt behind the session-or-bearer gate, protected-resource metadata referenced from the 401 WWW-Authenticate). Do not derive or ship the Caddy block until that retarget lands and the owner confirms it against owner decision 31 (fleet MCP clients use bearer, never OAuth; the AS serves only claude.ai-style connectors).",
+  "_status": "front door (#1252, 2026-11-17): mesh-only container made a c3-pvt route (/mcp-oauth/*, session gate, serves /authorize) and the c3-pub sinks /mcp-oauth/.well-known/*, /mcp-oauth/register, /mcp-oauth/token plus the RFC 8414/9728 path-insertion metadata URLs; ISSUER = c3-pub/mcp-oauth, AUTHORIZE_BASE = c3-pvt/mcp-oauth. Earlier status: approved/live: owner approved option 31.1 on 2026-10-28; runtime needs dist/.secrets (INTROSPECT_SECRET, FORM_SECRET) provisioned on gcp-proxy via secrets.yaml. HOST RETARGET (#1252 vs #1104, 2026-10-30): the mcp.diegonmarcos.com host is deleted by #1104, so caddy_config.mcp_oauth (host mcp.diegonmarcos.com) must NOT be derived into build-caddy*.json as is. Decision: container, image and secrets work stay; the AS front door moves to the surviving tiers (open discovery/register/token on the c3-pub allowlist under /mcp-oauth/, /authorize and the MCP tool endpoints on c3-pvt behind the session-or-bearer gate, protected-resource metadata referenced from the 401 WWW-Authenticate). Do not derive or ship the Caddy block until that retarget lands and the owner confirms it against owner decision 31 (fleet MCP clients use bearer, never OAuth; the AS serves only claude.ai-style connectors).",
   "dns": "mcp-oauth.mesh.diegonmarcos.com",
   "ports": {
     "app": 4183
@@ -41,7 +41,7 @@
       "port": 4183,
       "port_env": null,
       "dns": "mcp-oauth.mesh.diegonmarcos.com",
-      "public": false,
+      "public": true,
       "proxy": null,
       "healthcheck": "/health",
       "monitoring": null,

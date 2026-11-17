@@ -137,6 +137,31 @@
           "container": "c3-public-api",
           "rewrite_prefix": "/analytics/openobserve"
         },
+        "/mcp-oauth/.well-known/*": {
+          "container": "mcp-oauth",
+          "rewrite_prefix": "/.well-known",
+          "_doc": "#1252 MCP OAuth AS discovery (RFC 8414 / 9728) on c3-pub; /authorize stays on c3-pvt behind the session gate."
+        },
+        "/.well-known/oauth-authorization-server/mcp-oauth": {
+          "container": "mcp-oauth",
+          "rewrite_prefix": "/.well-known/oauth-authorization-server",
+          "_doc": "#1252 RFC 8414 path-insertion form of the AS metadata URL for issuer c3-pub/mcp-oauth."
+        },
+        "/.well-known/oauth-protected-resource/mcp-oauth": {
+          "container": "mcp-oauth",
+          "rewrite_prefix": "/.well-known/oauth-protected-resource",
+          "_doc": "#1252 RFC 9728 path-insertion form of the protected-resource metadata URL."
+        },
+        "/mcp-oauth/register": {
+          "container": "mcp-oauth",
+          "rewrite_prefix": "/register",
+          "_doc": "#1252 RFC 7591 dynamic client registration (public by protocol; MAX_CLIENTS-capped, redirect URIs allow-listed by the AS)."
+        },
+        "/mcp-oauth/token": {
+          "container": "mcp-oauth",
+          "rewrite_prefix": "/token",
+          "_doc": "#1252 PKCE S256 token endpoint (public by protocol; client auth and PKCE are checked by the AS)."
+        },
         "/c3bot-webhook": {
           "container": "c3bot-relay",
           "rewrite_prefix": "/telegram/webhook",

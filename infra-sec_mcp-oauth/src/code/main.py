@@ -45,6 +45,9 @@ from urllib.parse import urlencode, urlsplit
 from flask import Flask, Response, jsonify, request
 
 ISSUER = os.environ.get("ISSUER", "https://mcp.diegonmarcos.com").rstrip("/")
+# #1252: the AS front door is split over the surviving tiers. ISSUER is the c3-pub URL (discovery, register,
+# token: public-open); AUTHORIZE_BASE is the c3-pvt URL of /authorize (Authelia session gate). Default: same as ISSUER.
+AUTHORIZE_BASE = os.environ.get("AUTHORIZE_BASE", ISSUER).rstrip("/")
 DB_PATH = os.environ.get("DB_PATH", "/data/mcp-oauth.sqlite3")
 INTROSPECT_SECRET = os.environ.get("INTROSPECT_SECRET", "")
 FORM_SECRET = os.environ.get("FORM_SECRET", "") or secrets.token_hex(32)
@@ -152,7 +155,7 @@ def resource_for(svc):
 def as_metadata():
     return {
         "issuer": ISSUER,
-        "authorization_endpoint": f"{ISSUER}/authorize",
+        "authorization_endpoint": f"{AUTHORIZE_BASE}/authorize",
         "token_endpoint": f"{ISSUER}/token",
         "registration_endpoint": f"{ISSUER}/register",
         "response_types_supported": ["code"],
@@ -355,7 +358,7 @@ def authorize_get(svc=None):
 <p><b>{html.escape(fields['client_name'])}</b> wants access to <code>{html.escape(fields['resource'] or ISSUER)}</code>
 as <b>{html.escape(fields['sub'])}</b> (scope: {html.escape(fields['scope'])}).</p>
 <p>It will be redirected to <code>{html.escape(fields['redirect_uri'])}</code>.</p>
-<form method="post" action="/authorize">{hidden}<input type="hidden" name="sig" value="{sig}">
+<form method="post" action="{html.escape(urlsplit(AUTHORIZE_BASE).path)}/authorize">{hidden}<input type="hidden" name="sig" value="{sig}">
 <button name="decision" value="approve">Approve</button><button name="decision" value="deny">Deny</button></form>
 </body></html>"""
     r = Response(page, mimetype="text/html")

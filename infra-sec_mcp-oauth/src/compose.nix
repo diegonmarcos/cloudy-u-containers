@@ -34,7 +34,9 @@ in
       user = "0:0";
       volumes = app.volumes;
       environment = {
-        ISSUER        = "https://mcp.diegonmarcos.com";
+        # #1252 front door: discovery, register and token on c3-pub; /authorize on c3-pvt (Authelia session gate).
+        ISSUER         = "https://c3-pub.diegonmarcos.com/mcp-oauth";
+        AUTHORIZE_BASE = "https://c3-pvt.diegonmarcos.com/mcp-oauth";
         DB_PATH       = "/data/mcp-oauth.sqlite3";
         # Comma/space list of Authelia usernames allowed to approve a client.
         ALLOWED_USERS = "diego";
