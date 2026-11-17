@@ -20,6 +20,7 @@ await t("relayConfig is off without the relay bearer and defaults to the mesh ad
   assert.equal(relayConfig({ C3BOT_RELAY_TOKEN: "  " }), null);
   const c = relayConfig({ C3BOT_RELAY_TOKEN: "tok" })!;
   assert.match(c.base, /^http:\/\/c3bot-relay.*\.mesh\.diegonmarcos\.com$/);
+  assert.equal(relayConfig({ C3BOT_RELAY_TOKEN_MCP: "viaConsumer" })!.token, "viaConsumer"); // the CI consumer-fragment key name
   assert.equal(relayConfig({ C3BOT_RELAY_TOKEN: "tok", C3BOT_RELAY_URL: "http://x:1/c3bot-relay/" })!.base, "http://x:1/c3bot-relay");
 });
 

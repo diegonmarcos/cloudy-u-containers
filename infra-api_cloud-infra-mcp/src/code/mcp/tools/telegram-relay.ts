@@ -8,7 +8,7 @@ interface RelayEvent { seq: number; type: string; update?: RelayUpdate }
 interface PollReply { ok: boolean; cursor: number; head?: number; events: RelayEvent[] }
 
 export function relayConfig(env: NodeJS.ProcessEnv): { base: string; token: string } | null {
-  const token = (env.C3BOT_RELAY_TOKEN ?? "").trim();
+  const token = (env.C3BOT_RELAY_TOKEN ?? env.C3BOT_RELAY_TOKEN_MCP ?? "").trim();
   if (!token) return null;
   const base = (env.C3BOT_RELAY_URL ?? "http://c3bot-relay-http-3119.mesh.diegonmarcos.com").replace(/\/+$/, "");
   return { base, token };
