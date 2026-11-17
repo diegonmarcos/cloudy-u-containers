@@ -869,7 +869,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:8010 {
+  reverse_proxy 10.0.0.1:8010 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -3450,7 +3450,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:8340 {
+  reverse_proxy 10.0.0.1:8340 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -3470,7 +3470,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:8341 {
+  reverse_proxy 10.0.0.1:8341 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -5496,7 +5496,7 @@ handle_path /capital-stack-finterm-api/* {
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
     }
-      reverse_proxy 10.0.0.6:8340 {
+      reverse_proxy 10.0.0.1:8340 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -5535,7 +5535,7 @@ handle_path /capital-stack-finterm-api/* {
       header_up X-Forwarded-Uri {http.request.orig_uri}
       copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
     }
-      reverse_proxy 10.0.0.6:8340 {
+      reverse_proxy 10.0.0.1:8340 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -6786,12 +6786,12 @@ import request_limits
         }
       }
       handle_path /capital-stack-finterm-api/* {
-        reverse_proxy 10.0.0.6:8340 {
+        reverse_proxy 10.0.0.1:8340 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
       handle_path /capital-stack-finterminal-web/* {
-        reverse_proxy 10.0.0.6:8341 {
+        reverse_proxy 10.0.0.1:8341 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
@@ -10259,7 +10259,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:8340 {
+    reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -10308,7 +10308,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:8340 {
+    reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -10357,7 +10357,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:8341 {
+    reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13605,7 +13605,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:8340 {
+      reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13646,7 +13646,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:8340 {
+      reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13687,7 +13687,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:8341 {
+      reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -16270,7 +16270,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:8340 {
+      reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -16311,7 +16311,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:8341 {
+      reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -19026,7 +19026,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:8340 {
+    reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -19068,7 +19068,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:8341 {
+    reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
