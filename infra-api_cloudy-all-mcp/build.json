@@ -22,7 +22,7 @@
     "arch": "arm64",
     "native_build": {
       "type": "image-wrapper",
-      "cmd": "npm ci --omit=dev && npm install tsx",
+      "cmd": "npm install --omit=dev && npm install tsx",
       "entrypoint": "node /app/node_modules/tsx/dist/cli.mjs mcp/index.ts --http",
       "base_image": "node:22-bookworm-slim",
       "apt": "ca-certificates curl",
@@ -90,10 +90,18 @@
     "auth": "none",
     "sdk": "@modelcontextprotocol/sdk@^1.12.0"
   },
-  "_draft": "MCP rebrand #1450: pending owner deploy; the real build.json is generated from the cloudy-t-infra declaration, mirror this there.",
   "_env_note": "env: ROUTER_BEARER (public-route fallback, from the secrets file, never committed); ROUTER_SERVERS optional override.",
   "_dns_aliases_at_cutover": [
     "cloud-services-mcp.mesh.diegonmarcos.com"
   ],
-  "_dns_doc": "The old container keeps these DNS names during the alias release; move them here (dns_aliases) at cutover when the old container is removed."
+  "_dns_doc": "The old container keeps these DNS names during the alias release; move them here (dns_aliases) at cutover when the old container is removed.",
+  "secrets": {
+    "escape_dollars": false,
+    "container_readable": false,
+    "_doc": "One secret by NAME, value only in the private vault at Linux-Containers/infra-api_cloudy-all-mcp/src/secrets.yaml (sops, public fleet recipient; the Ship overlay copies it in and the engine mounts .secrets as env_file). ROUTER_BEARER: 64-hex bearer the router presents to the child MCPs on their public c3-pvt routes (CI sops-create generates it; never printed).",
+    "required": [
+      "ROUTER_BEARER"
+    ]
+  },
+  "_status": "#1450: scaffolded as a standard service (flake, compose, ship engine link); the old cloud-services-mcp keeps serving until this one is healthy."
 }
