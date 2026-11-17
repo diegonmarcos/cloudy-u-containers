@@ -32,7 +32,7 @@ in
         limits       = { memory = "512M"; cpus = "1.0"; };
         reservations = { memory = "128M"; };
       };
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
   volumes = {
     finterm_data = { name = "finterm_data"; };

@@ -20,6 +20,6 @@ in
         limits = { cpus = "0.5"; memory = buildJson.resources.mem_limit; };
         reservations = { memory = buildJson.resources.mem_reservation; };
       };
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
 }

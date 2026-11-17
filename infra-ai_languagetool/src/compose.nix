@@ -39,7 +39,7 @@ in
           max-file = "3";
         };
       };
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
 
   volumes = {
