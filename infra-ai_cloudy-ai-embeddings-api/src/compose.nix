@@ -48,7 +48,7 @@ in
       deploy.resources =
            (if buildJson.resources ? mem_limit       then { limits       = { memory = buildJson.resources.mem_limit; };       } else {})
         // (if buildJson.resources ? mem_reservation then { reservations = { memory = buildJson.resources.mem_reservation; }; } else {});
-    };
+    } // (if app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
   volumes = {
     embeddings_api_hf = { name = "embeddings-api_embeddings_api_hf"; }; # #1450: pinned to the existing VM volume
