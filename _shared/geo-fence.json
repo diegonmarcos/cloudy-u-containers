@@ -55,6 +55,12 @@
     "US"
   ],
   "_allowed_doc": "EU27, EEA/EFTA (IS LI NO), UK and Crown dependencies, CH, other European countries and territories (AD AL AX BA FO GI MC MD ME MK RS SJ SM UA VA XK), plus US. Excluded on purpose: RU BY (sanctioned, high abuse), TR GE AM AZ (transcontinental). An address the database cannot place is denied (fail closed).",
+  "telegram_webhook": {
+    "path": "/c3bot-webhook",
+    "host": "c3-pub.diegonmarcos.com",
+    "cidrs": ["149.154.160.0/20", "91.108.4.0/22"],
+    "_doc": "#1579/#1102: Telegram's published webhook source ranges bypass the country check for THIS host and path only (the relay still requires the secret_token header). Rendered into the Cloudflare WAF rule by cloudy-t-infra c_vps/ba-clo_cloudflare/src/waf-c3-pub.tf (geo-allowed.json copy)."
+  },
   "exempt_cidrs": [
     "10.0.0.0/24",
     "10.1.0.0/24",

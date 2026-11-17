@@ -1,6 +1,8 @@
 // ── devops.telegram.* — dedicated operator channel ──
 // Talks to Diego over Telegram via the dedicated @Cloud_bot_C3_Infra_bot.
 // Token arrives via sops secrets.yaml → .secrets env_file → process.env.C3_TELEGRAM_BOT_TOKEN.
+// #1579: with C3BOT_RELAY_TOKEN set the bot is in webhook mode and inbound traffic is read from the c3bot-relay
+// (telegram-relay.ts); the getUpdates poller below is the legacy path for a bot without a webhook.
 // This bot token is dedicated to this service — no other consumer polls it,
 // so the single background long-poller below is safe. Chat id is data-driven
 // via env (C3_TELEGRAM_CHAT_ID), not hardcoded, so it can be overridden per
@@ -16,6 +18,7 @@ import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { createRelayFeeder, relayConfig } from "./telegram-relay.js";
 
 const DEFAULT_CHAT_ID = "6431508617";
 
@@ -259,6 +262,23 @@ function processUpdate(update: TelegramUpdate): void {
   });
 }
 
+// Inbound source (#1579). Bot A is in webhook mode, where Telegram refuses getUpdates, so when the relay bearer
+// (C3BOT_RELAY_TOKEN) is configured the inbox, ask() replies and the chat/topic registry are fed from the c3bot-relay
+// long-poll feed (/poll) instead. Without that bearer the legacy getUpdates loop below still runs (bot without webhook).
+async function relayLoop(cfg: { base: string; token: string }): Promise<void> {
+  const feeder = createRelayFeeder({ ...cfg, onUpdate: processUpdate });
+  for (;;) {
+    try {
+      await feeder.pollOnce();
+    } catch (error) {
+      console.error(
+        `[cloud-infra-mcp] telegram relay feed: ${error instanceof Error ? error.message : String(error)}, retrying`
+      );
+      await sleep(5_000);
+    }
+  }
+}
+
 let updateOffset = 0;
 let pollerStarted = false;
 
@@ -314,7 +334,8 @@ async function pollLoop(): Promise<void> {
 function ensurePollerStarted(): void {
   if (pollerStarted) return;
   pollerStarted = true;
-  pollLoop().catch((error) =>
+  const relay = relayConfig(process.env);
+  (relay ? relayLoop(relay) : pollLoop()).catch((error) =>
     console.error(`[cloud-infra-mcp] telegram poller: died unexpectedly:`, error instanceof Error ? error.message : String(error))
   );
 }
@@ -419,7 +440,7 @@ export function registerTelegramTools(server: McpServer) {
 
   server.tool(
     "devops.telegram.ask",
-    "Send a question to the operator (Diego) over the dedicated @Cloud_bot_C3_Infra_bot Telegram channel, then wait for a reply. Waits on the shared background poller's inbox rather than calling getUpdates itself, so it can run alongside other Telegram tools without a 409 Conflict.",
+    "Send a question to the operator (Diego) over the dedicated @Cloud_bot_C3_Infra_bot Telegram channel, then wait for a reply. Waits on the shared inbox (fed by the c3bot-relay when C3BOT_RELAY_TOKEN is set, else by the background poller) rather than calling getUpdates itself, so it can run alongside other Telegram tools without a 409 Conflict.",
     {
       question: z.string().describe("Question text to send"),
       timeout_seconds: z

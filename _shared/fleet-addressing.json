@@ -123,7 +123,8 @@
         "/analytics-api/matomo/*",
         "/analytics-api/umami/script.js",
         "/analytics-api/umami/api/send",
-        "/analytics-api/openobserve/*"
+        "/analytics-api/openobserve/*",
+        "/c3bot-webhook"
       ],
       "portals": {
         "/auth": "https://auth.diegonmarcos.com",
@@ -135,6 +136,11 @@
         "/analytics-api/openobserve/*": {
           "container": "c3-public-api",
           "rewrite_prefix": "/analytics/openobserve"
+        },
+        "/c3bot-webhook": {
+          "container": "c3bot-relay",
+          "rewrite_prefix": "/telegram/webhook",
+          "_doc": "#1579 Telegram webhook of the c3-bot (Bot A). Public so Telegram can post; the relay answers 401 unless the secret_token header equals C3BOT_WEBHOOK_SECRET. Telegram source ranges (149.154.160.0/20, 91.108.4.0/22) are exempted from the Cloudflare country WAF for this path only (waf-c3-pub.tf, geo-fence.json telegram_webhook)."
         }
       }
     },

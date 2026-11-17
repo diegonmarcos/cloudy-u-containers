@@ -1075,8 +1075,9 @@ ${lib.concatStringsSep "\n" (lib.mapAttrsToList mkPubSink (lib.filterAttrs (n: _
   mkPubSink = path: sink: let
     route = lib.findFirst (r: r.container == sink.container) null c3PvtRoutes;
     base = lib.removeSuffix "/*" path;
+    paths = if base == path then base else "${base} ${path}";
   in if route == null then throw "tiers.pub.sinks ${path}: container ${sink.container} is not a c3-pvt route" else ''
-      @pubsink_${lib.replaceStrings [ "/" "-" "." "*" ] [ "_" "_" "_" "" ] base} path ${base} ${path}
+      @pubsink_${lib.replaceStrings [ "/" "-" "." "*" ] [ "_" "_" "_" "" ] base} path ${paths}
       handle @pubsink_${lib.replaceStrings [ "/" "-" "." "*" ] [ "_" "_" "_" "" ] base} {
         # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
         # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.

@@ -12,8 +12,12 @@ export function chunkText(text, max = TELEGRAM_MAX) {
 }
 
 export class Relay {
-  constructor({ bufferSize = 500, allowedFrom = [] } = {}) {
+  constructor({ bufferSize = 500, allowedFrom = [], dedupeSize = 2000 } = {}) {
     this.bufferSize = bufferSize;
+    this.dedupeSize = dedupeSize;
+    this.seen = new Set();     // dedupe keys across Bot A (webhook) and Bot B (getUpdates), insertion ordered
+    this.chatSig = new Map();  // chat metadata already announced (telegram.chat events)
+    this.dupes = 0;
     this.allowed = new Set(allowedFrom.map(Number));
     this.events = [];      // ring of {seq, ts, type, ...}
     this.seq = 0;
@@ -44,17 +48,52 @@ export class Relay {
       this.waiters.add(w);
     });
   }
+  // Dedupe key shared by both ingestion paths: the same Telegram message reaches Bot A (webhook) and Bot B (getUpdates)
+  // with different update_ids, so identity is chat + message_id + date (+ edit_date for an edit).
+  static dedupeKey(u) {
+    const m = u.message || u.edited_message || u.channel_post;
+    if (!m || m.chat?.id == null || m.message_id == null) return null;
+    return `${m.chat.id}:${m.message_id}:${m.date}${u.edited_message ? `:e${m.edit_date ?? ''}` : ''}`;
+  }
+  // true when the key was already seen (and counts it); records it otherwise, evicting the oldest.
+  isDuplicate(key) {
+    if (key == null) return false;
+    if (this.seen.has(key)) { this.dupes++; return true; }
+    this.seen.add(key);
+    if (this.seen.size > this.dedupeSize) this.seen.delete(this.seen.values().next().value);
+    return false;
+  }
   // Inbound Telegram update -> event. Only allowlisted senders are surfaced (same rule as cloud-infra-mcp telegram.ts).
-  ingestUpdate(u) {
+  // `source` names the ingestion path ('A' webhook, 'B' fallback poll). Every event carries `update`: the raw update for
+  // allowlisted senders; for everyone else only chat/topic metadata (no text, no sender) in a telegram.chat event,
+  // which lets consumers keep their chat and topic registry without surfacing foreign traffic.
+  ingestUpdate(u, source = 'A') {
     const m = u.message || u.edited_message || u.channel_post;
     if (!m) return null;
+    if (this.isDuplicate(Relay.dedupeKey(u))) return null;
     const from = m.from?.id;
-    if (this.allowed.size && !this.allowed.has(Number(from))) return null;
+    if (this.allowed.size && !this.allowed.has(Number(from))) return this.announceChat(u, m, source);
     return this.publish('telegram.message', {
-      update_id: u.update_id, chat_id: m.chat?.id, thread_id: m.message_thread_id ?? null,
+      source, update: u, update_id: u.update_id, chat_id: m.chat?.id, thread_id: m.message_thread_id ?? null,
       from: { id: from, username: m.from?.username ?? null, name: [m.from?.first_name, m.from?.last_name].filter(Boolean).join(' ') || null },
       message_id: m.message_id, text: m.text ?? m.caption ?? '', date: m.date,
     });
+  }
+  announceChat(u, m, source) {
+    if (!m.chat) return null;
+    const topic = m.forum_topic_created?.name ?? m.forum_topic_edited?.name ?? m.reply_to_message?.forum_topic_created?.name ?? '';
+    const sig = `${m.chat.id}|${m.chat.title ?? ''}|${m.chat.type ?? ''}|${m.message_thread_id ?? ''}|${topic}`;
+    if (this.chatSig.has(sig)) return null;
+    this.chatSig.set(sig, 1);
+    if (this.chatSig.size > 500) this.chatSig.delete(this.chatSig.keys().next().value);
+    const chat = { id: m.chat.id, type: m.chat.type, title: m.chat.title, first_name: m.chat.first_name, last_name: m.chat.last_name };
+    const message = { message_id: m.message_id, date: m.date, chat };
+    if (m.message_thread_id !== undefined) message.message_thread_id = m.message_thread_id;
+    if (m.is_topic_message !== undefined) message.is_topic_message = m.is_topic_message;
+    if (m.forum_topic_created) message.forum_topic_created = m.forum_topic_created;
+    if (m.forum_topic_edited) message.forum_topic_edited = m.forum_topic_edited;
+    if (m.reply_to_message?.forum_topic_created) message.reply_to_message = { forum_topic_created: m.reply_to_message.forum_topic_created };
+    return this.publish('telegram.chat', { source, update: { update_id: u.update_id, message }, chat_id: chat.id, thread_id: m.message_thread_id ?? null });
   }
 }
 
@@ -85,9 +124,16 @@ export class Telegram {
     }
     return { message_ids: results };
   }
-  async loop(onUpdate, { pollTimeoutS = 50, backoffMs = 5000 } = {}) {
+  getWebhookInfo() { return this.api('getWebhookInfo', {}, 10000); }
+  setWebhook({ url, secret_token, allowed_updates = ['message', 'edited_message'] }) {
+    return this.api('setWebhook', { url, secret_token, allowed_updates, max_connections: 4 }, 15000);
+  }
+  // `gate()` (optional) decides per iteration whether this loop may call getUpdates; Bot B only polls while the webhook
+  // path is unhealthy, so a closed gate idles the loop without ever touching Telegram.
+  async loop(onUpdate, { pollTimeoutS = 50, backoffMs = 5000, gate = null, idleMs = 2000 } = {}) {
     if (!this.configured) return;
     while (!this.stopped) {
+      if (gate && !gate()) { this.state = 'standby'; await new Promise((r) => setTimeout(r, idleMs)); continue; }
       try {
         this.state = 'polling';
         const j = await this.api('getUpdates', { timeout: pollTimeoutS, offset: this.offset, allowed_updates: ['message', 'edited_message'] }, (pollTimeoutS + 15) * 1000);
@@ -95,7 +141,7 @@ export class Telegram {
         this.lastError = null;
         for (const u of j.result) { this.offset = u.update_id + 1; onUpdate(u); }
       } catch (e) {
-        this.state = 'error'; this.lastError = String(e.message || e).replace(this.token, '***');
+        this.state = 'error'; this.lastError = String(e.message || e).split(this.token).join('***');
         await new Promise((r) => setTimeout(r, backoffMs));
       }
     }

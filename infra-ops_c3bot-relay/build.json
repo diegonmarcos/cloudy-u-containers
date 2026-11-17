@@ -1,7 +1,7 @@
 {
   "name": "c3bot-relay",
   "taxonomy": { "group": "Infra Apps", "category": "Ops-API-MCP" },
-  "description": "c3bot-relay (#1579): Telegram <-> c3 relay on a dedicated bot (Bot B). One inbound Telegram long-poll fans out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame. Zero npm dependencies. Bearer-gated, mesh-only.",
+  "description": "c3bot-relay (#1579): Telegram <-> c3 relay. Ingestion: the c3-bot (Bot A) in webhook mode via the public c3-pub route /c3bot-webhook (secret_token checked), fallback Bot B getUpdates only while the webhook is unhealthy, deduped by chat+message_id+date. Inbound events fan out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame, sent as Bot A. Zero npm dependencies. API bearer-gated, mesh-only; only the webhook path is public.",
   "dns": "c3bot-relay.mesh.diegonmarcos.com",
   "dns_aliases": [],
   "category": "sec",
@@ -58,7 +58,7 @@
       "healthcheck": "node -e \"fetch('http://'+(process.env.HTTP_HOST||'127.0.0.1')+':3119/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
       "env_file": true,
       "resources": { "mem_limit": "256M", "mem_reservation": "64m", "pids_limit": 128 },
-      "limits": { "buffer_size": 500, "max_clients": 32, "poll_max_wait_s": 50, "allowed_from": "6431508617" }
+      "limits": { "buffer_size": 500, "max_clients": 32, "poll_max_wait_s": 50, "allowed_from": "6431508617", "health_window_s": 600, "check_interval_s": 60 }
     }
   },
   "api": {
@@ -74,7 +74,7 @@
   "secrets": {
     "escape_dollars": false,
     "container_readable": false,
-    "_doc": "Two secrets by NAME, values only in the private vault at Linux-Containers/infra-api_c3bot-relay/src/secrets.yaml (the vault keeps the pre-#1483 dir; _rebrand-1450/vault-dir-renames.txt maps it to this dir) (sops, public fleet recipient); the Ship overlay copies it in and the engine mounts .secrets (env_file). C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it); the server exits 78 when empty. C3BOT_RELAY_BOT_TOKEN: the Telegram bot token of the DEDICATED relay bot (Bot B, minted in @BotFather by the owner). It must NOT be C3_TELEGRAM_BOT_TOKEN: cloud-infra-mcp long-polls that token and Telegram answers 409 to a second getUpdates consumer. While the bot token is absent the relay still starts and serves all three transports; /health reports telegram:'unconfigured' and /send answers 503.",
-    "required": ["C3BOT_RELAY_TOKEN"]
+    "_doc": "Values only in the private vault at Linux-Containers/infra-ops_c3bot-relay/src/ (sops, public fleet recipient; the Ship overlay copies secrets.yaml and its secrets.*.yaml fragments in, the engine merges them and mounts .secrets as env_file). Four keys by NAME. C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it; cloud-infra-mcp reads the same value through a consumer fragment); the server exits 78 when empty. C3BOT_WEBHOOK_SECRET: 64-hex Telegram secret_token of the Bot A webhook (CI sops-create, secrets.webhook.yaml); the webhook route answers 503 without it and 401 on a wrong header. C3BOT_A_BOT_TOKEN: the token of the existing c3-bot (Bot A, the same token cloud-infra-mcp holds as C3_TELEGRAM_BOT_TOKEN), copied by CI into secrets.bot-a.yaml; used for setWebhook/getWebhookInfo and for outbound sendMessage. C3BOT_RELAY_BOT_TOKEN: the token of the DEDICATED fallback Bot B (minted in @BotFather by the owner, added to the group with privacy mode OFF); it polls getUpdates only while the webhook path is unhealthy. Webhook and getUpdates never share a token, so there is no 409. While Bot B's token is absent the relay runs webhook-only and /health reports ingest.fallback 'degraded: Bot B token missing'.",
+    "required": ["C3BOT_RELAY_TOKEN", "C3BOT_WEBHOOK_SECRET"]
   }
 }

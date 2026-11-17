@@ -221,6 +221,10 @@
       "cmd": "node --experimental-strip-types test-c3-tree.mts",
       "cwd": "src/code"
     },
+    "telegram-relay": {
+      "cmd": "node --experimental-strip-types test-telegram-relay.mts",
+      "cwd": "src/code"
+    },
     "peers-core": {
       "cmd": "node --experimental-strip-types test-peers-core.mts",
       "cwd": "src/code"

@@ -15,7 +15,7 @@ in
       container_name = app.container_name;
       # Host network (dockerd runs iptables:false) with the listener confined to the WG IP: mesh-only.
       network_mode = "host";
-      # C3BOT_RELAY_TOKEN (bearer) and C3BOT_RELAY_BOT_TOKEN (Telegram Bot B) arrive ONLY through .secrets
+      # C3BOT_RELAY_TOKEN (bearer), C3BOT_WEBHOOK_SECRET, C3BOT_A_BOT_TOKEN (Bot A) and C3BOT_RELAY_BOT_TOKEN (Bot B) arrive ONLY through .secrets
       # (vault secrets.yaml, overlaid by the Ship, decrypted to .secrets). Never in this block.
       env_file = [ ".secrets" ];
       volumes = [
@@ -31,6 +31,10 @@ in
         MAX_CLIENTS = toString app.limits.max_clients;
         POLL_MAX_WAIT_S = toString app.limits.poll_max_wait_s;
         C3BOT_ALLOWED_FROM = app.limits.allowed_from;
+        # #1579: public webhook URL registered at Telegram (c3-pub sink, fleet-addressing.json), failover health window and tick.
+        C3BOT_WEBHOOK_URL = "https://c3-pub.diegonmarcos.com/c3bot-webhook";
+        HEALTH_WINDOW_S = toString app.limits.health_window_s;
+        CHECK_INTERVAL_S = toString app.limits.check_interval_s;
       };
       deploy.resources = {
         limits = {

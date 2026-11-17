@@ -6,18 +6,31 @@ import http from 'node:http';
 process.env.NODE_ENV = 'test';
 process.env.C3BOT_RELAY_TOKEN = 'secret-relay-token';
 process.env.C3BOT_RELAY_BOT_TOKEN = 'FAKEBOT';
+process.env.C3BOT_A_BOT_TOKEN = 'FAKEA';
+process.env.C3BOT_WEBHOOK_SECRET = 'wh-secret';
+process.env.C3BOT_WEBHOOK_URL = 'https://edge.invalid/c3bot-webhook';
+process.env.HEALTH_WINDOW_S = '600';
 process.env.C3BOT_ALLOWED_FROM = '42';
 process.env.BASE_PATH = '/c3bot-relay';
 
 const sent = [];
+let webhookUrl = '';
+let infoMode = 'ok'; // ok | error | delivery-error
+const fakeInfo = () => infoMode === 'error' ? { ok: false, error_code: 502, description: 'Bad Gateway' }
+  : { ok: true, result: { url: webhookUrl, last_error_date: infoMode === 'delivery-error' ? Math.ceil(Date.now() / 1000) + 1 : 0, last_error_message: 'Wrong response from the webhook: 502' } };
 const fakeTg = http.createServer((req, res) => {
   let b = ''; req.on('data', (d) => b += d);
-  req.on('end', () => { sent.push([req.url, JSON.parse(b || '{}')]); res.setHeader('content-type', 'application/json'); res.end(JSON.stringify({ ok: true, result: { message_id: 11 } })); });
+  req.on('end', () => {
+    const body = JSON.parse(b || '{}'); sent.push([req.url, body]); res.setHeader('content-type', 'application/json');
+    if (req.url.endsWith('/getWebhookInfo')) return res.end(JSON.stringify(fakeInfo()));
+    if (req.url.endsWith('/setWebhook')) { webhookUrl = body.url; return res.end(JSON.stringify({ ok: true, result: true })); }
+    res.end(JSON.stringify({ ok: true, result: { message_id: 11 } }));
+  });
 });
 await new Promise((r) => fakeTg.listen(0, '127.0.0.1', r));
 process.env.TELEGRAM_API_BASE = `http://127.0.0.1:${fakeTg.address().port}`;
 
-const { server, relay, telegram } = await import('../server.js');
+const { server, relay, telegram, botA, failover, healthTick } = await import('../server.js');
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `127.0.0.1:${server.address().port}`;
 const auth = { authorization: 'Bearer secret-relay-token' };
@@ -61,7 +74,7 @@ test('POST /send relays to Telegram with the default chat', async () => {
   const r = await (await fetch(`http://${base}/send`, { method: 'POST', headers: auth, body: JSON.stringify({ text: 'out' }) })).json();
   assert.deepEqual(r.message_ids, [11]);
   const call = sent.find(([u]) => u.endsWith('/sendMessage'));
-  assert.match(call[0], /^\/botFAKEBOT\//);
+  assert.match(call[0], /^\/botFAKEA\//);
   assert.equal(call[1].chat_id, '42');
 });
 
@@ -88,3 +101,81 @@ test('messages from non-allowlisted senders never reach any transport', () => {
 });
 
 test('telegram state is exposed (loop not started in test)', () => { assert.ok(['idle', 'polling', 'error'].includes(telegram.state)); });
+
+// ---- #1579 webhook ingestion (Bot A), failover and dedupe against Bot B ----
+const post = (body, secret = 'wh-secret', path = '/c3bot-relay/telegram/webhook') =>
+  fetch(`http://${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...(secret == null ? {} : { 'x-telegram-bot-api-secret-token': secret }) }, body: JSON.stringify(body) });
+const tgUpd = (id, mid, from, text, date = 100) => ({ update_id: id, message: { message_id: mid, date, chat: { id: 42, type: 'private' }, from: { id: from }, text } });
+
+test('webhook: wrong or missing secret_token is 401 and ingests nothing; the relay bearer does not substitute', async () => {
+  const before = relay.cursor;
+  assert.equal((await post(tgUpd(900, 900, 42, 'x'), 'nope')).status, 401);
+  assert.equal((await post(tgUpd(900, 900, 42, 'x'), null)).status, 401);
+  assert.equal((await fetch(`http://${base}/c3bot-relay/telegram/webhook`, { method: 'POST', headers: auth, body: '{}' })).status, 401);
+  assert.equal(relay.cursor, before);
+});
+
+test('webhook: a valid post is ingested, reaches /poll, carries source A and the raw update', async () => {
+  const after = relay.cursor;
+  assert.equal((await post(tgUpd(901, 901, 42, 'reply via webhook'))).status, 200);
+  const j = await (await fetch(`http://${base}/c3bot-relay/poll?after=${after}&wait=1`, { headers: auth })).json();
+  const ev = j.events.find((e) => e.text === 'reply via webhook');
+  assert.equal(ev.source, 'A');
+  assert.equal(ev.update.message.text, 'reply via webhook');
+});
+
+test('webhook: senders outside the allowlist are dropped but announce chat metadata only', async () => {
+  const after = relay.cursor;
+  assert.equal((await post(tgUpd(902, 902, 99, 'secret stranger text'))).status, 200);
+  const j = await (await fetch(`http://${base}/c3bot-relay/poll?after=${after}&wait=1`, { headers: auth })).json();
+  assert.ok(!j.events.some((e) => e.type === 'telegram.message'));
+  const meta = j.events.find((e) => e.type === 'telegram.chat');
+  assert.ok(meta);
+  assert.ok(!JSON.stringify(meta).includes('stranger'));
+});
+
+test('dedupe across A and B: same chat/message_id/date from both paths is surfaced once', async () => {
+  const after = relay.cursor;
+  await post(tgUpd(910, 55, 42, 'same message', 777));            // Bot A webhook
+  relay.ingestUpdate(tgUpd(31337, 55, 42, 'same message', 777), 'B'); // Bot B getUpdates, different update_id
+  const j = await (await fetch(`http://${base}/c3bot-relay/poll?after=${after}&wait=1`, { headers: auth })).json();
+  assert.equal(j.events.filter((e) => e.text === 'same message').length, 1);
+  assert.equal(j.events.find((e) => e.text === 'same message').source, 'A');
+  relay.ingestUpdate(tgUpd(31338, 56, 42, 'other message', 777), 'B'); // new message_id is not a duplicate
+  assert.equal(relay.since(after).filter((e) => e.text === 'other message').length, 1);
+});
+
+test('health: webhook healthy -> Bot B stays idle; state and secrets-free snapshot exposed', async () => {
+  const snap = await healthTick({ self: async () => true });
+  assert.equal(snap.state, 'webhook');
+  assert.equal(webhookUrl, 'https://edge.invalid/c3bot-webhook'); // registered declaratively with setWebhook
+  assert.ok(sent.find(([u, b]) => u.endsWith('/setWebhook') && b.secret_token === 'wh-secret'));
+  const h = await (await fetch(`http://${base}/c3bot-relay/health`)).json();
+  assert.equal(h.ingest.state, 'webhook');
+  assert.ok(!JSON.stringify(h).includes('wh-secret') && !JSON.stringify(h).includes('FAKE'));
+});
+
+test('outage simulation: getWebhookInfo error -> fallback (Bot B polls); recovery returns to webhook', async () => {
+  infoMode = 'error';
+  assert.equal((await healthTick({ self: async () => true })).state, 'fallback');
+  assert.equal(failover.pollFallback, true);
+  assert.equal(telegram.configured, true);
+  infoMode = 'ok';
+  await healthTick({ self: async () => true });
+  assert.equal(failover.state, 'fallback'); // hysteresis: one good check is not enough
+  assert.equal((await healthTick({ self: async () => true })).state, 'webhook');
+  assert.equal(failover.pollFallback, false);
+});
+
+test('outage simulation: Telegram-reported delivery error also fails over', async () => {
+  infoMode = 'delivery-error';
+  assert.equal((await healthTick({ self: async () => true })).state, 'fallback');
+  infoMode = 'ok';
+  await healthTick({ self: async () => true });
+  await healthTick({ self: async () => true });
+  assert.equal(failover.state, 'webhook');
+});
+
+test('webhook: other POST paths fall through to the bearer gate (route is exact)', async () => {
+  assert.equal((await post({}, 'wh-secret', '/c3bot-relay/other')).status, 401); // falls to the bearer gate
+});
