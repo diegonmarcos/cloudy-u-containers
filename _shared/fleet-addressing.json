@@ -124,7 +124,12 @@
         "/analytics-api/umami/script.js",
         "/analytics-api/umami/api/send",
         "/analytics-api/openobserve/*",
-        "/c3bot-webhook"
+        "/c3bot-webhook",
+        "/mcp-oauth/.well-known/*",
+        "/.well-known/oauth-authorization-server/mcp-oauth",
+        "/.well-known/oauth-protected-resource/mcp-oauth",
+        "/mcp-oauth/register",
+        "/mcp-oauth/token"
       ],
       "portals": {
         "/auth": "https://auth.diegonmarcos.com",
