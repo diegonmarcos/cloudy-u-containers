@@ -1,8 +1,9 @@
 // c3bot-relay: Telegram <-> c3 over WebSocket (/ws), SSE (/events) and long-poll (/poll); outbound POST /send.
 // Bearer-gated (C3BOT_RELAY_TOKEN); /health is open. Bot tokens come from the vault secret env only.
 // Ingestion: Bot A (the c3-bot, C3BOT_A_BOT_TOKEN) in WEBHOOK mode posts to POST /telegram/webhook (public edge route,
-// authenticated by Telegram's secret_token header = C3BOT_WEBHOOK_SECRET, not by the bearer). Bot B (C3BOT_RELAY_BOT_TOKEN)
-// is the getUpdates fallback and polls only while the webhook path is unhealthy (failover.js). Outbound stays on Bot A.
+// authenticated by Telegram's secret_token header = C3BOT_WEBHOOK_SECRET, not by the bearer). Fallback is the SAME token in
+// polling mode: while the webhook is unhealthy the relay calls deleteWebhook and reads getUpdates, then setWebhook again when
+// the public route recovers (failover.js). One consumer at a time, so no 409. Outbound stays on Bot A.
 import http from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
 import { Relay, Telegram } from './relay.js';
@@ -28,10 +29,11 @@ export const relay = new Relay({
 const TG_BASE = env.TELEGRAM_API_BASE || undefined;
 const WEBHOOK_SECRET = env.C3BOT_WEBHOOK_SECRET || '';
 const WEBHOOK_URL = env.C3BOT_WEBHOOK_URL || 'https://c3-pub.diegonmarcos.com/c3bot-webhook';
-export const botA = new Telegram({ token: env.C3BOT_A_BOT_TOKEN, base: TG_BASE });   // webhook + outbound
-export const telegram = new Telegram({ token: env.C3BOT_RELAY_BOT_TOKEN, base: TG_BASE }); // Bot B, getUpdates fallback
-export const failover = new Failover({ windowMs: +(env.HEALTH_WINDOW_S || 600) * 1000, hasFallback: telegram.configured });
-const sender = () => (botA.configured ? botA : telegram);
+export const botA = new Telegram({ token: env.C3BOT_A_BOT_TOKEN, base: TG_BASE });   // webhook, getUpdates fallback, outbound
+export const telegram = botA;
+export const failover = new Failover({ windowMs: +(env.HEALTH_WINDOW_S || 600) * 1000, configured: botA.configured && !!WEBHOOK_SECRET });
+let pollEnabled = false; // true only after deleteWebhook succeeded; the getUpdates loop never runs beside a webhook
+const sender = () => botA;
 const selfTests = new Set();
 let clients = 0;
 
@@ -55,8 +57,8 @@ const route = (req) => {
 };
 const health = () => ({
   ok: true, telegram: telegram.state, telegramError: telegram.lastError, cursor: relay.cursor, clients, transports: ['ws', 'sse', 'poll'],
-  tokenConfigured: !!TOKEN, botConfigured: telegram.configured || botA.configured,
-  ingest: { ...failover.snapshot(), webhookSecretConfigured: !!WEBHOOK_SECRET, botA: botA.state, botB: telegram.state, dupes: relay.dupes },
+  tokenConfigured: !!TOKEN, botConfigured: botA.configured,
+  ingest: { ...failover.snapshot(), webhookSecretConfigured: !!WEBHOOK_SECRET, botA: botA.state, polling: pollEnabled, dupes: relay.dupes },
 });
 
 async function doSend(msg) {
@@ -94,10 +96,29 @@ export async function selfTest(f = fetch) {
   } catch { return false; }
 }
 
-// One health tick: make sure the webhook is registered (idempotent setWebhook, never logs the secret), read getWebhookInfo,
-// run the self-test only when the chat has been silent, and let the state machine decide.
+// Mode switch. Entering polling: deleteWebhook first, the getUpdates loop opens only after it succeeded (drop_pending_updates
+// false, so queued updates are read by getUpdates). Leaving polling: close the loop first, then setWebhook.
+async function enterPolling() {
+  try { const j = await botA.api('deleteWebhook', { drop_pending_updates: false }, 15000); pollEnabled = !!j.ok; if (!j.ok) failover.reason = `deleteWebhook failed: ${j.description || 'not ok'}`; }
+  catch (e) { pollEnabled = false; failover.reason = `deleteWebhook failed: ${String(e.message || e).split(botA.token).join('***')}`; }
+}
+async function leavePolling() {
+  pollEnabled = false;
+  try { const j = await botA.setWebhook({ url: WEBHOOK_URL, secret_token: WEBHOOK_SECRET }); if (!j.ok) { failover.actionFailed('setWebhook', j.description || 'not ok'); await enterPolling(); } }
+  catch (e) { failover.actionFailed('setWebhook', String(e.message || e).split(botA.token).join('***')); await enterPolling(); }
+}
+
+// One health tick. In webhook mode: idempotent setWebhook if unregistered, getWebhookInfo (error / last_error), self-test of
+// the public route when the chat has been silent. In polling mode: self-test the public route and switch back when it
+// has been healthy for recoverChecks ticks. Secrets are never logged.
 export async function healthTick({ self = selfTest } = {}) {
-  if (!botA.configured || !WEBHOOK_SECRET) { failover.evaluate({ infoError: botA.configured ? 'webhook secret not configured' : 'bot A token not configured' }); return failover.snapshot(); }
+  if (failover.state === 'degraded') return failover.snapshot();
+  if (failover.polling) {
+    if (!pollEnabled) await enterPolling(); // a failed deleteWebhook is retried every tick
+    const r = failover.evaluate({ selfTestOk: await self() });
+    if (r.action === 'setWebhook') await leavePolling();
+    return failover.snapshot();
+  }
   const sig = {};
   try {
     let j = await botA.getWebhookInfo();
@@ -112,6 +133,7 @@ export async function healthTick({ self = selfTest } = {}) {
   } catch (e) { sig.infoError = String(e.message || e).split(botA.token).join('***'); }
   let r = failover.evaluate(sig);
   if (r.needSelfTest) r = failover.evaluate({ ...sig, selfTestOk: await self() });
+  if (r.action === 'deleteWebhook') await enterPolling();
   return failover.snapshot();
 }
 
@@ -177,8 +199,8 @@ server.on('upgrade', (req, socket) => {
 });
 
 if (env.NODE_ENV !== 'test') {
-  server.listen(PORT, HOST, () => console.log(`c3bot-relay on ${HOST}:${PORT}${BASE} botA=${botA.configured} botB=${telegram.configured} webhookSecret=${!!WEBHOOK_SECRET}`));
-  telegram.loop((u) => relay.ingestUpdate(u, 'B'), { gate: () => failover.pollFallback });
+  server.listen(PORT, HOST, () => console.log(`c3bot-relay on ${HOST}:${PORT}${BASE} botA=${botA.configured} webhookSecret=${!!WEBHOOK_SECRET}`));
+  botA.loop((u) => relay.ingestUpdate(u, 'P'), { gate: () => pollEnabled && failover.polling });
   const every = +(env.CHECK_INTERVAL_S || 60) * 1000;
   healthTick().catch(() => {});
   const timer = setInterval(() => healthTick().catch(() => {}), every);

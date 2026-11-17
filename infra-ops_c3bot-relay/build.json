@@ -1,11 +1,16 @@
 {
   "name": "c3bot-relay",
-  "taxonomy": { "group": "Infra Apps", "category": "Ops-API-MCP" },
-  "description": "c3bot-relay (#1579): Telegram <-> c3 relay. Ingestion: the c3-bot (Bot A) in webhook mode via the public c3-pub route /c3bot-webhook (secret_token checked), fallback Bot B getUpdates only while the webhook is unhealthy, deduped by chat+message_id+date. Inbound events fan out to c3 clients over three transports: WebSocket (/ws, full duplex), Server-Sent Events (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame, sent as Bot A. Zero npm dependencies. API bearer-gated, mesh-only; only the webhook path is public.",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "c3bot-relay (#1579): Telegram <-> c3 relay on the c3-bot (Bot A, ONE token). Primary ingestion is webhook mode via the public c3-pub route /c3bot-webhook (secret_token checked). While the webhook is unhealthy the relay calls deleteWebhook and polls Bot A with getUpdates, then setWebhook again when the route recovers (never both at once, so no 409). Deduped by chat+message_id+date. Inbound events fan out over WebSocket (/ws), SSE (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame, sent as Bot A. Zero npm dependencies. API bearer-gated, mesh-only; only the webhook path is public.",
   "dns": "c3bot-relay.mesh.diegonmarcos.com",
   "dns_aliases": [],
   "category": "sec",
-  "build": { "headers_enforced": true },
+  "build": {
+    "headers_enforced": true
+  },
   "docker": {
     "image": "c3bot-relay",
     "registry": "ghcr.io/diegonmarcos",
@@ -28,7 +33,9 @@
     "remote_path": "/opt/containers/c3bot-relay",
     "compose_flags": "--build"
   },
-  "ports": { "app": 3119 },
+  "ports": {
+    "app": 3119
+  },
   "timezone": "Europe/Paris",
   "domain": "mcp.diegonmarcos.com/c3bot-relay",
   "proxy": {
@@ -43,8 +50,14 @@
     },
     "app_hub": false
   },
-  "health": { "path": "/health" },
-  "monitoring": { "tls_check": true, "dns_check": true, "endpoint_check": true },
+  "health": {
+    "path": "/health"
+  },
+  "monitoring": {
+    "tls_check": true,
+    "dns_check": true,
+    "endpoint_check": true
+  },
   "containers": {
     "app": {
       "container_name": "c3bot-relay",
@@ -54,11 +67,25 @@
       "protocol": "http",
       "dns": "c3bot-relay.mesh.diegonmarcos.com",
       "public": true,
-      "proxy": { "domain": "mcp.diegonmarcos.com", "base_path": "/c3bot-relay" },
+      "proxy": {
+        "domain": "mcp.diegonmarcos.com",
+        "base_path": "/c3bot-relay"
+      },
       "healthcheck": "node -e \"fetch('http://'+(process.env.HTTP_HOST||'127.0.0.1')+':3119/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
       "env_file": true,
-      "resources": { "mem_limit": "256M", "mem_reservation": "64m", "pids_limit": 128 },
-      "limits": { "buffer_size": 500, "max_clients": 32, "poll_max_wait_s": 50, "allowed_from": "6431508617", "health_window_s": 600, "check_interval_s": 60 }
+      "resources": {
+        "mem_limit": "256M",
+        "mem_reservation": "64m",
+        "pids_limit": 128
+      },
+      "limits": {
+        "buffer_size": 500,
+        "max_clients": 32,
+        "poll_max_wait_s": 50,
+        "allowed_from": "6431508617",
+        "health_window_s": 600,
+        "check_interval_s": 60
+      }
     }
   },
   "api": {
@@ -69,12 +96,18 @@
     "auth": "bearer"
   },
   "tests": {
-    "relay": { "cmd": "node --test test/*.test.js", "cwd": "src/code" }
+    "relay": {
+      "cmd": "node --test test/*.test.js",
+      "cwd": "src/code"
+    }
   },
   "secrets": {
     "escape_dollars": false,
     "container_readable": false,
-    "_doc": "Values only in the private vault at Linux-Containers/infra-ops_c3bot-relay/src/ (sops, public fleet recipient; the Ship overlay copies secrets.yaml and its secrets.*.yaml fragments in, the engine merges them and mounts .secrets as env_file). Four keys by NAME. C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it; cloud-infra-mcp reads the same value through a consumer fragment); the server exits 78 when empty. C3BOT_WEBHOOK_SECRET: 64-hex Telegram secret_token of the Bot A webhook (CI sops-create, secrets.webhook.yaml); the webhook route answers 503 without it and 401 on a wrong header. C3BOT_A_BOT_TOKEN: the token of the existing c3-bot (Bot A, the same token cloud-infra-mcp holds as C3_TELEGRAM_BOT_TOKEN), copied by CI into secrets.bot-a.yaml; used for setWebhook/getWebhookInfo and for outbound sendMessage. C3BOT_RELAY_BOT_TOKEN: the token of the DEDICATED fallback Bot B (minted in @BotFather by the owner, added to the group with privacy mode OFF); it polls getUpdates only while the webhook path is unhealthy. Webhook and getUpdates never share a token, so there is no 409. While Bot B's token is absent the relay runs webhook-only and /health reports ingest.fallback 'degraded: Bot B token missing'.",
-    "required": ["C3BOT_RELAY_TOKEN", "C3BOT_WEBHOOK_SECRET"]
+    "_doc": "Values only in the private vault at Linux-Containers/infra-ops_c3bot-relay/src/ (sops, public fleet recipient; the Ship overlay copies secrets.yaml and its secrets.*.yaml fragments in, the engine merges them and mounts .secrets as env_file). Three keys by NAME. C3BOT_RELAY_TOKEN: 64-hex bearer of the relay API (CI sops-create generates it; cloud-infra-mcp reads the same value through a consumer fragment); the server exits 78 when empty. C3BOT_WEBHOOK_SECRET: 64-hex Telegram secret_token of the Bot A webhook (CI sops-create, secrets.webhook.yaml); the webhook route answers 503 without it and 401 on a wrong header. C3BOT_A_BOT_TOKEN: the token of the existing c3-bot (Bot A, the same token cloud-infra-mcp holds as C3_TELEGRAM_BOT_TOKEN), copied by the CI sops-copy workflow into secrets.bot-a.yaml; used for setWebhook/deleteWebhook/getWebhookInfo/getUpdates and outbound sendMessage. There is no second bot (architect decision, #1579): the fallback is the same token switching mode, so only one consumer ever reads Bot A. Without C3BOT_A_BOT_TOKEN the relay starts degraded (ingest.mode degraded, /send 503).",
+    "required": [
+      "C3BOT_RELAY_TOKEN",
+      "C3BOT_WEBHOOK_SECRET"
+    ]
   }
 }

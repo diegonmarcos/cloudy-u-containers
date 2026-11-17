@@ -15,7 +15,7 @@ in
       container_name = app.container_name;
       # Host network (dockerd runs iptables:false) with the listener confined to the WG IP: mesh-only.
       network_mode = "host";
-      # C3BOT_RELAY_TOKEN (bearer), C3BOT_WEBHOOK_SECRET, C3BOT_A_BOT_TOKEN (Bot A) and C3BOT_RELAY_BOT_TOKEN (Bot B) arrive ONLY through .secrets
+      # C3BOT_RELAY_TOKEN (bearer), C3BOT_WEBHOOK_SECRET, and C3BOT_A_BOT_TOKEN (Bot A, the one token) arrive ONLY through .secrets
       # (vault secrets.yaml, overlaid by the Ship, decrypted to .secrets). Never in this block.
       env_file = [ ".secrets" ];
       volumes = [

@@ -5,7 +5,6 @@ import http from 'node:http';
 
 process.env.NODE_ENV = 'test';
 process.env.C3BOT_RELAY_TOKEN = 'secret-relay-token';
-process.env.C3BOT_RELAY_BOT_TOKEN = 'FAKEBOT';
 process.env.C3BOT_A_BOT_TOKEN = 'FAKEA';
 process.env.C3BOT_WEBHOOK_SECRET = 'wh-secret';
 process.env.C3BOT_WEBHOOK_URL = 'https://edge.invalid/c3bot-webhook';
@@ -15,6 +14,7 @@ process.env.BASE_PATH = '/c3bot-relay';
 
 const sent = [];
 let webhookUrl = '';
+let failSet = false;
 let infoMode = 'ok'; // ok | error | delivery-error
 const fakeInfo = () => infoMode === 'error' ? { ok: false, error_code: 502, description: 'Bad Gateway' }
   : { ok: true, result: { url: webhookUrl, last_error_date: infoMode === 'delivery-error' ? Math.ceil(Date.now() / 1000) + 1 : 0, last_error_message: 'Wrong response from the webhook: 502' } };
@@ -23,14 +23,15 @@ const fakeTg = http.createServer((req, res) => {
   req.on('end', () => {
     const body = JSON.parse(b || '{}'); sent.push([req.url, body]); res.setHeader('content-type', 'application/json');
     if (req.url.endsWith('/getWebhookInfo')) return res.end(JSON.stringify(fakeInfo()));
-    if (req.url.endsWith('/setWebhook')) { webhookUrl = body.url; return res.end(JSON.stringify({ ok: true, result: true })); }
+    if (req.url.endsWith('/setWebhook')) { if (failSet) return res.end(JSON.stringify({ ok: false, error_code: 500, description: 'boom' })); webhookUrl = body.url; return res.end(JSON.stringify({ ok: true, result: true })); }
+    if (req.url.endsWith('/deleteWebhook')) { webhookUrl = ''; return res.end(JSON.stringify({ ok: true, result: true })); }
     res.end(JSON.stringify({ ok: true, result: { message_id: 11 } }));
   });
 });
 await new Promise((r) => fakeTg.listen(0, '127.0.0.1', r));
 process.env.TELEGRAM_API_BASE = `http://127.0.0.1:${fakeTg.address().port}`;
 
-const { server, relay, telegram, botA, failover, healthTick } = await import('../server.js');
+const { server, relay, botA, failover, healthTick } = await import('../server.js');
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = `127.0.0.1:${server.address().port}`;
 const auth = { authorization: 'Bearer secret-relay-token' };
@@ -100,9 +101,9 @@ test('messages from non-allowlisted senders never reach any transport', () => {
   assert.equal(relay.cursor, before);
 });
 
-test('telegram state is exposed (loop not started in test)', () => { assert.ok(['idle', 'polling', 'error'].includes(telegram.state)); });
+test('botA.state is exposed (loop not started in test)', () => { assert.ok(['idle', 'polling', 'error', 'standby'].includes(telegram.state)); });
 
-// ---- #1579 webhook ingestion (Bot A), failover and dedupe against Bot B ----
+// ---- #1579 webhook ingestion (Bot A), mode switching (webhook <-> getUpdates on the same token) and dedupe ----
 const post = (body, secret = 'wh-secret', path = '/c3bot-relay/telegram/webhook') =>
   fetch(`http://${base}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...(secret == null ? {} : { 'x-telegram-bot-api-secret-token': secret }) }, body: JSON.stringify(body) });
 const tgUpd = (id, mid, from, text, date = 100) => ({ update_id: id, message: { message_id: mid, date, chat: { id: 42, type: 'private' }, from: { id: from }, text } });
@@ -137,7 +138,7 @@ test('webhook: senders outside the allowlist are dropped but announce chat metad
 test('dedupe across A and B: same chat/message_id/date from both paths is surfaced once', async () => {
   const after = relay.cursor;
   await post(tgUpd(910, 55, 42, 'same message', 777));            // Bot A webhook
-  relay.ingestUpdate(tgUpd(31337, 55, 42, 'same message', 777), 'B'); // Bot B getUpdates, different update_id
+  relay.ingestUpdate(tgUpd(31337, 55, 42, 'same message', 777), 'P'); // getUpdates copy, different update_id
   const j = await (await fetch(`http://${base}/c3bot-relay/poll?after=${after}&wait=1`, { headers: auth })).json();
   assert.equal(j.events.filter((e) => e.text === 'same message').length, 1);
   assert.equal(j.events.find((e) => e.text === 'same message').source, 'A');
@@ -145,7 +146,7 @@ test('dedupe across A and B: same chat/message_id/date from both paths is surfac
   assert.equal(relay.since(after).filter((e) => e.text === 'other message').length, 1);
 });
 
-test('health: webhook healthy -> Bot B stays idle; state and secrets-free snapshot exposed', async () => {
+test('health: webhook healthy -> polling stays off; state and secrets-free snapshot exposed', async () => {
   const snap = await healthTick({ self: async () => true });
   assert.equal(snap.state, 'webhook');
   assert.equal(webhookUrl, 'https://edge.invalid/c3bot-webhook'); // registered declaratively with setWebhook
@@ -155,24 +156,49 @@ test('health: webhook healthy -> Bot B stays idle; state and secrets-free snapsh
   assert.ok(!JSON.stringify(h).includes('wh-secret') && !JSON.stringify(h).includes('FAKE'));
 });
 
-test('outage simulation: getWebhookInfo error -> fallback (Bot B polls); recovery returns to webhook', async () => {
+test('mode switch: getWebhookInfo error -> deleteWebhook then Bot A polls; route healthy again -> setWebhook and polling stops', async () => {
+  const calls = () => sent.map(([u]) => u.split('/').pop());
   infoMode = 'error';
-  assert.equal((await healthTick({ self: async () => true })).state, 'fallback');
-  assert.equal(failover.pollFallback, true);
-  assert.equal(telegram.configured, true);
+  const n0 = sent.length;
+  assert.equal((await healthTick({ self: async () => true })).state, 'polling');
+  assert.ok(calls().slice(n0).includes('deleteWebhook'));
+  assert.equal(webhookUrl, '' , 'deleteWebhook cleared the registration');
+  assert.equal(failover.polling, true);
+  assert.equal((await (await fetch(`http://${base}/c3bot-relay/health`)).json()).ingest.polling, true);
   infoMode = 'ok';
-  await healthTick({ self: async () => true });
-  assert.equal(failover.state, 'fallback'); // hysteresis: one good check is not enough
-  assert.equal((await healthTick({ self: async () => true })).state, 'webhook');
-  assert.equal(failover.pollFallback, false);
+  await healthTick({ self: async () => false });      // route still down: stay in polling
+  assert.equal(failover.state, 'polling');
+  await healthTick({ self: async () => true });        // 1 good
+  assert.equal(failover.state, 'polling');
+  const n1 = sent.length;
+  assert.equal((await healthTick({ self: async () => true })).state, 'webhook'); // 2 good
+  assert.ok(calls().slice(n1).includes('setWebhook'));
+  assert.equal(webhookUrl, 'https://edge.invalid/c3bot-webhook');
+  assert.equal((await (await fetch(`http://${base}/c3bot-relay/health`)).json()).ingest.polling, false);
 });
 
-test('outage simulation: Telegram-reported delivery error also fails over', async () => {
+test('mode switch: Telegram-reported delivery error switches to polling, a polled update is deduped against the webhook copy', async () => {
   infoMode = 'delivery-error';
-  assert.equal((await healthTick({ self: async () => true })).state, 'fallback');
+  assert.equal((await healthTick({ self: async () => true })).state, 'polling');
   infoMode = 'ok';
+  const after = relay.cursor;
+  await post(tgUpd(920, 77, 42, 'dup across modes', 555));       // arrived by webhook just before the outage
+  relay.ingestUpdate(tgUpd(4001, 77, 42, 'dup across modes', 555), 'P'); // re-delivered by getUpdates after deleteWebhook
+  assert.equal(relay.since(after).filter((e) => e.text === 'dup across modes').length, 1);
+  await healthTick({ self: async () => true }); await healthTick({ self: async () => true });
+  assert.equal(failover.state, 'webhook');
+});
+
+test('mode switch: a failing setWebhook on the way back keeps polling', async () => {
+  infoMode = 'error';
   await healthTick({ self: async () => true });
-  await healthTick({ self: async () => true });
+  assert.equal(failover.state, 'polling');
+  infoMode = 'ok'; failSet = true;
+  await healthTick({ self: async () => true }); await healthTick({ self: async () => true });
+  assert.equal(failover.state, 'polling');
+  assert.equal(failover.polling, true);
+  failSet = false;
+  await healthTick({ self: async () => true }); await healthTick({ self: async () => true });
   assert.equal(failover.state, 'webhook');
 });
 

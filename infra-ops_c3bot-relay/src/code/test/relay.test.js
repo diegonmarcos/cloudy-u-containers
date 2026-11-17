@@ -49,7 +49,7 @@ test('Telegram without a token is unconfigured and refuses to send', async () =>
   await assert.rejects(t.send({ chat_id: 1, text: 'x' }), { code: 'unconfigured' });
 });
 
-test('Telegram.send posts sendMessage and returns ids; error redacts nothing but never leaks token', async () => {
+test('Telegram.send posts sendMessage and returns ids', async () => {
   const calls = [];
   const t = new Telegram({ token: 'TOK', fetchImpl: async (u, o) => { calls.push([u, JSON.parse(o.body)]); return { json: async () => ({ ok: true, result: { message_id: 9 } }) }; } });
   const r = await t.send({ chat_id: 5, text: 'yo', thread_id: 3 });
@@ -80,7 +80,7 @@ test('websocket: encodeFrame uses 16-bit length above 125 bytes', () => {
   assert.equal(f.readUInt16BE(2), 300);
 });
 
-// ---- #1579 dedupe across Bot A (webhook) and Bot B (getUpdates) ----
+// ---- #1579 dedupe across the webhook and getUpdates paths of the same Bot A token ----
 test('dedupe: identity is chat + message_id + date, not update_id', () => {
   const r = new Relay({ allowedFrom: ['42'] });
   assert.ok(r.ingestUpdate({ update_id: 1, message: { message_id: 5, date: 9, chat: { id: 7 }, from: { id: 42 }, text: 'a' } }, 'A'));
@@ -109,45 +109,60 @@ test('ingest tags the source path and non-allowlisted chats only announce metada
   assert.equal(r.ingestUpdate(m(3)), null);
 });
 
-// ---- failover state machine (injected clock) ----
+// ---- mode-switch state machine, ONE token (injected clock) ----
 const clock = () => { const c = { t: 1_000_000, now: () => c.t }; return c; };
-const mk = (hasFallback, c) => new Failover({ windowMs: 600000, hasFallback, now: c.now });
+const mk = (c, configured = true) => new Failover({ windowMs: 600000, configured, now: c.now });
 
-test('failover: healthy webhook stays on webhook; a quiet chat with a passing self-test is healthy', () => {
-  const c = clock(); const f = mk(true, c);
+test('modes: healthy webhook stays in webhook; a quiet chat with a passing self-test is healthy', () => {
+  const c = clock(); const f = mk(c);
   assert.equal(f.evaluate({}).state, 'webhook');
   c.t += 700000;
-  assert.deepEqual(f.evaluate({}), { state: 'webhook', needSelfTest: true });
-  assert.equal(f.evaluate({ selfTestOk: true }).state, 'webhook');
+  assert.equal(f.evaluate({}).needSelfTest, true);
+  const r = f.evaluate({ selfTestOk: true });
+  assert.deepEqual([r.state, r.action], ['webhook', null]);
 });
 
-test('failover: silent window plus failing self-test goes to fallback; recovery needs two good checks', () => {
-  const c = clock(); const f = mk(true, c);
+test('modes: silence plus a failing self-test -> deleteWebhook and polling; recovery needs two good self-tests then setWebhook', () => {
+  const c = clock(); const f = mk(c);
   c.t += 700000;
-  assert.equal(f.evaluate({ selfTestOk: false }).state, 'fallback');
-  assert.equal(f.pollFallback, true);
-  f.noteWebhookUpdate();
-  assert.equal(f.evaluate({}).state, 'fallback');
-  assert.equal(f.evaluate({}).state, 'webhook');
-  assert.equal(f.transitions.length, 2);
+  let r = f.evaluate({ selfTestOk: false });
+  assert.deepEqual([r.state, r.action], ['polling', 'deleteWebhook']);
+  assert.equal(f.polling, true);
+  assert.deepEqual(f.evaluate({}).needSelfTest, true);
+  assert.deepEqual(f.evaluate({ selfTestOk: false }).action, null);
+  assert.equal(f.evaluate({ selfTestOk: true }).state, 'polling'); // one pass is not enough (and the failed one reset the count)
+  r = f.evaluate({ selfTestOk: true });
+  assert.deepEqual([r.state, r.action], ['webhook', 'setWebhook']);
+  assert.deepEqual(f.transitions.map((x) => x.to), ['polling', 'webhook']);
 });
 
-test('failover: getWebhookInfo error alone fails over without waiting for the window', () => {
-  const c = clock(); const f = mk(true, c);
-  assert.equal(f.evaluate({ infoError: '502 Bad Gateway' }).state, 'fallback');
-  assert.match(f.reason, /getWebhookInfo failed/);
+test('modes: getWebhookInfo/setWebhook error, last_error and an unregistrable webhook each switch to polling at once', () => {
+  for (const sig of [{ infoError: '502 Bad Gateway' }, { notRegistered: true }, { lastErrorAt: 1_000_000 + 1, lastErrorMessage: 'Wrong response: 502' }]) {
+    const c = clock(); const f = mk(c); c.t += 1;
+    const r = f.evaluate(sig);
+    assert.deepEqual([r.state, r.action], ['polling', 'deleteWebhook'], JSON.stringify(sig));
+  }
 });
 
-test('failover: a delivery error older than the last webhook update is ignored', () => {
-  const c = clock(); const f = mk(true, c);
+test('modes: a delivery error older than the last webhook update is ignored', () => {
+  const c = clock(); const f = mk(c);
   const old = c.t - 1000; c.t += 5; f.noteWebhookUpdate();
   assert.equal(f.evaluate({ lastErrorAt: old }).state, 'webhook');
-  assert.equal(f.evaluate({ lastErrorAt: c.t + 1 }).state, 'fallback');
+  assert.equal(f.evaluate({ lastErrorAt: c.t + 1 }).state, 'polling');
 });
 
-test('failover: without a Bot B token an unhealthy webhook is reported degraded, never fallback', () => {
-  const c = clock(); const f = mk(false, c);
-  assert.equal(f.evaluate({ infoError: 'x' }).state, 'degraded');
-  assert.equal(f.pollFallback, false);
-  assert.equal(f.snapshot().fallback, 'degraded: Bot B token missing');
+test('modes: a failed setWebhook while leaving polling falls back to polling', () => {
+  const c = clock(); const f = mk(c);
+  f.evaluate({ infoError: 'x' });
+  f.evaluate({ selfTestOk: true }); assert.equal(f.evaluate({ selfTestOk: true }).state, 'webhook');
+  f.actionFailed('setWebhook', 'boom');
+  assert.equal(f.state, 'polling');
+  assert.match(f.reason, /setWebhook failed: boom/);
+});
+
+test('modes: without a Bot A token or webhook secret the relay is degraded and never switches', () => {
+  const c = clock(); const f = mk(c, false);
+  assert.equal(f.state, 'degraded');
+  assert.equal(f.evaluate({ infoError: 'x' }).action, null);
+  assert.match(f.snapshot().fallback, /^degraded/);
 });

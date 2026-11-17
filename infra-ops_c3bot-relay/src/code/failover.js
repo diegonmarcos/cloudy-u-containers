@@ -1,47 +1,53 @@
-// Health and failover state machine for the two ingestion paths of c3bot-relay (#1579).
-//   primary  : Bot A (the c3-bot) in webhook mode, pushed to the public edge route.
-//   fallback : Bot B polling getUpdates, ONLY while the primary is unhealthy. Webhook and getUpdates never share a token.
-// Pure and clock-injected: server.js feeds it observations, tests drive it directly.
-//
-// States
-//   webhook  : primary healthy, Bot B idle.
-//   fallback : primary unhealthy and a Bot B token exists: Bot B polls.
-//   degraded : primary unhealthy and no Bot B token: nothing to fail over to, reported as degraded.
-// Unhealthy (any one of):
-//   - getWebhookInfo errored, or the webhook is not registered at our URL (and re-registering failed)
-//   - Telegram reports a recent delivery error (last_error_date inside the health window)
-//   - no webhook update inside the health window AND the self-test of the public route fails
-// A quiet chat with a passing self-test is healthy. Recovery needs `recoverChecks` consecutive healthy evaluations.
+// Health and mode-switch state machine for Bot A ingestion in c3bot-relay (#1579, architect decision: ONE bot token).
+// Only one consumer may ever read Bot A, so the two ingestion paths are two MODES of the same token, never concurrent:
+//   webhook : setWebhook is active, Telegram pushes to the public edge route (primary).
+//   polling : the webhook is unhealthy, so the relay calls deleteWebhook and reads Bot A with getUpdates (fallback).
+//   degraded: Bot A token or webhook secret missing; nothing can be ingested.
+// To polling (any one of): setWebhook/getWebhookInfo fails, getWebhookInfo shows a recent last_error, the webhook is not
+// registered at our URL and re-registering failed, or no webhook update inside the health window AND the self-test of the
+// public route fails. Back to webhook: `recoverChecks` consecutive passing self-tests of the public route while polling.
+// Pure and clock-injected. evaluate() returns the ACTION the caller must run: 'deleteWebhook' (entering polling) or
+// 'setWebhook' (leaving it); the caller reports failures back through actionFailed().
 
 export class Failover {
-  constructor({ windowMs = 600000, recoverChecks = 2, hasFallback = false, now = Date.now } = {}) {
-    this.windowMs = windowMs; this.recoverChecks = recoverChecks; this.hasFallback = hasFallback; this.now = now;
+  constructor({ windowMs = 600000, recoverChecks = 2, configured = true, now = Date.now } = {}) {
+    this.windowMs = windowMs; this.recoverChecks = recoverChecks; this.configured = configured; this.now = now;
     this.startedAt = now();
-    this.lastWebhookAt = 0;     // last webhook delivery (self-tests do not count)
-    this.state = 'webhook';
-    this.reason = null;         // why the primary is unhealthy, null while healthy
+    this.lastWebhookAt = 0;     // last real webhook delivery (self-tests do not count)
+    this.state = configured ? 'webhook' : 'degraded';
+    this.reason = configured ? null : 'bot A token or webhook secret not configured';
     this.since = this.startedAt;
     this.good = 0;
     this.transitions = [];      // last 20: {at, from, to, reason}
   }
   noteWebhookUpdate() { this.lastWebhookAt = this.now(); }
   get silent() { return this.now() - Math.max(this.lastWebhookAt, this.startedAt) > this.windowMs; }
-  // sig: { infoError?: string, notRegistered?: bool, lastErrorAt?: ms epoch, selfTestOk?: bool|null }
-  // Returns { state, needSelfTest }: needSelfTest means the caller must run the self-test and evaluate again.
+  get polling() { return this.state === 'polling'; }
+  // sig: { infoError?, notRegistered?, lastErrorAt?, lastErrorMessage?, selfTestOk?: bool|null }
+  // Returns { state, needSelfTest, action }.
   evaluate(sig = {}) {
+    if (this.state === 'degraded') return { state: this.state, needSelfTest: false, action: null };
     const t = this.now();
+    if (this.state === 'polling') {
+      if (sig.selfTestOk == null) return { state: this.state, needSelfTest: true, action: null };
+      if (!sig.selfTestOk) { this.good = 0; return { state: this.state, needSelfTest: false, action: null }; }
+      if (++this.good >= this.recoverChecks) { this.#to('webhook', null); return { state: this.state, needSelfTest: false, action: 'setWebhook' }; }
+      return { state: this.state, needSelfTest: false, action: null };
+    }
     let bad = null;
-    if (sig.infoError) bad = `getWebhookInfo failed: ${sig.infoError}`;
-    else if (sig.notRegistered) bad = 'webhook not registered at the relay url';
+    if (sig.infoError) bad = `getWebhookInfo/setWebhook failed: ${sig.infoError}`;
+    else if (sig.notRegistered) bad = 'webhook not registered at the relay url and setWebhook failed';
     else if (sig.lastErrorAt && t - sig.lastErrorAt <= this.windowMs && sig.lastErrorAt > this.lastWebhookAt) bad = `telegram reports a delivery error: ${sig.lastErrorMessage || 'unknown'}`;
     else if (this.silent) {
-      if (sig.selfTestOk == null) return { state: this.state, needSelfTest: true };
-      if (sig.selfTestOk === false) bad = `no webhook update for ${Math.round(this.windowMs / 1000)}s and the self-test failed`;
+      if (sig.selfTestOk == null) return { state: this.state, needSelfTest: true, action: null };
+      if (sig.selfTestOk === false) bad = `no webhook update for ${Math.round(this.windowMs / 1000)}s and the public route self-test failed`;
     }
-    if (bad) { this.good = 0; this.#to(this.hasFallback ? 'fallback' : 'degraded', bad); }
-    else if (this.state !== 'webhook') { if (++this.good >= this.recoverChecks) this.#to('webhook', null); }
-    else this.good = 0;
-    return { state: this.state, needSelfTest: false };
+    if (bad) { this.good = 0; this.#to('polling', bad); return { state: this.state, needSelfTest: false, action: 'deleteWebhook' }; }
+    return { state: this.state, needSelfTest: false, action: null };
+  }
+  // The caller could not perform the action (deleteWebhook failed: keep polling blocked; setWebhook failed: stay in polling).
+  actionFailed(action, why) {
+    if (action === 'setWebhook' && this.state === 'webhook') { this.good = 0; this.#to('polling', `setWebhook failed: ${why}`); }
   }
   #to(next, reason) {
     if (next === this.state) { this.reason = reason; return; }
@@ -49,12 +55,11 @@ export class Failover {
     if (this.transitions.length > 20) this.transitions.shift();
     this.state = next; this.reason = reason; this.since = this.now();
   }
-  get pollFallback() { return this.state === 'fallback'; }
   snapshot() {
     return {
-      state: this.state, reason: this.reason, since: this.since, hasFallback: this.hasFallback,
+      mode: this.state, state: this.state, reason: this.reason, since: this.since,
       lastWebhookAt: this.lastWebhookAt || null, windowS: Math.round(this.windowMs / 1000),
-      fallback: this.hasFallback ? (this.state === 'fallback' ? 'active' : 'standby') : 'degraded: Bot B token missing',
+      fallback: this.state === 'degraded' ? 'degraded: Bot A token or webhook secret missing' : (this.state === 'polling' ? 'active (Bot A getUpdates)' : 'standby (same Bot A token, deleteWebhook + getUpdates)'),
       transitions: this.transitions,
     };
   }

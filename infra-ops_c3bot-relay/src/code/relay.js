@@ -15,7 +15,7 @@ export class Relay {
   constructor({ bufferSize = 500, allowedFrom = [], dedupeSize = 2000 } = {}) {
     this.bufferSize = bufferSize;
     this.dedupeSize = dedupeSize;
-    this.seen = new Set();     // dedupe keys across Bot A (webhook) and Bot B (getUpdates), insertion ordered
+    this.seen = new Set();     // dedupe keys across webhook and getUpdates delivery, insertion ordered
     this.chatSig = new Map();  // chat metadata already announced (telegram.chat events)
     this.dupes = 0;
     this.allowed = new Set(allowedFrom.map(Number));
@@ -48,8 +48,8 @@ export class Relay {
       this.waiters.add(w);
     });
   }
-  // Dedupe key shared by both ingestion paths: the same Telegram message reaches Bot A (webhook) and Bot B (getUpdates)
-  // with different update_ids, so identity is chat + message_id + date (+ edit_date for an edit).
+  // Dedupe key shared by both ingestion paths: the same Telegram message can arrive by webhook and again by getUpdates
+  // (around a mode switch) with different update_ids, so identity is chat + message_id + date (+ edit_date for an edit).
   static dedupeKey(u) {
     const m = u.message || u.edited_message || u.channel_post;
     if (!m || m.chat?.id == null || m.message_id == null) return null;
@@ -64,7 +64,7 @@ export class Relay {
     return false;
   }
   // Inbound Telegram update -> event. Only allowlisted senders are surfaced (same rule as cloud-infra-mcp telegram.ts).
-  // `source` names the ingestion path ('A' webhook, 'B' fallback poll). Every event carries `update`: the raw update for
+  // `source` names the ingestion path ('A' webhook, 'P' getUpdates fallback). Every event carries `update`: the raw update for
   // allowlisted senders; for everyone else only chat/topic metadata (no text, no sender) in a telegram.chat event,
   // which lets consumers keep their chat and topic registry without surfacing foreign traffic.
   ingestUpdate(u, source = 'A') {
@@ -128,8 +128,8 @@ export class Telegram {
   setWebhook({ url, secret_token, allowed_updates = ['message', 'edited_message'] }) {
     return this.api('setWebhook', { url, secret_token, allowed_updates, max_connections: 4 }, 15000);
   }
-  // `gate()` (optional) decides per iteration whether this loop may call getUpdates; Bot B only polls while the webhook
-  // path is unhealthy, so a closed gate idles the loop without ever touching Telegram.
+  // `gate()` (optional) decides per iteration whether this loop may call getUpdates; Bot A only polls while the webhook
+  // is deleted (the unhealthy-webhook fallback mode), so a closed gate idles the loop without ever touching Telegram.
   async loop(onUpdate, { pollTimeoutS = 50, backoffMs = 5000, gate = null, idleMs = 2000 } = {}) {
     if (!this.configured) return;
     while (!this.stopped) {
