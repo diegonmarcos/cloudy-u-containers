@@ -20,8 +20,8 @@
     "user-ai_cloud-cgc-pub-mcp"
   ],
   "not_rendered": {
-    "_why": "Declared for when they ship: these three have a build.json only (no src/, no dist/), so no container exists yet.",
-    "services": ["infra-api_cloudy-all-mcp", "infra-api_cloudy-apps-communication-mcp", "infra-api_cloudy-apps-drive-mcp"]
+    "_why": "MCP services that declare the tier but have no rendered dist/ yet. Empty since 2026-11-18: infra-api_cloudy-all-mcp, infra-api_cloudy-apps-communication-mcp and infra-api_cloudy-apps-drive-mcp, listed here while they had a build.json only, now have rendered composes (render-dist), so M7/M8/M9 check them like every other MCP server.",
+    "services": []
   },
   "non_server_containers": {
     "_why": "user-ai_cloud-cgc-pub-mcp renders seven containers; only cloud-cgc-pub-mcp and cloud-cgc-pvt-mcp are MCP servers. The index, reindex and restore jobs carry build.json runtime.job_oom_score_adj (300) from compose.nix, so the service-wide -900 does not reach them.",

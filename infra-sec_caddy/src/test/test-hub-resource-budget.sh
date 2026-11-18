@@ -53,6 +53,9 @@ if i >= 0:
     s = s[:i] + s[k+1:]
 s = re.sub(r'^\s*rate_limit \{.*?\n    \}\n', '', s, flags=re.S | re.M)
 s = re.sub(r'\n\s*tls \{\n\s*dns cloudflare [^\n]*\n(?:\s*[a-z_]+ [^\n]*\n)*?\s*\}\n', '\n', s)
+# Mesh vhosts (#1797) carry `tls { issuer acme { dns cloudflare ... } issuer internal { ca mesh } }`: drop
+# only the ACME issuer, so the block keeps its internal issuer and still adapts.
+s = re.sub(r'\n\s*issuer acme \{\n\s*dns cloudflare [^\n]*\n(?:\s*[a-z_]+ [^\n]*\n)*?\s*\}\n', '\n', s)
 open(sys.argv[2], 'w').write(s)
 PY
 }
