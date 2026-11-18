@@ -1,5 +1,5 @@
 // c3bot-relay: Telegram <-> c3 over WebSocket (/ws), SSE (/events) and long-poll (/poll); outbound POST /send.
-// Bearer-gated (C3BOT_RELAY_TOKEN); /health is open. Bot tokens come from the vault secret env only.
+// Session lease POST /claim, POST /release, GET /claim (#1795). Bearer-gated (C3BOT_RELAY_TOKEN); /health is open. Bot tokens come from the vault secret env only.
 // Ingestion: Bot A (the c3-bot, C3BOT_A_BOT_TOKEN) in WEBHOOK mode posts to POST /telegram/webhook (public edge route,
 // authenticated by Telegram's secret_token header = C3BOT_WEBHOOK_SECRET, not by the bearer). Fallback is the SAME token in
 // polling mode: while the webhook is unhealthy the relay calls deleteWebhook and reads getUpdates, then setWebhook again when
@@ -9,6 +9,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { Relay, Telegram } from './relay.js';
 import { Failover } from './failover.js';
 import { accept } from './ws.js';
+import { Lease } from './lease.js';
 
 const env = process.env;
 const PORT = +(env.PORT || 3119);
@@ -31,6 +32,7 @@ const WEBHOOK_SECRET = env.C3BOT_WEBHOOK_SECRET || '';
 const WEBHOOK_URL = env.C3BOT_WEBHOOK_URL || 'https://c3-pub.diegonmarcos.com/c3bot-webhook';
 export const botA = new Telegram({ token: env.C3BOT_A_BOT_TOKEN, base: TG_BASE });   // webhook, getUpdates fallback, outbound
 export const telegram = botA;
+export const lease = new Lease({ defaultTtlS: +(env.LEASE_TTL_S || 900) });
 export const failover = new Failover({ windowMs: +(env.HEALTH_WINDOW_S || 600) * 1000, configured: botA.configured && !!WEBHOOK_SECRET });
 let pollEnabled = false; // true only after deleteWebhook succeeded; the getUpdates loop never runs beside a webhook
 const sender = () => botA;
@@ -57,7 +59,7 @@ const route = (req) => {
 };
 const health = () => ({
   ok: true, telegram: telegram.state, telegramError: telegram.lastError, cursor: relay.cursor, clients, transports: ['ws', 'sse', 'poll'],
-  tokenConfigured: !!TOKEN, botConfigured: botA.configured,
+  tokenConfigured: !!TOKEN, botConfigured: botA.configured, lease: { held: !!lease.live(), expiresAt: lease.live() ? lease.expiresAt : null },
   ingest: { ...failover.snapshot(), webhookSecretConfigured: !!WEBHOOK_SECRET, botA: botA.state, polling: pollEnabled, dupes: relay.dupes },
 });
 
@@ -143,6 +145,11 @@ export const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && path === '/health') return json(res, 200, health());
     if (req.method === 'POST' && (path === '/telegram/webhook' || path === '/webhook')) return await webhook(req, res);
     if (!bearerOk(req, url)) return json(res, 401, { ok: false, error: 'unauthorized' });
+
+    // Session lease (#1795): one answering session for non-reply owner messages. Holder names are bearer-only (not in /health).
+    if (req.method === 'POST' && path === '/claim') { const b = await readBody(req); return json(res, 200, { ok: true, ...lease.claim(b.session, b.ttl) }); }
+    if (req.method === 'POST' && path === '/release') { const b = await readBody(req); return json(res, 200, { ok: true, ...lease.release(b.session) }); }
+    if (req.method === 'GET' && path === '/claim') return json(res, 200, { ok: true, ...lease.snapshot() });
 
     if (req.method === 'POST' && path === '/send') return json(res, 200, { ok: true, ...(await doSend(await readBody(req))) });
 
