@@ -4,7 +4,7 @@
   "description": "Mattermost team chat (TE 11.x ESR) with ntfy bridge and C3 command bot",
   "port": 8065,
   "dns": "mattermost.mesh.diegonmarcos.com",
-  "dns_aliases": ["chat-mattermost.mesh.diegonmarcos.com"],
+  "dns_aliases": ["chat-mattermost.mesh.diegonmarcos.com", "chat.mesh.diegonmarcos.com"],
   "timezone": "America/Chicago",
   "c3": {
     "api_url": "http://c3-infra-api:8081",
