@@ -11011,6 +11011,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-ai-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11052,6 +11058,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-public-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11093,6 +11105,12 @@ error @not_mesh "Forbidden" 403
   cloud.drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11134,6 +11152,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11175,6 +11199,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-infra-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11216,6 +11246,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-infra-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11257,6 +11293,12 @@ error @not_mesh "Forbidden" 403
   cloud.mail-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11298,6 +11340,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-mail-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11339,6 +11387,12 @@ error @not_mesh "Forbidden" 403
   cloud.mattermost-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11380,6 +11434,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-mattermost-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11421,6 +11481,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-me-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11462,6 +11528,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-services-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11503,6 +11575,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-services-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11544,6 +11622,12 @@ error @not_mesh "Forbidden" 403
   cloud.superapp-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11585,6 +11669,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-superapp-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11626,6 +11716,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-all-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11667,6 +11763,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-services-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11708,6 +11810,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-all-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11749,6 +11857,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-apps-communication-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11790,6 +11904,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-apps-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11831,6 +11951,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-c3-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11872,6 +11998,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-infra-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11913,6 +12045,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-drive-git-proxy-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11954,6 +12092,12 @@ error @not_mesh "Forbidden" 403
   cloud.git-proxy-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -11995,6 +12139,12 @@ error @not_mesh "Forbidden" 403
   cloud.g-personal-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12036,6 +12186,12 @@ error @not_mesh "Forbidden" 403
   cloud.google-personal-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12077,6 +12233,12 @@ error @not_mesh "Forbidden" 403
   cloud.g-workspace-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12118,6 +12280,12 @@ error @not_mesh "Forbidden" 403
   cloud.google-workspace-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12159,6 +12327,12 @@ error @not_mesh "Forbidden" 403
   cloud.gitea.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12200,6 +12374,12 @@ error @not_mesh "Forbidden" 403
   cloud.unbound-dns64.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12241,6 +12421,12 @@ error @not_mesh "Forbidden" 403
   cloud.wireguard-mesh.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12282,6 +12468,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3-spec.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12323,6 +12515,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-spec.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12364,6 +12562,12 @@ error @not_mesh "Forbidden" 403
   cloud.dagu.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12405,6 +12609,12 @@ error @not_mesh "Forbidden" 403
   cloud.dbgate.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12446,6 +12656,12 @@ error @not_mesh "Forbidden" 403
   cloud.matomo.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12487,6 +12703,12 @@ error @not_mesh "Forbidden" 403
   cloud.ntfy.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12528,6 +12750,12 @@ error @not_mesh "Forbidden" 403
   cloud.openobserve.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12569,6 +12797,12 @@ error @not_mesh "Forbidden" 403
   cloud.umami.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12610,6 +12844,12 @@ error @not_mesh "Forbidden" 403
   cloud.c3bot-relay.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12651,6 +12891,12 @@ error @not_mesh "Forbidden" 403
   cloud.authelia.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12692,6 +12938,12 @@ error @not_mesh "Forbidden" 403
   cloud.caddy.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12733,6 +12985,12 @@ error @not_mesh "Forbidden" 403
   cloud.caddy-public.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12774,6 +13032,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-ai-tokens-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12815,6 +13079,12 @@ error @not_mesh "Forbidden" 403
   cloud.tokens-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12856,6 +13126,12 @@ error @not_mesh "Forbidden" 403
   cloud.crowdsec.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12897,6 +13173,12 @@ error @not_mesh "Forbidden" 403
   cloud.mcp-oauth.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12938,6 +13220,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-cgc-pub-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -12979,6 +13267,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-me-cgc-pvt-graph-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13020,6 +13314,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-cgc-pub-graph-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13061,6 +13361,12 @@ error @not_mesh "Forbidden" 403
   cloud.mattermost.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13102,6 +13408,12 @@ error @not_mesh "Forbidden" 403
   cloud.chat-mattermost.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13143,6 +13455,12 @@ error @not_mesh "Forbidden" 403
   cloud.webmail.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13184,6 +13502,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-webmail.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13225,6 +13549,12 @@ error @not_mesh "Forbidden" 403
   cloud.matrix-continuwuity.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13266,6 +13596,12 @@ error @not_mesh "Forbidden" 403
   cloud.matrix-element.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13307,6 +13643,12 @@ error @not_mesh "Forbidden" 403
   cloud.stalwart.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13348,6 +13690,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-browser-headless.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13389,6 +13737,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloudy-browser-scrapper-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13430,6 +13784,12 @@ error @not_mesh "Forbidden" 403
   cloud.scrappers-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13471,6 +13831,12 @@ error @not_mesh "Forbidden" 403
   cloud.capital-stack-finterm-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13512,6 +13878,12 @@ error @not_mesh "Forbidden" 403
   cloud.capital-stack-finterminal-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13553,6 +13925,12 @@ error @not_mesh "Forbidden" 403
   cloud.capital-stack-finterminal-web.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13594,6 +13972,12 @@ error @not_mesh "Forbidden" 403
   cloud.photoprism.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13635,6 +14019,12 @@ error @not_mesh "Forbidden" 403
   cloud.playlist-syncer.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13676,6 +14066,12 @@ error @not_mesh "Forbidden" 403
   cloud.capital-stack-news-gdelt-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13717,6 +14113,12 @@ error @not_mesh "Forbidden" 403
   cloud.calendar.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13758,6 +14160,12 @@ error @not_mesh "Forbidden" 403
   cloud.calendar-radicale.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13799,6 +14207,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-notes-sync.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13840,6 +14254,12 @@ error @not_mesh "Forbidden" 403
   cloud.cloud-notes-web.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13881,6 +14301,12 @@ error @not_mesh "Forbidden" 403
   cloud.code-server.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13922,6 +14348,12 @@ error @not_mesh "Forbidden" 403
   cloud.contacts.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -13963,6 +14395,12 @@ error @not_mesh "Forbidden" 403
   cloud.contacts-radicale.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14004,6 +14442,12 @@ error @not_mesh "Forbidden" 403
   cloud.etherpad.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14045,6 +14489,12 @@ error @not_mesh "Forbidden" 403
   cloud.filebrowser.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14086,6 +14536,12 @@ error @not_mesh "Forbidden" 403
   cloud.grist.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14127,6 +14583,12 @@ error @not_mesh "Forbidden" 403
   cloud.hedgedoc.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14168,6 +14630,12 @@ error @not_mesh "Forbidden" 403
   cloud.send.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14209,6 +14677,12 @@ error @not_mesh "Forbidden" 403
   cloud.vaultwarden.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14250,6 +14724,12 @@ error @not_mesh "Forbidden" 403
   cloud.matomo-hybrid.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14291,6 +14771,12 @@ error @not_mesh "Forbidden" 403
   cloud.continuwuity.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14332,6 +14818,12 @@ error @not_mesh "Forbidden" 403
   cloud.photoprism-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14373,6 +14865,12 @@ error @not_mesh "Forbidden" 403
   cloud.etherpad-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14414,6 +14912,12 @@ error @not_mesh "Forbidden" 403
   cloud.filebrowser-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14455,6 +14959,12 @@ error @not_mesh "Forbidden" 403
   cloud.grist-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14496,6 +15006,12 @@ error @not_mesh "Forbidden" 403
   cloud.hedgedoc-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -14537,6 +15053,12 @@ error @not_mesh "Forbidden" 403
   cloud.send-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
       issuer internal {
         ca mesh
       }
@@ -18617,6 +19139,43 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  photoprism-app-http-3013.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
+    reverse_proxy 10.0.0.6:3013 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   playlist-syncer-http-8090.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -18917,6 +19476,43 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  etherpad-app-http-3012.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
+    reverse_proxy 10.0.0.6:3012 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   filebrowser_app-http-3015.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -18928,6 +19524,43 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
+    reverse_proxy 10.0.0.6:3015 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  filebrowser-app-http-3015.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3015 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18999,6 +19632,43 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  grist-app-http-3011.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
+    reverse_proxy 10.0.0.6:3011 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   hedgedoc_app-http-3018.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -19040,6 +19710,43 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  hedgedoc-app-http-3018.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
+    reverse_proxy 10.0.0.6:3018 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   send_app-http-3016.mesh.diegonmarcos.com {
     # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
     # 2026-07-09.
@@ -19051,6 +19758,43 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
+    reverse_proxy 10.0.0.6:3016 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
+  send-app-http-3016.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+    # 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3016 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
