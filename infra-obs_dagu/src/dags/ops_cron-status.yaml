@@ -1,4 +1,5 @@
 # Daily cron health summary to ntfy (07:00 UTC).
+# Lists cron jobs that missed their last window; see infra-obs_dagu/README.md.
 schedule: "0 7 * * *"
 env:
   - NTFY_URL: http://10.0.0.6:8090
