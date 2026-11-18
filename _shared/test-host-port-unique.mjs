@@ -53,6 +53,8 @@ export function duplicates(services) {
 // duplicate must be removed (P5), so this list can only shrink.
 const KNOWN = {
   "oci-apps:8086": "infra-obs_dbgate + infra-sec_zap: both are on-demand tools that are normally stopped (zap is started per scan, dbgate was Exited on 2026-11-11); they cannot run at the same time. Found by this guard in #1659, left for a ticket of its own because moving either port also moves its Caddy route.",
+  "oci-apps:3103": "#1450 cutover: infra-api_cloudy-apps-communication-mcp REPLACES infra-api_cloud-mail-mcp on the same port; the ship engine's port eviction stops the old container when the new one deploys, so they never run together. Remove this entry when the old folder is removed (P5 fails until then).",
+  "oci-apps:3109": "#1450 cutover: infra-api_cloudy-apps-drive-mcp REPLACES infra-api_cloud-drive-mcp on the same port (port eviction at deploy, as above). Remove this entry when the old folder is removed (P5 fails until then).",
 };
 
 const services = load();
