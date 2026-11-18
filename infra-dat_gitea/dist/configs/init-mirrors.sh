@@ -279,7 +279,6 @@ remove_excluded cloud-me-pvt-vault
 converge_mirror CG-circus https://github.com/diegonmarcos/CG-circus.git false
 converge_mirror CG-galaxy https://github.com/diegonmarcos/CG-galaxy.git false
 converge_mirror Projects-endeavours https://github.com/diegonmarcos/Projects-endeavours.git false
-converge_mirror Projects-labtools https://github.com/diegonmarcos/Projects-labtools.git false
 converge_mirror _git-repos-master https://github.com/diegonmarcos/_git-repos-master.git false
 converge_mirror cloud-me-___ https://github.com/diegonmarcos/cloud-me-___.git false
 converge_mirror cloud-me-pub-___ https://github.com/diegonmarcos/cloud-me-pub-___.git false
@@ -290,12 +289,13 @@ converge_mirror cloud-me-pub-profiles-nexus.z https://github.com/diegonmarcos/cl
 converge_mirror cloud-me-pub-profiles-prf-prs https://github.com/diegonmarcos/cloud-me-pub-profiles-prf-prs.git false
 converge_mirror cloud-me-pub-profiles-stark.x https://github.com/diegonmarcos/cloud-me-pub-profiles-stark.x.git false
 converge_mirror cloud-me-pub-shared https://github.com/diegonmarcos/cloud-me-pub-shared.git false
-converge_mirror cloud-me-pvt-___ https://github.com/diegonmarcos/cloud-me-pvt-___.git true
+converge_mirror cloud-me-pvt-___ https://github.com/diegonmarcos/cloud-me-pvt-___.git false
 converge_mirror cloud-me-pvt-cgc https://github.com/diegonmarcos/cloud-me-pvt-cgc.git true
 converge_mirror cloud-me-pvt-configs https://github.com/diegonmarcos/cloud-me-pvt-configs.git true
 converge_mirror cloud-me-pvt-data https://github.com/diegonmarcos/cloud-me-pvt-data.git true
 converge_mirror cloud-me-pvt-my-ai https://github.com/diegonmarcos/cloud-me-pvt-my-ai.git true
 converge_mirror cloud-me-pvt-notes https://github.com/diegonmarcos/cloud-me-pvt-notes.git true
+converge_mirror cloud-me-pvt-tasks https://github.com/diegonmarcos/cloud-me-pvt-tasks.git true
 converge_mirror cloudy-___ https://github.com/diegonmarcos/cloudy-___.git false
 converge_mirror cloudy-a-docs https://github.com/diegonmarcos/cloudy-a-docs.git true
 converge_mirror cloudy-h-webapps-desk https://github.com/diegonmarcos/cloudy-h-webapps-desk.git false
