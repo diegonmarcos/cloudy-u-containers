@@ -168,6 +168,11 @@ check(`L7 the four ceilings together leave the host >= 250MiB of the 954MiB`,
     rendered !== null && rendered >= toBytes("96M"), `rendered ${rendered}`);
   check("R2 stalwart reservation <= its mem_limit",
     rendered !== null && rendered <= toBytes(bj(STACK[0].dir).containers.app.resources.mem_limit));
+  const md = render(STACK[2]);
+  const mdR = toBytes((((md.deploy || {}).resources || {}).reservations || {}).memory);
+  check("R4 maddy rendered reservations.memory >= 96M and <= its mem_limit (imapsql.db hot pages; 832KB/s of refaults 2026-11-18)",
+    mdR !== null && mdR >= toBytes("96M") && mdR <= toBytes(bj(STACK[2].dir).containers.app.resources.mem_limit),
+    `rendered ${mdR}`);
   const sum = STACK.reduce((a, e) => a + (resv(e) || 0), 0);
   check("R3 mail-stack reservations together <= 320MiB (memory.low must not overcommit the 954MiB box)",
     sum > 0 && sum <= toBytes("320M"), `sum ${Math.round(sum / 1048576)}MiB`);
