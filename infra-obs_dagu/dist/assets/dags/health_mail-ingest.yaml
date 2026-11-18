@@ -35,9 +35,18 @@ steps:
       failure: true
     command: |
       set -u
+      # Newest-by-msgId rows only, via the (mboxId, msgId) primary key. The old
+      # MAX(m.date) over every INBOX row has no index on date, so it read
+      # every INBOX row (cachedHeader and bodyStructure are stored inline)
+      # every 30 min, and `docker exec` runs in maddy's cgroup, so those
+      # reads were billed to maddy (2026-11-18 oci-mail IO thrash). msgId
+      # grows with delivery; the last 500 per INBOX cover a sorter re-home of
+      # old mail into INBOX, and a re-home larger than that can only make the
+      # age look OLDER (a false alarm), never hide a real stall.
       SQL="SELECT CAST((strftime('%s','now') - MAX(m.date))/3600 AS INT)
-             FROM msgs m JOIN mboxes b ON b.id = m.mboxId
-            WHERE b.name = 'INBOX';"
+             FROM mboxes b JOIN msgs m ON m.mboxId = b.id
+            WHERE b.name = 'INBOX'
+              AND m.msgId > (SELECT MAX(msgId) FROM msgs WHERE mboxId = b.id) - 500;"
       AGE=$($SSH ubuntu@10.0.0.3 \
         "docker exec maddy sqlite3 -readonly /data/imapsql.db \"$SQL\"" 2>/dev/null | tr -d '[:space:]')
 

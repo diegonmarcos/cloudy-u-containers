@@ -142,6 +142,7 @@ with tempfile.TemporaryDirectory() as td:
             "MSG_DIR": msgs,
             "CACHE": os.path.join(td, "cache.tsv"),
             "AWK_PROG": os.path.join(td, "mid.awk"),
+            "LEGACY_CACHE": os.path.join(td, "no-legacy.tsv"),
         }, cwd=td)
         return r.returncode, sorted(r.stdout.split())
 
@@ -170,6 +171,44 @@ with tempfile.TemporaryDirectory() as td:
 
     rc, out = run([])
     check(rc != 0 and out == [], "empty key list is an error, not 'no mail'")
+
+# ---- 3b. IO: the scan must not read the store (2026-11-18 oci-mail) -------
+check(re.search(r'^max_active_runs:\s*1\s*$', raw, re.M) is not None,
+      "max_active_runs: 1 (a cold scan outlasting 3h must not be doubled)")
+check(re.search(r'CACHE=\$\{CACHE:-/data/', scan) is not None,
+      "fingerprint cache defaults to maddy's data volume, not /tmp (lost on every recreate)")
+
+# The parser must stop at the end of the headers. Checked on the program
+# text: a timing test through a pipe is not portable (mawk, the CI runner's
+# awk, drains the whole pipe regardless of `exit`), while production runs
+# busybox awk on regular files, where `exit` stops the read. The behaviour
+# (plain, folded, body-only Message-ID) is covered by the scan tests above.
+check(re.search(r'^\s*/\^\\r\?\$/\s*\{\s*exit\s*\}', awk_prog, re.M) is not None,
+      "Message-ID parser exits at the blank line ending the headers")
+check(re.search(r'else\s*\{\s*exit\s*\}', awk_prog) is not None,
+      "Message-ID parser exits at the header after a (folded) Message-ID")
+check(not re.search(r'^\s*done\s*\{\s*next\s*\}', awk_prog, re.M),
+      "no `done { next }`: that form reads every message to EOF")
+
+with tempfile.TemporaryDirectory() as td:
+    open(os.path.join(td, "mid.awk"), "w").write(awk_prog)
+    # Legacy /tmp cache seeds the new location once, so moving it is not a cold scan.
+    msgs = os.path.join(td, "messages"); os.mkdir(msgs)
+    open(os.path.join(td, "scan.sh"), "w").write(scan)
+    open(os.path.join(msgs, "k1"), "w").write("Message-ID: <new-body@example.test>\r\n\r\n")
+    legacy = os.path.join(td, "legacy.tsv")
+    open(legacy, "w").write("k1\t%s\n" % fp("from-legacy@example.test"))
+    open(os.path.join(td, "keys"), "w").write("k1\n")
+    env = {"KEYS_CMD": "cat '%s'" % os.path.join(td, "keys"), "MSG_DIR": msgs,
+           "CACHE": os.path.join(td, "data-cache.tsv"), "LEGACY_CACHE": legacy,
+           "AWK_PROG": os.path.join(td, "mid.awk")}
+    r = sh("sh scan.sh", env, cwd=td)
+    check(r.returncode == 0 and r.stdout.split() == [fp("from-legacy@example.test")],
+          "empty new cache is seeded from the legacy /tmp cache (no re-parse)")
+    open(legacy, "w").write("k1\t%s\n" % fp("stale@example.test"))
+    r = sh("sh scan.sh", env, cwd=td)
+    check(r.stdout.split() == [fp("from-legacy@example.test")],
+          "a non-empty new cache is never overwritten by the legacy one")
 
 # ---- 4. deliver(): retry only before handover ----------------------------
 ns = {}
