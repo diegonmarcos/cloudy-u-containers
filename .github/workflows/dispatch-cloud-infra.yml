@@ -36,9 +36,32 @@ name: containers-push dispatch → cloud-infra Ship (courier — verdict is down
 # than a green courier, because it would mislead about the build while itself
 # being noise. The fleet's contract is that cloud-infra's Ship owns the
 # verdict; this workflow's job is to get a reader there, not to restate it.
+#
+# 2026-11-18 — a push that changes a service's render inputs (anything in the service directory but
+# dist/: src/, build.json, ...) is NOT shipped from the push. render-dist commits the regenerated
+# dist/ as a second commit, so Ship at the pushed sha was refused by its drift guard ("committed dist/
+# differs from the fresh render of src/") four times that day. Such a push is handed to render-dist,
+# which re-enters this courier via workflow_dispatch at the render commit (or at the source commit when
+# dist was already fresh), carrying the push's original `before` so Ship still sees the whole range.
+# Every other push (dist-only, _shared/, docs) dispatches exactly as before. Decision:
+# _shared/courier-decide.sh, tested by _shared/test/courier-decide.test.sh on every run.
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      before:
+        description: "Range start (render-dist passes the original push's before)"
+        required: true
+      after:
+        description: "Commit to ship: one whose committed dist/ matches src/ (render-dist passes it)"
+        required: true
+
+# actions:write lets GITHUB_TOKEN dispatch render-dist (the hand-off); the Ship dispatch itself uses
+# CLOUD_INFRA_DISPATCH_TOKEN as before.
+permissions:
+  contents: read
+  actions: write
 
 # Serialised, never cancelled. Two pushes in quick succession would otherwise
 # race, and an older dispatch landing second would ship an older tree last.
@@ -56,22 +79,65 @@ jobs:
       # and this courier would then SHIP it. Refuse before dispatching. The gate
       # and its markers are fleet-emitted (.githooks/, from cloud-infra
       # 0_apps/src/githooks); full history because the check is ancestry.
+      - name: Validate dispatch inputs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          IN_BEFORE: ${{ inputs.before }}
+          IN_AFTER: ${{ inputs.after }}
+        run: |
+          set -eu
+          printf '%s' "$IN_BEFORE" | grep -Eq '^[0-9a-f]{40}$' || { echo "::error::before must be a full sha"; exit 1; }
+          printf '%s' "$IN_AFTER"  | grep -Eq '^[0-9a-f]{40}$' || { echo "::error::after must be a full sha"; exit 1; }
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.after || github.sha }}
           fetch-depth: 0
           lfs: false
       - name: Refuse purged history (history-gate)
         run: sh .githooks/history-gate HEAD
 
+      - name: Courier decision tester
+        run: bash _shared/test/courier-decide.test.sh
+
+      - name: Decide — ship now, or hand a render-input push to render-dist
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ inputs.before || github.event.before }}
+          AFTER: ${{ inputs.after || github.sha }}
+        run: |
+          set -euo pipefail
+          bash _shared/courier-decide.sh "$EVENT" "$BEFORE" "$AFTER" . | tee -a "$GITHUB_OUTPUT"
+
+      - name: Hand off to render-dist (no Ship dispatch from this push)
+        if: steps.decide.outputs.action == 'render'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SERVICES: ${{ steps.decide.outputs.services }}
+          BEFORE: ${{ steps.decide.outputs.before }}
+          AFTER: ${{ steps.decide.outputs.after }}
+        run: |
+          set -euo pipefail
+          jq -n --arg s "$SERVICES" --arg b "$BEFORE" --arg a "$AFTER" \
+            '{ref: "main", inputs: {service: $s, courier_before: $b, courier_after: $a}}' \
+          | gh api -X POST "repos/${GITHUB_REPOSITORY}/actions/workflows/render-dist.yml/dispatches" --input -
+          echo "handed to render-dist: ${SERVICES}  (${BEFORE}..${AFTER})"
+          {
+            echo "### Handed to render-dist — Ship NOT dispatched from this push"
+            echo "This push changed render inputs of: \`${SERVICES}\`. render-dist re-renders their dist/ and"
+            echo "re-dispatches this courier at the commit whose dist matches src; that run dispatches Ship."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Notify cloud-infra of the pushed range
         id: notify
+        if: steps.decide.outputs.action == 'ship'
         env:
           # A cross-repository dispatch needs contents:write on the TARGET
           # repo. This repository's GITHUB_TOKEN is scoped to this repository
           # alone and CANNOT do it — hence a separate token secret.
           GH_TOKEN: ${{ secrets.CLOUD_INFRA_DISPATCH_TOKEN }}
-          BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
+          BEFORE: ${{ steps.decide.outputs.before }}
+          AFTER: ${{ steps.decide.outputs.after }}
           REF: ${{ github.ref }}
         run: |
           set -euo pipefail
@@ -109,6 +175,7 @@ jobs:
       # it keeps polling for a short window, then hands the reader the
       # cloud-infra Actions page rather than inventing an answer.
       - name: Point at the downstream cloud-infra runs (this is a courier, not the verdict)
+        if: steps.decide.outputs.action == 'ship'
         env:
           GH_TOKEN: ${{ secrets.CLOUD_INFRA_DISPATCH_TOKEN }}
         run: |
