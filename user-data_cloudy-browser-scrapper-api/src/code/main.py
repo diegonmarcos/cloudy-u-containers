@@ -79,6 +79,7 @@ class ScrapeReq(BaseModel):
     selector: str | None = None        # crawl (CSS selector -> text list)
     playlist_url: str | None = None    # youtube
     playlist_id: str | None = None     # youtube
+    source: str | None = None          # instagram: "repo" (published export, default) | "live" (instaloader)
 
 
 @app.get(f"{BASE_PATH}/health")

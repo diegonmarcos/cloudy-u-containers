@@ -7,7 +7,7 @@
       "params": { "handle": "diegonmarcos", "max_posts": 60 },
       "output": "instagram-diegonmarcos",
       "schedule": "0 4 * * *",
-      "note": "Private account — needs the burner follower + IG_BURNER_* secrets to return posts/followers/highlights/tagged; anonymous returns profile counts only."
+      "note": "#1686: source defaults to repo (the published export in cloudy-u-android mysocials, data-ig2-diegonmarcos.json.js). params.source=live runs instaloader, which needs the burner follower + IG_BURNER_* secrets for posts/followers/highlights/tagged; anonymous live returns profile counts only (and 429 from Cloud Run)."
     },
     {
       "id": "pin-diego",
