@@ -77,6 +77,10 @@ tags:
   - reconciliation
 
 schedule: "23 */3 * * *"
+# One run at a time. A cold fingerprint scan (empty cache, e.g. right after
+# maddy is recreated) can outlast the 3h period on oci-mail; a second run
+# started on top of it repeated the same full-store read in parallel.
+max_active_runs: 1
 
 env:
   - SSH: "ssh -i /home/dagu/.ssh/vault_id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=10"
@@ -179,12 +183,15 @@ steps:
 
       # ---- maddy side (whole store, folding-aware) --------------------------
       $SSH ubuntu@10.0.0.3 "docker exec -i maddy sh -c 'cat > /tmp/recon_mid.awk'" <<'AWKEOF'
-      BEGIN { cap=0; done=0; mid="" }
-      done { next }
-      /^\r?$/ { done=1; next }
+      # `exit`, not `next`: stop reading at the end of the headers (END still
+      # runs). With `next`, awk read every message to EOF, attachments
+      # included, so a cold scan read the whole maddy store off disk
+      # (2026-11-18 oci-mail: maddy 6GB read in ~4h at 181% CPU).
+      BEGIN { cap=0; mid="" }
+      /^\r?$/ { exit }
       cap==1 {
         if ($0 ~ /^[ \t]/) { mid = mid $0; next }
-        else { done=1; next }
+        else { exit }
       }
       { if (tolower($0) ~ /^message-id:/) { cap=1; mid=$0 } }
       END {
@@ -207,9 +214,17 @@ steps:
       set -u
       DB=${DB:-/data/imapsql.db}
       MSG_DIR=${MSG_DIR:-/data/messages}
-      CACHE=${CACHE:-/tmp/recon_fp_cache.tsv}
+      # The cache lives on maddy's data VOLUME, not the container's /tmp:
+      # /tmp is lost each time maddy is recreated (every ship), and the next
+      # run then re-parsed every body in the store. Seeded once from the old
+      # /tmp location so moving it does not itself cause a cold scan.
+      CACHE=${CACHE:-/data/recon_fp_cache.tsv}
+      LEGACY_CACHE=${LEGACY_CACHE:-/tmp/recon_fp_cache.tsv}
       AWK_PROG=${AWK_PROG:-/tmp/recon_mid.awk}
       KEYS="$CACHE.keys"
+      if [ ! -s "$CACHE" ] && [ -s "$LEGACY_CACHE" ] && [ "$LEGACY_CACHE" != "$CACHE" ]; then
+        cp "$LEGACY_CACHE" "$CACHE" || exit 1
+      fi
       touch "$CACHE" || exit 1
       if [ -n "${KEYS_CMD:-}" ]; then
         sh -c "$KEYS_CMD"
