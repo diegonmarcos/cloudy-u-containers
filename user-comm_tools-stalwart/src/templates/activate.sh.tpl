@@ -32,6 +32,8 @@ SIEVE_FILE="$CONFIGS_DIR/default.sieve"
 MTA_ROUTES_FILE="$CONFIGS_DIR/mta-routes.json"
 APPLY_ROUTES_PY="$CONFIGS_DIR/apply-mta-routes.py"
 APPLY_CERT_PY="$CONFIGS_DIR/apply-tls-cert.py"
+LEDGER_FILE="$CONFIGS_DIR/delivery-ledger.json"
+APPLY_LEDGER_PY="$CONFIGS_DIR/apply-delivery-ledger.py"
 TLS_DIR="/opt/containers/maddy/tls"
 
 # Admin identity sourced from build.json#users.admin (data-driven). The
@@ -573,7 +575,29 @@ if changed:
     print("  [tracer] changed — takes effect on the next stalwart container restart")
 PYEOF
 
-echo "[activate] Done — folders + sieve + mta routes + tls cert + allowed-ip + throttle cap + log tracer ensured"
+# ── Step I: delivery-status ledger (#1802, admin scope) ─────────────────
+# Data: $LEDGER_FILE (build.json#delivery_ledger via the flake). Engine:
+# $APPLY_LEDGER_PY upserts one WebHook + one MtaHook matched by url. A failure
+# here is reported (tally ledger_failed) but is NOT a provisioning failure:
+# mail flows identically with or without the ledger, so it never turns the
+# ship red on its own. Telemetry subscribers are built at process start, so a
+# NEW or re-evented WebHook needs one stalwart restart — done here, only then,
+# and followed by a wait for the admin API so the ship's health check sees a
+# live server.
+if [ -s "$LEDGER_FILE" ] && [ -f "$APPLY_LEDGER_PY" ]; then
+  echo "[activate] Ensuring delivery-status ledger hooks (WebHook + MtaHook)..."
+  LEDGER_OUT=$(python3 "$APPLY_LEDGER_PY" "$LEDGER_FILE" "$BASE" "$ADMIN_EMAIL:$ADMIN_PW" 2>&1) || tally ledger_failed "apply-delivery-ledger.py rc=$?"
+  printf '%s\n' "$LEDGER_OUT"
+  if printf '%s' "$LEDGER_OUT" | grep -q 'RESULT .*restart=1'; then
+    echo "[activate]   webhook created/changed — restarting stalwart so the telemetry subscriber starts"
+    docker restart stalwart >/dev/null 2>&1 || tally ledger_failed "docker restart stalwart failed"
+    _i=0
+    until curl -sk -o /dev/null -m 5 "$BASE/jmap/session" 2>/dev/null || [ "$_i" -ge 30 ]; do _i=$((_i+1)); sleep 2; done
+    echo "[activate]   stalwart back after restart (waited $((_i*2))s)"
+  fi
+fi
+
+echo "[activate] Done — folders + sieve + mta routes + tls cert + allowed-ip + throttle cap + log tracer + delivery ledger ensured"
 
 # ── Verdict, cashed in LAST so every step above still ran ─────────────
 # One machine-readable line, then the exit code. The ship engine propagates
@@ -589,7 +613,8 @@ MAILBOXES_CREATED=$(tally_count mailboxes_created)
 MAILBOXES_FAILED=$(tally_count mailboxes_failed)
 SIEVE_OK=$(tally_count sieve_ok)
 SIEVE_FAILED=$(tally_count sieve_failed)
-echo "[activate] SUMMARY revision=${SHIP_REVISION:-unknown} accounts_created=$ACCOUNTS_CREATED accounts_failed=$ACCOUNTS_FAILED users_ok=$USERS_OK users_failed=$USERS_FAILED mailboxes_created=$MAILBOXES_CREATED mailboxes_failed=$MAILBOXES_FAILED sieve_ok=$SIEVE_OK sieve_failed=$SIEVE_FAILED"
+LEDGER_FAILED=$(tally_count ledger_failed)
+echo "[activate] SUMMARY revision=${SHIP_REVISION:-unknown} ledger_failed=$LEDGER_FAILED accounts_created=$ACCOUNTS_CREATED accounts_failed=$ACCOUNTS_FAILED users_ok=$USERS_OK users_failed=$USERS_FAILED mailboxes_created=$MAILBOXES_CREATED mailboxes_failed=$MAILBOXES_FAILED sieve_ok=$SIEVE_OK sieve_failed=$SIEVE_FAILED"
 
 TOTAL_FAILED=$((ACCOUNTS_FAILED + USERS_FAILED + MAILBOXES_FAILED + SIEVE_FAILED))
 if [ "$TOTAL_FAILED" -gt 0 ]; then

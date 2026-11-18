@@ -38,6 +38,12 @@ let
       inherit (child) name path;
       url = "http://${s.ip}:${toString s.ports.app}${child.path}";
     };
+  # #1802/#1803 delivery REST surface (build.json#delivery_api) -> env for code/mcp/delivery/index.ts.
+  dapi   = buildJson.delivery_api or {};
+  dprobe = dapi.probe or {};
+  csv    = l: builtins.concatStringsSep "," l;
+  probeOverrides = csv (map (d: "${d}=${dprobe.overrides.${d}}") (builtins.attrNames (dprobe.overrides or {})));
+
   proxiedMcpsJson = builtins.toJSON {
     children = map resolveChild proxyCfg.children;
     retry    = proxyCfg.retry;
@@ -75,6 +81,20 @@ in
         STALWART_JMAP_URL   = stalwartJmap;
         STALWART_ADMIN_URL  = stalwartJmap;
         PROXIED_MCPS        = proxiedMcpsJson;
+        DELIVERY_LEDGER_PATH    = dapi.ledger_path or "/data/delivery-ledger.jsonl";
+        DELIVERY_RETENTION_DAYS = toString (dapi.retention_days or 90);
+        DELIVERY_RELAY_HOSTS    = csv (dapi.relay_hosts or []);
+        DELIVERY_LOCAL_DOMAINS  = csv (dapi.local_domains or []);
+        DELIVERY_INGEST_ALLOWED = csv (dapi.ingest_allowed or [ mailWgIp ]);
+        DELIVERY_DNS_SERVERS    = csv (dapi.dns_servers or []);
+        PROBE_HELO              = dprobe.helo or "localhost";
+        PROBE_MAIL_FROM         = dprobe.mail_from or "";
+        PROBE_PORT              = toString (dprobe.port or 25);
+        PROBE_TIMEOUT_MS        = toString (dprobe.timeout_ms or 8000);
+        PROBE_OVERRIDES         = probeOverrides;
+        RECIPIENT_CACHE_TTL_MS         = toString (dapi.recipient_cache_ttl_ms or 21600000);
+        RECIPIENT_CACHE_TTL_UNKNOWN_MS = toString (dapi.recipient_cache_ttl_unknown_ms or 900000);
+        RECIPIENT_RATE_LIMIT           = toString (dapi.recipient_rate_limit_per_min or 60);
       };
       # ssh-keys.nix populates /opt/ssh-keys/<container>/ from build.json `ssh`. The two secret mounts are what
       # the Ship render (vault overlaid) adds; declaring them keeps the public render identical (no dist drift).
@@ -82,6 +102,8 @@ in
         "/opt/ssh-keys/${name}:/root/.ssh:ro"
         "./.secrets.d:/run/secrets:ro"
         "./.secrets.json:/run/secrets.json:ro"
+        # #1802 delivery-status ledger (JSONL). deploy.excludes keeps rsync off it.
+        "./data:/data"
       ];
       deploy.resources = {
         reservations = { memory = app.resources.mem_reservation; };

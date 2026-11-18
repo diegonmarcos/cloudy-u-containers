@@ -1,0 +1,47 @@
+{
+ "mx1.remote.example": [
+  "220 mx1.remote.example ESMTP",
+  "250-mx1.remote.example\n250-PIPELINING\n250-SIZE 52428800\n250 8BITMIME",
+  "250 2.1.0 Ok",
+  {
+   "if_rcpt": "alice@remote.example",
+   "then": "250 2.1.5 Ok",
+   "else": "550 5.1.1 <nobody@remote.example>: Recipient address rejected: User unknown"
+  },
+  "550 5.1.1 <probe@remote.example>: Recipient address rejected: User unknown",
+  "250 2.0.0 Ok",
+  "221 2.0.0 Bye"
+ ],
+ "mx.catchall.example": [
+  "220 mx.catchall.example ESMTP",
+  "250-mx.catchall.example\n250 SIZE 10240000",
+  "250 2.1.0 Ok",
+  "250 2.1.5 Ok",
+  "250 2.1.5 Ok",
+  "250 2.0.0 Ok",
+  "221 Bye"
+ ],
+ "mx.grey.example": [
+  "220 mx.grey.example ESMTP",
+  "250 mx.grey.example",
+  "250 2.1.0 Ok",
+  "451 4.7.1 Greylisted, try again later",
+  "250 2.0.0 Ok",
+  "221 Bye"
+ ],
+ "10.0.0.3": [
+  "220 mail Stalwart ESMTP",
+  "250-mail\n250-SIZE 104857600\n250 ENHANCEDSTATUSCODES",
+  "250 2.1.0 OK",
+  {
+   "if_rcpt": "sender@example.org",
+   "then": "250 2.1.5 OK",
+   "else": "550 5.1.2 Mailbox does not exist."
+  },
+  "550 5.1.2 Mailbox does not exist.",
+  "250 2.0.0 OK",
+  "221 2.0.0 Bye"
+ ],
+ "mx.blocked.example": "ECONNREFUSED",
+ "mx1.disposable": "ETIMEDOUT"
+}

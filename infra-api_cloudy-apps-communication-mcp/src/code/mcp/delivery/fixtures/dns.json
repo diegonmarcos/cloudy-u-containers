@@ -1,0 +1,63 @@
+{
+ "txt": {
+  "example.org": [
+   "v=spf1 include:eu-marseille-1.rp.oracleemaildelivery.com ~all",
+   "google-site-verification=x"
+  ],
+  "_dmarc.example.org": [
+   "v=DMARC1; p=quarantine; adkim=r; aspf=r"
+  ]
+ },
+ "mx": {
+  "remote.example": [
+   {
+    "exchange": "mx1.remote.example",
+    "priority": 10
+   },
+   {
+    "exchange": "mx2.remote.example",
+    "priority": 20
+   }
+  ],
+  "catchall.example": [
+   {
+    "exchange": "mx.catchall.example",
+    "priority": 5
+   }
+  ],
+  "grey.example": [
+   {
+    "exchange": "mx.grey.example",
+    "priority": 5
+   }
+  ],
+  "nullmx.example": [
+   {
+    "exchange": "",
+    "priority": 0
+   }
+  ],
+  "noemail.example": [],
+  "implicit.example": [],
+  "example.org": [
+   {
+    "exchange": "mx.example.org",
+    "priority": 10
+   }
+  ],
+  "blocked.example": [
+   {
+    "exchange": "mx.blocked.example",
+    "priority": 10
+   }
+  ]
+ },
+ "nxdomain": [
+  "nosuchdomain.example"
+ ],
+ "a": {
+  "implicit.example": [
+   "192.0.2.10"
+  ]
+ }
+}

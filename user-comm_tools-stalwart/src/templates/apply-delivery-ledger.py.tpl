@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+# #1802 delivery-status ledger: declare Stalwart's own records of every
+# submission + delivery as two registry objects, built from
+# build.json#delivery_ledger (emitted by the flake as configs/delivery-ledger.json).
+#
+#   WebHook  (telemetry subscriber) -> queue/delivery/DSN/sender-auth events,
+#            POSTed as {"events":[{id,createdAt,type,data}]} batches.
+#   MtaHook  (stage data)           -> Message-ID / header From / SASL login /
+#            queue id of each authenticated submission, and the body of every
+#            null-sender message (bounces/DSNs), POSTed synchronously.
+#
+# Neither object has a name, so both are matched by `url`: an object with the
+# declared url is updated in place, a missing one is created, nothing else is
+# touched (no destroy — other webhooks/hooks an operator added stay).
+#
+# Schema: stalwartlabs/stalwart v0.16.5 crates/registry/src/schema/structs.rs
+#   WebHook { url, enable, events: Map<EventType> ({"name":true}), eventsPolicy,
+#             throttle/timeout/discardAfter (ms numbers), httpAuth, signatureKey, lossy, level }
+#   MtaHook { url, enable: Expression {match, else}, stages: Map<MtaStage>,
+#             tempFailOnError, timeout (ms), maxResponseSize, httpAuth }
+#
+# argv: <delivery-ledger.json> <base-url> <user:pass>
+# Prints one "[ledger] RESULT changed=<0|1> restart=<0|1> webhook=<state> mtahook=<state>" line;
+# exit 0 on success, 1 when either object could not be applied.
+import sys, json, ssl, base64
+from urllib import request as ur, error as ue
+
+if len(sys.argv) < 4:
+    print("usage: apply-delivery-ledger.py <delivery-ledger.json> <base-url> <user:pass>", file=sys.stderr)
+    sys.exit(2)
+
+cfg_path, base, auth = sys.argv[1:4]
+with open(cfg_path) as f:
+    cfg = json.load(f)
+if not cfg or not cfg.get("webhook_url"):
+    print("  [ledger] no delivery_ledger declared — skipping")
+    print("[ledger] RESULT changed=0 restart=0 webhook=absent mtahook=absent")
+    sys.exit(0)
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+AUTH = "Basic " + base64.b64encode(auth.encode()).decode()
+
+def jmap(calls):
+    body = json.dumps({"using": ["urn:ietf:params:jmap:core", "urn:stalwart:jmap"],
+                       "methodCalls": calls}).encode()
+    req = ur.Request(base + "/jmap/", data=body, method="POST",
+                     headers={"Content-Type": "application/json", "Authorization": AUTH})
+    try:
+        return json.loads(ur.urlopen(req, context=ctx, timeout=20).read())
+    except ue.HTTPError as e:
+        return {"error": e.code, "body": e.read().decode(errors="replace")[:300]}
+    except Exception as e:  # connection refused, timeout
+        return {"error": str(e)}
+
+def first(resp):
+    return ((resp.get("methodResponses") or [[None, {}]])[0] or [None, {}])[1] or {}
+
+try:
+    req = ur.Request(base + "/jmap/session", headers={"Authorization": AUTH})
+    s = json.loads(ur.urlopen(req, context=ctx, timeout=10).read())
+except Exception as e:
+    print(f"  [ledger] FAIL /jmap/session: {e}")
+    print("[ledger] RESULT changed=0 restart=0 webhook=error mtahook=error")
+    sys.exit(1)
+acct = (s.get("primaryAccounts", {}).get("urn:stalwart:jmap")
+        or next(iter(s.get("accounts", {})), None))
+
+webhook = {
+    "@type": "WebHook",
+    "url": cfg["webhook_url"],
+    "enable": True,
+    "events": {e: True for e in cfg.get("events", [])},
+    "eventsPolicy": "include",
+    "level": "info",
+    "lossy": False,
+    "throttle": int(cfg.get("webhook_throttle_ms", 1000)),
+    "timeout": 10000,
+    "discardAfter": int(cfg.get("webhook_discard_after_ms", 3600000)),
+    "allowInvalidCerts": False,
+    "httpAuth": {"@type": "Unauthenticated"},
+    "signatureKey": {"@type": "None"},
+}
+mtahook = {
+    "@type": "MtaHook",
+    "url": cfg["mta_hook_url"],
+    "enable": {"match": {}, "else": cfg.get("mta_hook_enable", "!is_empty(authenticated_as)")},
+    "stages": {"data": True},
+    # Never let the ledger hold mail hostage: an unreachable API means the
+    # message is accepted without a ledger row, not a 4xx to the sender.
+    "tempFailOnError": False,
+    "timeout": int(cfg.get("mta_hook_timeout_ms", 5000)),
+    "maxResponseSize": 65536,
+    "allowInvalidCerts": False,
+    "httpAuth": {"@type": "Unauthenticated"},
+}
+
+# Properties compared to decide "already in the declared state". @type is a
+# variant discriminator and is set-once, so it is never sent in an update.
+def differs(live, want):
+    for k, v in want.items():
+        if k in ("@type", "signatureKey", "httpAuth"):
+            continue
+        if live.get(k) != v:
+            return True
+    return False
+
+changed = False
+# Telemetry subscribers (WebHook) are built at process start; ReloadSettings
+# covers the MtaHook (session config) but not a new/changed subscriber. So the
+# caller restarts stalwart ONLY when the webhook was created or its event set
+# changed — never on a no-op ship.
+restart = False
+status = {}
+rc = 0
+for obj_type, want, key in (("x:WebHook", webhook, "webhook"), ("x:MtaHook", mtahook, "mtahook")):
+    r = jmap([[f"{obj_type}/get", {"accountId": acct, "ids": None}, "0"]])
+    got = first(r)
+    if "list" not in got:
+        print(f"  [ledger] FAIL {obj_type}/get: {json.dumps(r)[:300]}")
+        status[key] = "error"; rc = 1
+        continue
+    live = next((o for o in got["list"] if o.get("url") == want["url"]), None)
+    if live is None:
+        rr = first(jmap([[f"{obj_type}/set", {"accountId": acct, "create": {"n": want}}, "0"]]))
+        if rr.get("created"):
+            print(f"  [ledger] created {obj_type} -> {want['url']}")
+            status[key] = "created"; changed = True
+            restart = restart or key == "webhook"
+        else:
+            print(f"  [ledger] FAIL create {obj_type}: {json.dumps(rr.get('notCreated') or rr)[:400]}")
+            status[key] = "error"; rc = 1
+    elif differs(live, want):
+        patch = {k: v for k, v in want.items() if k != "@type"}
+        rr = first(jmap([[f"{obj_type}/set", {"accountId": acct, "update": {live["id"]: patch}}, "0"]]))
+        if rr.get("updated") is not None and live["id"] in (rr.get("updated") or {}):
+            print(f"  [ledger] updated {obj_type} {live['id']} -> {want['url']}")
+            status[key] = "updated"; changed = True
+            restart = restart or (key == "webhook" and (live.get("events") != want["events"] or live.get("enable") is not True))
+        else:
+            print(f"  [ledger] FAIL update {obj_type}: {json.dumps(rr.get('notUpdated') or rr)[:400]}")
+            status[key] = "error"; rc = 1
+    else:
+        print(f"  [ledger] {obj_type} present and in declared state ({live['id']})")
+        status[key] = "present"
+
+if changed:
+    for variant in ("ReloadSettings", "InvalidateCaches"):
+        rr = first(jmap([["x:Action/set", {"accountId": acct, "create": {"a": {"@type": variant}}}, "0"]]))
+        print(f"  [ledger] {variant}: {'dispatched' if rr.get('created') else 'NOT dispatched ' + json.dumps(rr)[:200]}")
+
+print(f"[ledger] RESULT changed={1 if changed else 0} restart={1 if restart else 0} webhook={status.get('webhook')} mtahook={status.get('mtahook')}")
+sys.exit(rc)

@@ -1,0 +1,55 @@
+{
+ "Domain": [
+  {
+   "id": "d1",
+   "name": "example.org",
+   "isEnabled": true
+  }
+ ],
+ "Account": [
+  {
+   "id": "a1",
+   "@type": "User",
+   "name": "sender",
+   "domainId": "d1",
+   "emailAddress": "sender@example.org",
+   "aliases": {
+    "0": {
+     "enabled": true,
+     "name": "hello",
+     "domainId": "d1"
+    }
+   }
+  }
+ ],
+ "DkimSignature": [
+  {
+   "id": "k1",
+   "@type": "Dkim1RsaSha256",
+   "domainId": "d1",
+   "selector": "rsa-2026",
+   "stage": "active"
+  },
+  {
+   "id": "k2",
+   "@type": "Dkim1Ed25519Sha256",
+   "domainId": "d1",
+   "selector": "ed-2025",
+   "stage": "retired"
+  }
+ ],
+ "SenderAuth": [
+  {
+   "id": "singleton",
+   "dkimSignDomain": {
+    "match": {
+     "0": {
+      "if": "is_local_domain(sender_domain) && !is_empty(authenticated_as)",
+      "then": "sender_domain"
+     }
+    },
+    "else": "false"
+   }
+  }
+ ]
+}

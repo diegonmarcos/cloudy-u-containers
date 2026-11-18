@@ -1,0 +1,55 @@
+{
+ "context": {
+  "stage": "data",
+  "client": {
+   "ip": "10.0.0.3",
+   "port": 40000,
+   "ptr": null,
+   "helo": "bridge",
+   "activeConnections": 1
+  },
+  "server": {
+   "name": "Stalwart",
+   "port": 25,
+   "ip": "172.18.0.4"
+  },
+  "queue": {
+   "id": "aa11"
+  },
+  "protocol": {
+   "version": 1
+  }
+ },
+ "envelope": {
+  "from": {
+   "address": ""
+  },
+  "to": [
+   {
+    "address": "sender@example.org"
+   }
+  ]
+ },
+ "message": {
+  "headers": [
+   [
+    "From",
+    " Mail Delivery System <MAILER-DAEMON@mx1.remote.example>\r\n"
+   ],
+   [
+    "To",
+    " sender@example.org\r\n"
+   ],
+   [
+    "Subject",
+    " Undelivered Mail Returned to Sender\r\n"
+   ],
+   [
+    "Content-Type",
+    " multipart/report; report-type=delivery-status;\r\n\tboundary=\"BOUND\"\r\n"
+   ]
+  ],
+  "contents": "--BOUND\r\nContent-Type: text/plain\r\n\r\nYour message could not be delivered.\r\n--BOUND\r\nContent-Type: message/delivery-status\r\n\r\nReporting-MTA: dns; mx1.remote.example\r\nArrival-Date: Wed, 18 Nov 2026 10:00:05 +0000\r\n\r\nFinal-Recipient: rfc822; alice@remote.example\r\nAction: failed\r\nStatus: 5.2.2\r\nRemote-MTA: dns; mx1.remote.example\r\nDiagnostic-Code: smtp; 552 5.2.2 Mailbox full\r\nLast-Attempt-Date: Wed, 18 Nov 2026 10:00:06 +0000\r\n--BOUND\r\nContent-Type: text/rfc822-headers\r\n\r\nFrom: Sender <sender@example.org>\r\nTo: alice@remote.example\r\nSubject: lunch\r\nMessage-ID: <CAF00d1e.4711@phone.example.org>\r\n\r\n--BOUND--\r\n",
+  "size": 611
+ }
+}

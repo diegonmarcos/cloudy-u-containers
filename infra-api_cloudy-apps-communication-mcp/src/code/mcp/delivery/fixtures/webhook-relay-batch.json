@@ -1,0 +1,85 @@
+{
+ "events": [
+  {
+   "id": "1763460000077",
+   "createdAt": "2026-11-18T10:00:01Z",
+   "type": "queue.authenticated-message-queued",
+   "data": {
+    "spanId": 17761543025710800897,
+    "queueId": 289356276058554411,
+    "from": "sender@example.org",
+    "to": [
+     "alice@remote.example",
+     "bob@remote.example",
+     "carol@example.org"
+    ],
+    "size": 4211,
+    "nextRetry": "2026-11-18T10:00:01Z",
+    "nextDsn": "2026-11-18T14:00:01Z",
+    "expires": "2026-11-23T10:00:01Z"
+   }
+  },
+  {
+   "id": "1763460001077",
+   "createdAt": "2026-11-18T10:00:02Z",
+   "type": "delivery.attempt-start",
+   "data": {
+    "spanId": 17761543025710800960,
+    "queueId": 289356276058554411,
+    "queueName": "default",
+    "from": "sender@example.org",
+    "to": [
+     "alice@remote.example",
+     "bob@remote.example",
+     "carol@example.org"
+    ],
+    "size": 4211,
+    "total": 3
+   }
+  },
+  {
+   "id": "1763460002084",
+   "createdAt": "2026-11-18T10:00:03Z",
+   "type": "delivery.delivered",
+   "data": {
+    "spanId": 17761543025710800960,
+    "hostname": "smtp.email.eu-marseille-1.oci.oraclecloud.com",
+    "to": "alice@remote.example",
+    "code": 250,
+    "details": "2.0.0 Ok: queued as 7F3A2",
+    "elapsed": 812
+   }
+  },
+  {
+   "id": "1763460002109",
+   "createdAt": "2026-11-18T10:00:03Z",
+   "type": "delivery.rcpt-to-rejected",
+   "data": {
+    "spanId": 17761543025710800960,
+    "hostname": "smtp.email.eu-marseille-1.oci.oraclecloud.com",
+    "to": "bob@remote.example",
+    "code": 550,
+    "details": "5.1.1 Recipient address rejected: suppressed (hard bounce)",
+    "elapsed": 30
+   }
+  },
+  {
+   "id": "1763460003080",
+   "createdAt": "2026-11-18T10:00:04Z",
+   "type": "delivery.completed",
+   "data": {
+    "spanId": 17761543025710800960,
+    "elapsed": 3000
+   }
+  },
+  {
+   "id": "1763460003999",
+   "createdAt": "2026-11-18T10:00:04Z",
+   "type": "imap.connect",
+   "data": {
+    "spanId": "1",
+    "remoteIp": "10.0.0.6"
+   }
+  }
+ ]
+}

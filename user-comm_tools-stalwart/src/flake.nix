@@ -146,6 +146,11 @@
     # at activation time.
     mtaRoutesJson = builtins.toJSON (buildJson.mta_routes or []);
 
+    # #1802 delivery-status ledger — build.json#delivery_ledger emitted as a
+    # data-only sibling (configs/delivery-ledger.json); activate.sh Step I
+    # hands it to apply-delivery-ledger.py, which upserts the WebHook + MtaHook.
+    deliveryLedgerJson = builtins.toJSON (buildJson.delivery_ledger or {});
+
   in {
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -172,6 +177,9 @@
           { name = "apply-mta-routes.py"; vars = {}; }
           # Python helper: upsert LE wildcard cert as JMAP Certificate object.
           { name = "apply-tls-cert.py"; vars = {}; }
+          # #1802: delivery-status ledger data + its JMAP upsert helper.
+          { name = "delivery-ledger.json"; text = deliveryLedgerJson; }
+          { name = "apply-delivery-ledger.py"; vars = {}; }
         ];
         # mail-rules.json bind-mounted from dist/assets/. The sorter itself is
         # compiled into its own image (build.json::docker.native_build).

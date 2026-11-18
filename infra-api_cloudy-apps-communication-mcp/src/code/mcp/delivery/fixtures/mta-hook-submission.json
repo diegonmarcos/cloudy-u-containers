@@ -1,0 +1,76 @@
+{
+ "context": {
+  "stage": "data",
+  "client": {
+   "ip": "10.0.0.9",
+   "port": 51234,
+   "ptr": null,
+   "helo": "phone",
+   "activeConnections": 1
+  },
+  "sasl": {
+   "login": "sender"
+  },
+  "tls": {
+   "version": "TLSv1.3",
+   "cipher": "TLS13_AES_256_GCM_SHA384"
+  },
+  "server": {
+   "name": "Stalwart",
+   "port": 465,
+   "ip": "172.18.0.4"
+  },
+  "queue": {
+   "id": "40400000000002b"
+  },
+  "protocol": {
+   "version": 1
+  }
+ },
+ "envelope": {
+  "from": {
+   "address": "sender@example.org"
+  },
+  "to": [
+   {
+    "address": "alice@remote.example"
+   },
+   {
+    "address": "bob@remote.example"
+   },
+   {
+    "address": "carol@example.org"
+   }
+  ]
+ },
+ "message": {
+  "headers": [
+   [
+    "From",
+    " Sender <sender@example.org>\r\n"
+   ],
+   [
+    "To",
+    " alice@remote.example, bob@remote.example\r\n"
+   ],
+   [
+    "Cc",
+    " carol@example.org\r\n"
+   ],
+   [
+    "Subject",
+    " lunch\r\n"
+   ],
+   [
+    "Message-ID",
+    " <CAF00d1e.4711@phone.example.org>\r\n"
+   ],
+   [
+    "Date",
+    " Wed, 18 Nov 2026 10:00:00 +0000\r\n"
+   ]
+  ],
+  "contents": "see you at noon\r\n",
+  "size": 4100
+ }
+}

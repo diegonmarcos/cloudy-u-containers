@@ -4,6 +4,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { registerMetaTool } from "./tools/meta.js";
 import { registerMattermostTool } from "./mattermost/meta.js";
 import { registerProxiedMcpTools, startProxyRetryLoop } from "./shared/proxy-mcp.js";
+import { deliveryDeps, handleDeliveryRest } from "./delivery/index.ts";
 
 const log = (msg: string) => process.stderr.write(`[cloudy-apps-communication-mcp-http] ${msg}\n`);
 const SESSION_ID = "cloudy-apps-communication-mcp-session";
@@ -77,8 +78,14 @@ async function initSession(port: number): Promise<void> {
 
 export function startMcpHttpServer(port: number = 3103): Promise<void> {
   return new Promise((resolve) => {
+    // Build the delivery ledger at start (replays its JSONL), not on the first request.
+    deliveryDeps();
     const httpServer = createServer(async (req, res) => {
-      try { await handleMcpRequest(req, res); }
+      try {
+        // #1802/#1803 REST routes (/v1/...) answer first; everything else is MCP.
+        if (await handleDeliveryRest(req, res)) return;
+        await handleMcpRequest(req, res);
+      }
       catch (err) { log(`Error: ${err}`); if (!res.headersSent) { res.writeHead(500); res.end(JSON.stringify({ error: "Internal Server Error" })); } }
     });
     // Bind host is configurable, defaulting to 0.0.0.0 for backward
