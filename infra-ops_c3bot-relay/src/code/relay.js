@@ -11,8 +11,11 @@ export function chunkText(text, max = TELEGRAM_MAX) {
   return out;
 }
 
+import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+
 export class Relay {
-  constructor({ bufferSize = 500, allowedFrom = [], dedupeSize = 2000 } = {}) {
+  constructor({ bufferSize = 500, allowedFrom = [], dedupeSize = 2000, statePath = '', saveDelayMs = 200 } = {}) {
     this.bufferSize = bufferSize;
     this.dedupeSize = dedupeSize;
     this.seen = new Set();     // dedupe keys across webhook and getUpdates delivery, insertion ordered
@@ -23,12 +26,44 @@ export class Relay {
     this.seq = 0;
     this.subs = new Set(); // fn(event)
     this.waiters = new Set();
+    // Restart safety (#1795): the event ring, the cursor and the dedupe keys survive a redeploy when statePath is set
+    // (a file on a persistent volume). Writes are debounced and atomic (tmp + rename). A missing or unreadable file starts
+    // empty; an unwritable one keeps the relay running in memory and is reported in persist (shown by /health).
+    this.statePath = statePath; this.saveDelayMs = saveDelayMs; this.saveTimer = null;
+    this.persist = { enabled: !!statePath, loaded: false, lastSaveAt: null, error: null };
+    if (statePath) this.load();
   }
+  load() {
+    try {
+      const j = JSON.parse(readFileSync(this.statePath, 'utf8'));
+      if (Array.isArray(j.events)) this.events = j.events.slice(-this.bufferSize);
+      this.seq = Math.max(+j.seq || 0, this.events.length ? this.events[this.events.length - 1].seq : 0);
+      if (Array.isArray(j.seen)) this.seen = new Set(j.seen.slice(-this.dedupeSize));
+      this.persist.loaded = true;
+    } catch (e) { if (e.code !== 'ENOENT') this.persist.error = `load: ${e.message}`; }
+  }
+  save() {
+    if (!this.statePath) return;
+    try {
+      mkdirSync(dirname(this.statePath), { recursive: true });
+      const tmp = `${this.statePath}.tmp`;
+      writeFileSync(tmp, JSON.stringify({ v: 1, seq: this.seq, events: this.events, seen: [...this.seen] }));
+      renameSync(tmp, this.statePath);
+      this.persist.lastSaveAt = Date.now(); this.persist.error = null;
+    } catch (e) { this.persist.error = `save: ${e.message}`; }
+  }
+  scheduleSave() {
+    if (!this.statePath || this.saveTimer) return;
+    this.saveTimer = setTimeout(() => { this.saveTimer = null; this.save(); }, this.saveDelayMs);
+    this.saveTimer.unref?.();
+  }
+  flush() { if (this.saveTimer) { clearTimeout(this.saveTimer); this.saveTimer = null; } this.save(); }
   get cursor() { return this.seq; }
   publish(type, data) {
     const ev = { seq: ++this.seq, ts: Date.now(), type, ...data };
     this.events.push(ev);
     if (this.events.length > this.bufferSize) this.events.shift();
+    this.scheduleSave();
     for (const s of this.subs) { try { s(ev); } catch { /* one bad subscriber never blocks the rest */ } }
     for (const w of [...this.waiters]) w();
     return ev;

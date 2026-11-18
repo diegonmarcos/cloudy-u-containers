@@ -26,6 +26,7 @@ if (!TOKEN && env.NODE_ENV !== 'test') { console.error('FATAL: C3BOT_RELAY_TOKEN
 export const relay = new Relay({
   bufferSize: +(env.BUFFER_SIZE || 500),
   allowedFrom: (env.C3BOT_ALLOWED_FROM || '').split(',').map((s) => s.trim()).filter(Boolean),
+  statePath: env.RELAY_STATE_FILE || '',
 });
 const TG_BASE = env.TELEGRAM_API_BASE || undefined;
 const WEBHOOK_SECRET = env.C3BOT_WEBHOOK_SECRET || '';
@@ -59,7 +60,7 @@ const route = (req) => {
 };
 const health = () => ({
   ok: true, telegram: telegram.state, telegramError: telegram.lastError, cursor: relay.cursor, clients, transports: ['ws', 'sse', 'poll'],
-  tokenConfigured: !!TOKEN, botConfigured: botA.configured, lease: { held: !!lease.live(), expiresAt: lease.live() ? lease.expiresAt : null },
+  tokenConfigured: !!TOKEN, botConfigured: botA.configured, lease: { held: !!lease.live(), expiresAt: lease.live() ? lease.expiresAt : null }, persist: relay.persist,
   ingest: { ...failover.snapshot(), webhookSecretConfigured: !!WEBHOOK_SECRET, botA: botA.state, polling: pollEnabled, dupes: relay.dupes },
 });
 
@@ -211,5 +212,5 @@ if (env.NODE_ENV !== 'test') {
   const every = +(env.CHECK_INTERVAL_S || 60) * 1000;
   healthTick().catch(() => {});
   const timer = setInterval(() => healthTick().catch(() => {}), every);
-  for (const s of ['SIGTERM', 'SIGINT']) process.on(s, () => { clearInterval(timer); telegram.stop(); server.close(); process.exit(0); });
+  for (const s of ['SIGTERM', 'SIGINT']) process.on(s, () => { clearInterval(timer); relay.flush(); telegram.stop(); server.close(); process.exit(0); });
 }

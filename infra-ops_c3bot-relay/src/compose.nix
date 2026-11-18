@@ -21,6 +21,9 @@ in
       volumes = [
         "./.secrets.d:/run/secrets:ro"
         "./.secrets.json:/run/secrets.json:ro"
+        # #1795 restart safety: the relay's event ring, cursor and dedupe keys (no secrets). Mounted over the node user's
+        # home so the volume is populated from the image with node ownership and the unprivileged process can write it.
+        "c3bot_relay_state:/home/node"
       ];
       environment = {
         PORT = port;
@@ -35,6 +38,7 @@ in
         C3BOT_WEBHOOK_URL = "https://c3-pub.diegonmarcos.com/c3bot-webhook";
         HEALTH_WINDOW_S = toString app.limits.health_window_s;
         CHECK_INTERVAL_S = toString app.limits.check_interval_s;
+        RELAY_STATE_FILE = "/home/node/c3bot-relay/state.json";
       };
       deploy.resources = {
         limits = {
@@ -51,5 +55,9 @@ in
         start_period = "10s";
       };
     };
+  };
+
+  volumes = {
+    c3bot_relay_state = {};
   };
 }
