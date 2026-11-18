@@ -59,6 +59,10 @@ in
         PORT                = port;
         MCP_HTTP_PORT       = port;
         MCP_HTTP_HOST       = vmIp;
+        # Mattermost runs on this VM bound to the WG IP (user-comm_chat-mattermost ports.app, oci-apps), never on
+        # loopback: the MM_URL=http://127.0.0.1:8065 carried by the secrets file made every mattermost call
+        # "fetch failed". environment wins over env_file, so the declared address is the one used.
+        MM_URL              = "http://${vmIp}:8065";
         MAIL_HOST           = mh.maddy;
         MADDY_HOST          = mh.maddy;
         MADDY_SMTP_IP       = mailWgIp;
