@@ -3,11 +3,6 @@
     # 2026-07-09.
 @PUBLIC_BIND_LINE@
 @MESH_GUARD@
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+@TLS_BLOCK@
     respond "DB catalog — container=@CONTAINER@ engine=@ENGINE@ port=@PORT@ upstream=@UPSTREAM@ path=@DB_PATH@ vm=@VM@" 200
   }

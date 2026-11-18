@@ -3,12 +3,7 @@
     # 2026-07-09.
 @PUBLIC_BIND_LINE@
 @MESH_GUARD@
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+@TLS_BLOCK@
     reverse_proxy @UPSTREAM@ {
 @EMPTY_GUARD@
     }

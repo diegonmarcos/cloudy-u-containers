@@ -1328,11 +1328,7 @@ ${lib.concatStringsSep "\n" (lib.mapAttrsToList mkPubSink (lib.filterAttrs (n: _
   mkPrivateMeshRoute = e: ''
   ${withMesh e.service} {
 ${publicBindLine}
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+${meshTlsBlock { addr = withMesh e.service; }}
     @not_mesh not remote_ip ${meshOnlySources}
     error @not_mesh "Forbidden" 403
     handle {
@@ -1345,9 +1341,86 @@ ${handleErrors}
 '';
   privateMeshRoutes = caddyRoutes.private_mesh_routes or [];
 
+  # ── #1797: one publicly trusted wildcard for the single-label mesh names ──
+  # Android (and any client without the fleet's mesh-ca.crt installed) failed
+  # every <name>.mesh.diegonmarcos.com handshake with "Trust anchor for
+  # certification path not found": each vhost carried its own leaf from the
+  # private `pki { ca mesh }`. Decision (a): serve them all from ONE publicly
+  # trusted *.mesh.diegonmarcos.com certificate, issued by the global
+  # `acme_dns cloudflare` (DNS-01, Let's Encrypt with ZeroSSL fallback).
+  #
+  # How Caddy picks the wildcard: since 2.10 the TLS app skips managing any
+  # name for which a covering wildcard is also managed (caddytls.TLS.Manage ->
+  # managingWildcardFor) -- the old `auto_https prefer_wildcard` option is now
+  # the default and the keyword itself is REJECTED by the 2.10+ adapter, so it
+  # is deliberately not set. The *.mesh site block below puts the wildcard
+  # under management; every single-label mesh vhost renders with NO tls{}
+  # block (meshTlsBlock), so none of them gets a per-name certificate and
+  # their names never reach Certificate Transparency logs -- only
+  # "*.mesh.diegonmarcos.com" does. Never add `force_automate` or
+  # `tls_automate_names` with a public issuer for a mesh name: that re-enables
+  # per-name public issuance (and a CT entry). The only force_automate here is
+  # the private-CA pin for non-LDH labels (meshTlsBlock).
+  #
+  # Exposure is unchanged: the wildcard is a certificate, not a route. Every
+  # mesh vhost keeps @MESH_GUARD@ (@not_mesh -> 403), and the wildcard site
+  # itself is gated the same way and serves nothing (404 for an undeclared
+  # mesh name, 403 off-mesh).
+  #
+  # Private CA kept where the wildcard cannot reach: a wildcard covers ONE
+  # label, so the two-label cloud.<name>.mesh.diegonmarcos.com aliases
+  # (mkPrivateMeshRoute) and the bare *.db catalog names keep
+  # `issuer internal { ca mesh }` for now. Clients that pinned the mesh CA keep
+  # working on those, and on the single-label names they only need the
+  # system trust store, which every mesh-ca.crt install sits alongside.
+  meshDomain   = global.mesh_domain or "mesh.diegonmarcos.com";
+  meshWildcard = "*.${meshDomain}";
+  # Hosts of a site address (comma-separated), whitespace-trimmed.
+  addrHosts = addr:
+    let strip = h: builtins.head (builtins.match "[[:space:]]*([^[:space:]]*)[[:space:]]*" h);
+    in lib.filter (h: h != "") (map strip (lib.splitString "," addr));
+  # The single label in front of meshDomain, or null when h is not exactly one
+  # label under it (cloud.<name>.mesh, *.db, public names, ...).
+  meshLabel = h:
+    let sfx = ".${meshDomain}"; lbl = lib.removeSuffix sfx h;
+    in if lib.hasSuffix sfx h && lbl != "" && !(lib.hasInfix "." lbl) && !(lib.hasInfix "*" lbl) then lbl else null;
+  # Caddy hands the managed wildcard to EVERY one-label name under it, valid
+  # hostname or not, unless the site forces its own certificate.
+  wildcardWouldServe = addr: let hs = addrHosts addr; in hs != [] && lib.all (h: meshLabel h != null) hs;
+  # ...but only LDH labels are valid in a public certificate's SAN. The
+  # underscore canonical aliases (etherpad_app-http-3012.mesh...) keep their
+  # private-CA leaf, pinned with `force_automate` (and without on_demand) so
+  # the wildcard does not silently replace it (they were mesh-CA only before
+  # #1797 and stay so).
+  ldh = l: builtins.match "[a-z0-9]([a-z0-9-]*[a-z0-9])?" l != null;
+  coveredByMeshWildcard = addr:
+    wildcardWouldServe addr && lib.all (h: ldh (meshLabel h)) (addrHosts addr);
+  # tls{} for a mesh-gated vhost: nothing for wildcard-covered names (they are
+  # served from meshWildcard's public cert), the private mesh CA otherwise.
+  # Built line by line so the private-CA output stays byte-identical to the
+  # pre-#1797 templates.
+  meshTlsBlock = { addr, onDemand ? false }:
+    if coveredByMeshWildcard addr then
+      "    # TLS: served from the public ${meshWildcard} wildcard (#1797); no per-name cert."
+    else let pin = wildcardWouldServe addr; in lib.concatStringsSep "\n" (
+      [ (if pin then "    tls force_automate {" else "    tls {") ]
+      # on_demand defeats the pin: at handshake certmagic finds the cached
+      # wildcard before it would issue the on-demand leaf (verified on 2.11.9),
+      # so a pinned name is issued up front from the internal CA instead.
+      ++ lib.optional (onDemand && !pin) "      on_demand"
+      ++ [ "      issuer internal {" "        ca mesh" "      }" "    }" ]);
+
+  meshWildcardBlock = subst {
+    "@MESH_WILDCARD@"    = meshWildcard;
+    "@PUBLIC_BIND_LINE@" = publicBindLine;
+    "@MESH_GUARD@"       = meshGuard;
+    "@HANDLE_ERRORS@"    = handleErrors;
+  } (readTpl "36-mesh-wildcard.caddy.tpl");
+
   mkInternalRoute = route: subst {
     "@MESH_GUARD@"       = meshGuard;
     "@SERVICE@"          = withMesh route.service;
+    "@TLS_BLOCK@"        = meshTlsBlock { addr = withMesh route.service; };
     "@UPSTREAM@"         = route.upstream;
     "@EMPTY_GUARD@"      = emptyGuard;
     "@HANDLE_ERRORS@"    = handleErrors;
@@ -1357,6 +1430,7 @@ ${handleErrors}
   mkS3Route = route: subst {
     "@MESH_GUARD@"       = meshGuard;
     "@SERVICE@"          = withMesh route.service;
+    "@TLS_BLOCK@"        = meshTlsBlock { addr = withMesh route.service; };
     "@BUCKET@"           = route.bucket;
     "@S3_ENDPOINT@"      = route.s3_endpoint;
     "@S3_HOST@"          = route.s3_host;
@@ -1366,6 +1440,7 @@ ${handleErrors}
   mkCanonicalAppRoute = entry: subst {
     "@MESH_GUARD@"       = meshGuard;
     "@SERVICE@"          = withMesh entry.service;
+    "@TLS_BLOCK@"        = meshTlsBlock { addr = withMesh entry.service; onDemand = true; };
     "@UPSTREAM@"         = entry.upstream;
     "@EMPTY_GUARD@"      = emptyGuard;
     "@HANDLE_ERRORS@"    = handleErrors;
@@ -1376,6 +1451,7 @@ ${handleErrors}
   mkPortlessAppRoute = entry: subst {
     "@MESH_GUARD@"       = meshGuard;
     "@SERVICE@"          = withMesh entry.service;
+    "@TLS_BLOCK@"        = meshTlsBlock { addr = withMesh entry.service; onDemand = true; };
     "@PLACEHOLDER_MSG@"  = msgs.portless_placeholder;
     "@PUBLIC_BIND_LINE@" = publicBindLine;
   } portlessTpl;
@@ -1405,6 +1481,7 @@ ${handleErrors}
   mkDbPlaceholderRoute = e: subst {
     "@MESH_GUARD@"       = meshGuard;
     "@SERVICE@"          = e.service;
+    "@TLS_BLOCK@"        = meshTlsBlock { addr = e.service; onDemand = true; };
     "@CONTAINER@"        = e.container or "?";
     "@ENGINE@"           = e.engine or "?";
     "@PORT@"             = toString (e.port or 0);
@@ -1540,6 +1617,12 @@ ${mkProxyDashboardBlock}
   # ════════════════════════════════════════════════════════════
 
 ${lib.concatMapStringsSep "\n" mkInternalRoute (caddyRoutes.internal_routes or [])}
+
+  # ════════════════════════════════════════════════════════════
+  # MESH WILDCARD — public *.mesh.diegonmarcos.com cert, WG mesh only (#1797)
+  # ════════════════════════════════════════════════════════════
+
+${meshWildcardBlock}
 
   # ════════════════════════════════════════════════════════════
   # PRIVATE MESH NAMES — cloud.<name>.mesh.diegonmarcos.com (WG mesh only)

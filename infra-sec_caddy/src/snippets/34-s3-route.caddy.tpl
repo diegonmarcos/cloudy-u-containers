@@ -3,11 +3,7 @@
     # 2026-07-09.
 @PUBLIC_BIND_LINE@
 @MESH_GUARD@
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+@TLS_BLOCK@
     rewrite * /@BUCKET@{uri}
     reverse_proxy @S3_ENDPOINT@ {
       header_up Host @S3_HOST@
