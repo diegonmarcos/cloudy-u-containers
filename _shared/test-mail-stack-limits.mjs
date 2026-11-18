@@ -152,5 +152,48 @@ check(`L7 the four ceilings together leave the host >= 250MiB of the 954MiB`,
     Number(env.POLL_INTERVAL) >= 1800, `got ${JSON.stringify(env.POLL_INTERVAL)}`);
 }
 
+// ── file re-reads: the sorter must not make Stalwart read every blob ──────
+// 2026-11-18, oci-mail: io PSI some 61.6 / full 13.4, ~12MB/s of file
+// refaults, stalwart 1474MB of cgroup reads. Stalwart v0.16.5 reads the WHOLE
+// raw message blob for any Email/get that names one of BLOB_READING
+// (crates/jmap/src/email/get.rs `needs_body`); headers and the rest come from
+// stored metadata. The sorter's per-pass list had bodyStructure in it, so each
+// pass read the entire ~11.7k-message mailbox off the boot disk. These read
+// the Rust source because the property list IS source; the crate's own
+// `email_props_never_force_a_blob_read` test gates the same thing in cargo.
+{
+  const BLOB_READING = ["bodyStructure", "textBody", "htmlBody", "attachments", "bodyValues"];
+  const crate = join(ROOT, "user-comm_tools-stalwart/src/crate/src");
+  const filters = readFileSync(join(crate, "filters.rs"), "utf8");
+  const m = /pub const EMAIL_PROPS: &\[&str\] = &\[([^\]]*)\];/.exec(filters);
+  const props = m ? [...m[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]) : [];
+  check("B1 stalwart-sorter EMAIL_PROPS parses and is non-empty", props.length > 0,
+    "pub const EMAIL_PROPS not found in filters.rs");
+  const bad = props.filter((p) => BLOB_READING.includes(p));
+  check("B2 stalwart-sorter per-pass EMAIL_PROPS names no blob-reading property",
+    props.length > 0 && bad.length === 0, `found ${bad.join(", ")}`);
+  check("B3 stalwart-sorter fetches bodyStructure through the per-process AttachTypeCache only",
+    /attach_cache\.missing\(/.test(filters) && /email_get\(&missing, &\["bodyStructure"\]\)/.test(filters),
+    "bodyStructure must be fetched only for ids the cache does not hold");
+  const routing = readFileSync(join(crate, "routing.rs"), "utf8");
+  const rm = /let props: Vec<&str> = \[([^\]]*)\]/.exec(routing);
+  const rprops = rm ? [...rm[1].matchAll(/"([^"]+)"/g)].map((x) => x[1]) : [];
+  check("B4 stalwart-sorter routing pass names no blob-reading property",
+    rprops.length > 0 && !rprops.some((p) => BLOB_READING.includes(p)), `got ${JSON.stringify(rprops)}`);
+}
+
+// ── mail-puller: cadence and no FETCH on an idle cycle ────────────────────
+{
+  const dir = join(ROOT, "user-comm_mail-puller/src");
+  const secs = JSON.parse(readFileSync(join(dir, "sources.json"), "utf8")).defaults.poll_fallback_secs;
+  check("P2 mail-puller poll_fallback_secs in [60, 300] (30s woke it 2880x/day; >300s delays mail)",
+    Number(secs) >= 60 && Number(secs) <= 300, `got ${JSON.stringify(secs)}`);
+  const loop = readFileSync(join(dir, "crate/src/imap_loop.rs"), "utf8");
+  const gate = loop.indexOf("if nothing_new(select.uid_next, from_uid)");
+  const fetch = loop.indexOf("fetch_and_deliver(&mut session");
+  check("P3 mail-puller checks UIDNEXT before UID FETCH (n:* past the end returns the last message's BODY[])",
+    gate !== -1 && fetch !== -1 && gate < fetch, "nothing_new gate missing or after the fetch");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) { console.error("NOT GREEN"); process.exit(1); }

@@ -2,7 +2,8 @@
   "_comment": "Declarative list of external mailboxes to mirror + their local delivery targets. Edits land after `build.sh ship`. Secrets referenced by env var name; values live in sops-encrypted secrets.yaml. delivery_targets.host is the VM's WG IP (oci-mail = 10.0.0.3) because Maddy/Stalwart bind WG-only (Phase A); mail-puller runs with network_mode=host so 10.0.0.3 is directly reachable via the WG interface.",
   "defaults": {
     "idle_refresh_secs": 1700,
-    "poll_fallback_secs": 30,
+    "_doc_poll_fallback_secs": "30 -> 60 (2026-11-18, oci-mail io PSI some 61.6 / full 13.4, ~12MB/s of file refaults, mail-puller 559MB of cgroup reads). Each cycle is a fresh TCP+TLS+LOGIN+SELECT to Gmail; between cycles the process sleeps and, under host memory pressure, its binary and libssl pages are reclaimed and read back in at the next wake. Halving the wakeups halves that, and new mail still lands within a minute. Idle cycles also no longer FETCH at all (imap_loop.rs nothing_new, UIDNEXT check). Gate: _shared/test-mail-stack-limits.mjs (P2, 60..300).",
+    "poll_fallback_secs": 60,
     "reconnect_backoff_secs": [
       5,
       15,

@@ -126,10 +126,28 @@ async fn one_cycle(src: &Source, mbox: &str, cfg: &Config, state: &State) -> Res
         prev_uid
     };
 
+    // SELECT already told us UIDNEXT. When it is not past the cursor there is
+    // nothing new, and `UID FETCH <cursor+1>:*` must NOT be sent: per RFC 3501
+    // §6.4.8 a range whose start is above the highest UID still matches the
+    // LAST message, so every idle cycle re-downloaded that message's full
+    // BODY[] (attachments included) only for the `uid <= from_uid` guard below
+    // to throw it away -- 2880 times a day at a 30s cadence, each one a
+    // message-sized allocation on a 954MiB box under memory pressure.
+    if nothing_new(select.uid_next, from_uid) {
+        let _ = session.logout().await;
+        return Ok(0);
+    }
+
     let count = fetch_and_deliver(&mut session, src, mbox, cfg, state, from_uid, uidvalidity).await?;
 
     let _ = session.logout().await;
     Ok(count)
+}
+
+/// True when the server's UIDNEXT proves no message above `from_uid` exists.
+/// A server that omits UIDNEXT gets the FETCH (never skip on missing data).
+fn nothing_new(uid_next: Option<u32>, from_uid: u32) -> bool {
+    matches!(uid_next, Some(n) if n <= from_uid.saturating_add(1))
 }
 
 /// Bounded first-run backfill: `UID SEARCH SINCE <date>` and start from the
@@ -244,4 +262,24 @@ async fn fetch_and_deliver(
         state.set_cursor(&src.id, mbox, uidvalidity, max_uid)?;
     }
     Ok(count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn skips_fetch_only_when_uidnext_proves_nothing_new() {
+        assert!(nothing_new(Some(101), 100), "UIDNEXT = cursor+1: nothing new");
+        assert!(nothing_new(Some(1), 0), "empty mailbox, no cursor");
+        assert!(!nothing_new(Some(102), 100), "one new message must be fetched");
+        assert!(!nothing_new(Some(5), 0), "uidvalidity reset to 0 must refetch");
+        assert!(!nothing_new(None, 100), "no UIDNEXT: never skip");
+        assert!(nothing_new(Some(u32::MAX), u32::MAX), "no overflow at the top");
+    }
+
+    #[test]
+    fn imap_date_format() {
+        assert_eq!(to_imap_date("2026-08-10").unwrap(), "10-Aug-2026");
+    }
 }
