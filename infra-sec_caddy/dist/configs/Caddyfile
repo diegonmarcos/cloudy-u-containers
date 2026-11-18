@@ -7430,11 +7430,7 @@ file_server
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:4185 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7479,11 +7475,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8087 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7528,11 +7520,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3109 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7577,11 +7565,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3109 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7626,11 +7610,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3100 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7675,11 +7655,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3100 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7724,11 +7700,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3103 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7773,11 +7745,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3103 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7822,11 +7790,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3102 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7871,11 +7835,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3102 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7920,11 +7880,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8124 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -7969,11 +7925,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3101 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8018,11 +7970,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3101 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8067,11 +8015,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8116,11 +8060,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8165,11 +8105,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8082 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8214,11 +8150,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8082 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8263,11 +8195,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3112 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8312,11 +8240,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3103 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8361,11 +8285,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3109 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8410,11 +8330,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8081 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8459,11 +8375,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8081 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8508,11 +8420,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8123 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8557,11 +8465,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8123 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8606,11 +8510,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3106 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8655,11 +8555,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3106 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8704,11 +8600,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3104 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8753,11 +8645,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3104 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8802,11 +8690,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3002 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8851,11 +8735,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:53 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8900,11 +8780,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8084 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8949,11 +8825,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -8998,11 +8870,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9047,11 +8915,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8070 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9096,11 +8960,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8086 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9145,11 +9005,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9194,11 +9050,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8090 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9243,11 +9095,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9292,11 +9140,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3006 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9341,11 +9185,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9390,11 +9230,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 172.18.0.3:9091 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9439,11 +9275,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9488,11 +9320,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9537,11 +9365,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:4184 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9586,11 +9410,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:4184 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9635,11 +9455,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8088 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9684,11 +9500,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:4183 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9733,11 +9545,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3105 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9782,11 +9590,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8001 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9831,11 +9635,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8002 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9880,11 +9680,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8065 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9929,11 +9725,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8065 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -9978,11 +9770,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3000 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10027,11 +9815,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3000 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10076,11 +9860,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8008 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10125,11 +9905,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8083 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10174,11 +9950,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.3:2443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10223,11 +9995,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10272,11 +10040,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10321,11 +10085,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10370,11 +10130,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10419,11 +10175,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10468,11 +10220,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10517,11 +10265,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3013 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10566,11 +10310,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8090 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10615,11 +10355,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3019 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10664,11 +10400,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5232 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10713,11 +10445,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5232 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10762,11 +10490,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8098 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10811,11 +10535,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8097 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10860,11 +10580,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10909,11 +10625,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5233 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -10958,11 +10670,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5233 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11007,11 +10715,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3012 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11056,11 +10760,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3015 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11105,11 +10805,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3011 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11154,11 +10850,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3018 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11203,11 +10895,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3016 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11252,11 +10940,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8880 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -11283,6 +10967,38 @@ error @not_mesh "Forbidden" 403
         handle_response {
           copy_response
         }
+    }
+  import edge_errors
+  }
+
+
+  # ════════════════════════════════════════════════════════════
+  # MESH WILDCARD — public *.mesh.diegonmarcos.com cert, WG mesh only (#1797)
+  # ════════════════════════════════════════════════════════════
+
+  # #1797: the ONE publicly trusted certificate for every single-label mesh
+  # name. Its only job is to put *.mesh.diegonmarcos.com under management (DNS-01 via
+  # the global acme_dns cloudflare); Caddy then serves every
+  # <name>.mesh.diegonmarcos.com vhost from it instead of a per-name leaf, so
+  # service names stay out of Certificate Transparency logs. The specific
+  # vhosts win routing over this block (exact host before wildcard), so it
+  # only ever answers an undeclared mesh name: 403 off-mesh (same @not_mesh
+  # gate as every mesh vhost), 404 on-mesh. It serves no upstream.
+  *.mesh.diegonmarcos.com {
+    # Bind must byte-match public routes: see 30-internal-route.caddy.tpl.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    tls {
+      dns cloudflare {env.CF_API_TOKEN}
+      resolvers 1.1.1.1 8.8.8.8
+      propagation_delay 30s
+      propagation_timeout 5m
+    }
+    header X-Edge-Fallback "1"
+    header X-Edge-Route "mesh-wildcard"
+    handle {
+      error "Not Found" 404
     }
   import edge_errors
   }
@@ -14861,11 +14577,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-ai-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -14902,11 +14614,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -14943,11 +14651,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-infra-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -14984,11 +14688,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-mail-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15025,11 +14725,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-mattermost-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15066,11 +14762,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-me-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15107,11 +14799,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-services-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15148,11 +14836,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-superapp-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15189,11 +14873,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-all-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15230,11 +14910,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-all-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15271,11 +14947,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-apps-communication-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15312,11 +14984,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-apps-drive-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15353,11 +15021,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-c3-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15394,11 +15058,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-drive-git-proxy-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15435,11 +15095,7 @@ error @not_mesh "Forbidden" 403
 
   c3-google-personal-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15476,11 +15132,7 @@ error @not_mesh "Forbidden" 403
 
   c3-google-workspace-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15517,11 +15169,7 @@ error @not_mesh "Forbidden" 403
 
   c3-gitea.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15558,11 +15206,7 @@ error @not_mesh "Forbidden" 403
 
   c3-wireguard-mesh.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15599,11 +15243,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-spec.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15640,11 +15280,7 @@ error @not_mesh "Forbidden" 403
 
   c3-dagu.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15681,11 +15317,7 @@ error @not_mesh "Forbidden" 403
 
   c3-dbgate.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15722,11 +15354,7 @@ error @not_mesh "Forbidden" 403
 
   c3-matomo-hybrid.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15763,11 +15391,7 @@ error @not_mesh "Forbidden" 403
 
   c3-ntfy.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15804,11 +15428,7 @@ error @not_mesh "Forbidden" 403
 
   c3-openobserve.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15845,11 +15465,7 @@ error @not_mesh "Forbidden" 403
 
   c3-umami.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15886,11 +15502,7 @@ error @not_mesh "Forbidden" 403
 
   c3-c3bot-relay.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15927,11 +15539,7 @@ error @not_mesh "Forbidden" 403
 
   c3-authelia.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -15968,11 +15576,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-ai-tokens-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16009,11 +15613,7 @@ error @not_mesh "Forbidden" 403
 
   c3-crowdsec.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16050,11 +15650,7 @@ error @not_mesh "Forbidden" 403
 
   c3-mcp-oauth.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16091,11 +15687,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-cgc-pub-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16132,11 +15724,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-me-cgc-pvt-graph-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16173,11 +15761,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-cgc-pub-graph-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16214,11 +15798,7 @@ error @not_mesh "Forbidden" 403
 
   c3-mattermost.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16255,11 +15835,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-webmail.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16296,11 +15872,7 @@ error @not_mesh "Forbidden" 403
 
   c3-continuwuity.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16337,11 +15909,7 @@ error @not_mesh "Forbidden" 403
 
   c3-matrix-element.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16378,11 +15946,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-browser-headless.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16419,11 +15983,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloudy-browser-scrapper-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16460,11 +16020,7 @@ error @not_mesh "Forbidden" 403
 
   c3-capital-stack-finterm-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16501,11 +16057,7 @@ error @not_mesh "Forbidden" 403
 
   c3-capital-stack-finterminal-web.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16542,11 +16094,7 @@ error @not_mesh "Forbidden" 403
 
   c3-photoprism-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16583,11 +16131,7 @@ error @not_mesh "Forbidden" 403
 
   c3-playlist-syncer.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16624,11 +16168,7 @@ error @not_mesh "Forbidden" 403
 
   c3-capital-stack-news-gdelt-api.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16665,11 +16205,7 @@ error @not_mesh "Forbidden" 403
 
   c3-calendar-radicale.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16706,11 +16242,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-notes-sync.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16747,11 +16279,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-notes-web.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16788,11 +16316,7 @@ error @not_mesh "Forbidden" 403
 
   c3-contacts-radicale.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16829,11 +16353,7 @@ error @not_mesh "Forbidden" 403
 
   c3-etherpad-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16870,11 +16390,7 @@ error @not_mesh "Forbidden" 403
 
   c3-filebrowser-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16911,11 +16427,7 @@ error @not_mesh "Forbidden" 403
 
   c3-grist-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16952,11 +16464,7 @@ error @not_mesh "Forbidden" 403
 
   c3-hedgedoc-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -16993,11 +16501,7 @@ error @not_mesh "Forbidden" 403
 
   c3-send-app.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17034,11 +16538,7 @@ error @not_mesh "Forbidden" 403
 
   c3-vaultwarden.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17075,11 +16575,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-cgc-pvt-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17116,11 +16612,7 @@ error @not_mesh "Forbidden" 403
 
   c3-cloud-vault-mcp.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17157,11 +16649,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-chat.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17198,11 +16686,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-contacts.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17239,11 +16723,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-gallery.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17280,11 +16760,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-mail.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17321,11 +16797,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-matrix.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17362,11 +16834,7 @@ error @not_mesh "Forbidden" 403
 
   cloud-tasks.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
@@ -17412,12 +16880,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:4185 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17454,12 +16917,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8087 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17496,12 +16954,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3109 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17538,12 +16991,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3100 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17580,12 +17028,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3103 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17622,12 +17065,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3102 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17664,12 +17102,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8124 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17706,12 +17139,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3101 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17748,12 +17176,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3113 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17790,12 +17213,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8082 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17832,12 +17250,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3112 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17874,12 +17287,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3103 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17916,12 +17324,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3109 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -17958,12 +17361,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8081 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18000,12 +17398,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:8123 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18042,12 +17435,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3106 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18084,12 +17472,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3104 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18126,12 +17509,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3002 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18168,12 +17546,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8084 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18210,12 +17583,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18252,12 +17620,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8070 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18294,12 +17657,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8086 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18336,12 +17694,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18378,12 +17731,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8090 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18420,12 +17768,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18462,12 +17805,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3006 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18504,12 +17842,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3119 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18546,12 +17879,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 172.18.0.3:9091 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18588,12 +17916,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18630,12 +17953,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.4:443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18672,12 +17990,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:4184 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18714,12 +18027,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8088 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18756,12 +18064,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:4183 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18798,12 +18101,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3105 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18840,12 +18138,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8001 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18882,12 +18175,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8002 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18924,12 +18212,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8065 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -18966,12 +18249,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3000 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19008,12 +18286,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8008 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19050,12 +18323,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8083 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19092,12 +18360,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.3:2443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19134,12 +18397,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.3:2080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19176,12 +18434,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19218,12 +18471,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19260,12 +18508,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:8340 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19302,12 +18545,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.1:8341 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19344,8 +18582,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19386,12 +18623,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8090 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19428,12 +18660,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:3019 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19470,12 +18697,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5232 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19512,12 +18734,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8098 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19554,12 +18771,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8097 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19596,12 +18808,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19638,12 +18845,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:5233 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19680,8 +18882,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19722,8 +18923,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19764,8 +18964,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19806,8 +19005,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19848,8 +19046,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
+    tls force_automate {
       issuer internal {
         ca mesh
       }
@@ -19890,12 +19087,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     reverse_proxy 10.0.0.6:8880 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -19933,12 +19125,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      on_demand
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     respond "Portless worker/sidecar — no HTTP endpoint" 204
   }
 
@@ -20153,11 +19340,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     rewrite * /cloud-backups-binaries-medias{uri}
     reverse_proxy https://axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com {
       header_up Host axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com
@@ -20170,11 +19353,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     rewrite * /cloud-backups-db{uri}
     reverse_proxy https://axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com {
       header_up Host axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com
@@ -20187,11 +19366,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     rewrite * /cloud-backups-media{uri}
     reverse_proxy https://axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com {
       header_up Host axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com
@@ -20204,11 +19379,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     rewrite * /cloud-backups-non-binaries{uri}
     reverse_proxy https://axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com {
       header_up Host axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com
@@ -20221,11 +19392,7 @@ error @not_mesh "Forbidden" 403
   bind 0.0.0.0 10.0.0.1
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
-    tls {
-      issuer internal {
-        ca mesh
-      }
-    }
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
     rewrite * /my-photos{uri}
     reverse_proxy https://axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com {
       header_up Host axpmn3qtq4ig.compat.objectstorage.eu-marseille-1.oraclecloud.com
