@@ -16,7 +16,7 @@
 
 import { domainToASCII } from "node:url";
 import type { Ledger } from "./ledger.ts";
-import { type Connector, type ProbeResult, probeMailbox } from "./smtp-probe.ts";
+import { type Connector, type Port25Gate, type ProbeResult, probeMailbox } from "./smtp-probe.ts";
 
 export interface MxResolver {
   /** [] = NODATA; null = NXDOMAIN; throws on resolver failure. */
@@ -29,7 +29,9 @@ export interface CheckerConfig {
   helo: string;
   mailFrom: string;
   probePort: number;
-  probeTimeoutMs: number;
+  probeConnectTimeoutMs: number;   // per TCP connect (3 s)
+  probeDialogueBudgetMs: number;   // per SMTP dialogue after connect (6 s)
+  requestBudgetMs: number;         // whole POST /v1/recipients/check (8 s); unfinished checks -> unknown
   maxMxTried: number;
   /** Domains probed at a fixed host:port instead of their MX (the fleet's own Stalwart over wg0). */
   probeOverrides: Record<string, { host: string; port: number }>;
@@ -122,23 +124,53 @@ export class RecipientChecker {
   private readonly connector: Connector;
   private readonly ledger: Ledger | null;
   private readonly now: () => number;
-  constructor(cfg: CheckerConfig, dns: MxResolver, connector: Connector, ledger: Ledger | null, now: () => number = Date.now) {
-    this.cfg = cfg; this.dns = dns; this.connector = connector; this.ledger = ledger; this.now = now;
+  /** Outbound :25 gate for REMOTE probes; null = always try (tests, hosts with open :25). */
+  private readonly gate: Port25Gate | null;
+  constructor(cfg: CheckerConfig, dns: MxResolver, connector: Connector, ledger: Ledger | null, now: () => number = Date.now, gate: Port25Gate | null = null) {
+    this.cfg = cfg; this.dns = dns; this.connector = connector; this.ledger = ledger; this.now = now; this.gate = gate;
     this.limiter = new RateLimiter(cfg.rateLimit.addresses, cfg.rateLimit.perMs, now);
   }
 
-  async check(address: string): Promise<CheckResult> {
+  async check(address: string, deadline: number = Date.now() + this.cfg.requestBudgetMs): Promise<CheckResult> {
     const key = String(address ?? "").trim().toLowerCase();
     const hit = this.cache.get(key);
     if (hit && hit.exp > this.now()) return { ...hit.r, cached: true };
-    const r = await this.compute(address);
+    const r = await this.compute(address, deadline);
     const ttl = r.verdict === "unknown" ? this.cfg.cacheTtlUnknownMs : this.cfg.cacheTtlMs;
     this.cache.set(key, { exp: this.now() + ttl, r });
     if (this.cache.size > 20_000) { const t = this.now(); for (const [k, v] of this.cache) if (v.exp <= t) this.cache.delete(k); }
     return r;
   }
 
-  private async compute(address: string): Promise<CheckResult> {
+  /**
+   * The result for a check that did not finish inside the request budget: syntax and
+   * the local hints are instant and real; everything that needed the network is unknown.
+   * Never cached — the check keeps running and caches its own answer when it lands.
+   */
+  partial(address: string, why: string): CheckResult {
+    const syn = checkSyntax(address);
+    const local = (syn.local ?? "").toLowerCase();
+    const domain = syn.domain ?? "";
+    const b = syn.ok ? this.ledger?.lastBounce(syn.normalized as string) ?? null : null;
+    return {
+      address: String(address ?? ""),
+      verdict: syn.ok ? (b ? "risky" : "unknown") : "fail",
+      reason: syn.ok ? `${why}${b ? `; bounced before (${b.at})` : ""}` : `syntax: ${syn.reason}`,
+      checks: {
+        syntax: syn.ok ? { state: "ok", normalized: syn.normalized } : { state: "fail", reason: syn.reason },
+        domain_mx: { state: "unknown", hosts: [], reason: why },
+        mailbox: { state: "unknown", reason: why },
+        past_bounce: b ? { state: "bounced", at: b.at, reason: b.reason } : { state: "none" },
+        disposable: DISPOSABLE.has(domain) || [...DISPOSABLE].some((d) => domain.endsWith("." + d)),
+        role: ROLE.has(local.split("+")[0]),
+        size_limit: { bytes: null, reason: why },
+      },
+      cached: false,
+      checked_at: new Date(this.now()).toISOString(),
+    };
+  }
+
+  private async compute(address: string, deadline: number): Promise<CheckResult> {
     const checked_at = new Date(this.now()).toISOString();
     const syn = checkSyntax(address);
     const base: CheckResult = {
@@ -191,13 +223,31 @@ export class RecipientChecker {
     // ── mailbox + size_limit ──
     const targets = override ? [override] : hosts.slice(0, this.cfg.maxMxTried).map((h) => ({ host: h, port: this.cfg.probePort }));
     let probe: ProbeResult | null = null;
-    for (const t of targets) {
-      probe = await probeMailbox(this.connector, t.host, addr, {
-        helo: this.cfg.helo, mailFrom: this.cfg.mailFrom, timeoutMs: this.cfg.probeTimeoutMs, port: t.port, random: this.cfg.random,
-      });
-      if (probe.connected) break; // a reachable MX answered; do not shop for a friendlier one
+    // Remote probes only run when outbound :25 works from this host (one cached
+    // canary connect decides); the local-domain override goes over wg0 and is exempt.
+    const gate = !override && this.gate ? await this.gate.state() : null;
+    if (gate?.blocked) {
+      base.checks.mailbox = { state: "unknown", reason: `outbound :25 blocked on probe host (${gate.reason}); mailbox not probed` };
+      base.checks.size_limit = { bytes: null, reason: "outbound :25 blocked on probe host" };
+    } else {
+      for (const t of targets) {
+        // Each attempt needs its connect budget left; never start one that cannot finish in time.
+        const left = deadline - Date.now();
+        if (left < this.cfg.probeConnectTimeoutMs) {
+          if (!probe) probe = { host: t.host, connected: false, sizeLimit: null, mailbox: "unknown", code: null, reason: "request budget exhausted before the mailbox probe could start", transcript: [] };
+          break;
+        }
+        probe = await probeMailbox(this.connector, t.host, addr, {
+          helo: this.cfg.helo, mailFrom: this.cfg.mailFrom, port: t.port, random: this.cfg.random,
+          connectTimeoutMs: this.cfg.probeConnectTimeoutMs,
+          dialogueBudgetMs: Math.min(this.cfg.probeDialogueBudgetMs, Math.max(0, left - this.cfg.probeConnectTimeoutMs)),
+        });
+        if (probe.connected) break; // a reachable MX answered; do not shop for a friendlier one
+      }
     }
-    if (probe) {
+    if (gate?.blocked) {
+      // already set above
+    } else if (probe) {
       base.checks.mailbox = { state: probe.mailbox, host: probe.host, code: probe.code, reason: probe.reason };
       base.checks.size_limit = probe.sizeLimit === null
         ? { bytes: null, host: probe.host, reason: probe.connected ? "SIZE not advertised" : "server not reached" }

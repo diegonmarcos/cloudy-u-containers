@@ -16,7 +16,7 @@ const MSGID = "<CAF00d1e.4711@phone.example.org>";
 function deps(ingestAllowed: string[]): RestDeps {
   const ledger = new Ledger({ path: null, relayHosts: ["smtp.email.eu-marseille-1.oci.oraclecloud.com"], localDomains: ["example.org"], retentionDays: 90 });
   const checker = new RecipientChecker({
-    helo: "probe.example.org", mailFrom: "", probePort: 25, probeTimeoutMs: 1000, maxMxTried: 2, probeOverrides: {},
+    helo: "probe.example.org", mailFrom: "", probePort: 25, probeConnectTimeoutMs: 300, probeDialogueBudgetMs: 600, requestBudgetMs: 2000, maxMxTried: 2, probeOverrides: {},
     cacheTtlMs: 60_000, cacheTtlUnknownMs: 60_000, maxAddressesPerRequest: 3, rateLimit: { addresses: 4, perMs: 60_000 }, random: () => "probe",
   }, recordedMx(), recordedConnector([]), ledger);
   return { ledger, checker, directory: stalwartDirectory(recordedRegistry()), txt: recordedTxt(), ingestAllowed };
@@ -155,5 +155,25 @@ test("size_limit: message_size_bytes over the EHLO SIZE makes the verdict will_f
     assert.equal(m.outcome, "warn");
     assert.equal(m.accepts_all, true);
     assert.equal(ok.results[0].verdict, "risky");
+  } finally { srv.close(); }
+});
+
+test("request budget: a batch whose probes hang still answers inside the budget, unfinished checks unknown", async () => {
+  const d = deps([]);
+  const hang = new RecipientChecker({ ...d.checker.cfg, requestBudgetMs: 400, probeConnectTimeoutMs: 5000, probeDialogueBudgetMs: 5000, maxAddressesPerRequest: 10, rateLimit: { addresses: 100, perMs: 60_000 } },
+    recordedMx(), () => new Promise(() => {}), d.ledger);
+  const { base, srv } = await serve({ ...d, checker: hang });
+  try {
+    const t0 = Date.now();
+    const r = await post(`${base}/v1/recipients/check`, { addresses: ["alice@remote.example", "bob@grey.example", "a@nullmx.example", "not-an-address"] });
+    const dt = Date.now() - t0;
+    assert.equal(r.status, 200);
+    assert.ok(dt < 1500, `answered in ${dt}ms`);
+    const j = await r.json();
+    const v = Object.fromEntries(j.results.map((x: any) => [x.address, x]));
+    assert.equal(v["alice@remote.example"].verdict, "unknown");
+    assert.match(v["alice@remote.example"].reason, /budget/);
+    assert.equal(v["a@nullmx.example"].verdict, "will_fail", "checks that finish in time keep their real answer");
+    assert.equal(v["not-an-address"].verdict, "will_fail");
   } finally { srv.close(); }
 });

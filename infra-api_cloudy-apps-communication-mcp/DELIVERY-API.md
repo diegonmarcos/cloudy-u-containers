@@ -321,14 +321,32 @@ Verdict rules:
   (greylisting or a rate limit), a 5.7.x policy refusal, or a DNS failure.
 
 How the probe works: it runs from the server only, as EHLO, `MAIL FROM:<>`,
-`RCPT TO:<addr>`, `RCPT TO:<random@domain>`, RSET, QUIT. It **never sends
-DATA**; the code throws if it is asked to, and a test checks the transcript. At
-most 2 MX hosts are tried, with an 8 s timeout and 4 probes at a time. Local
-domains (`diegonmarcos.com`) are probed against Stalwart's own SMTP over wg0
-(`10.0.0.3:2025`). Remote MX probes come from oci-apps, where **OCI blocks
-outbound TCP/25**. Expect `check_details.mailbox.state: "unknown"` (client: `mailbox` outcome `unknown`) with
-`"cannot reach <mx>:25 from the server (...)"` for external domains. Everything
-else (syntax, MX, null MX, past bounce, hints) still works.
+`RCPT TO:<addr>`, `RCPT TO:<random@domain>`, QUIT. It **never sends DATA**; the
+code throws if it is asked to, and a test checks the transcript.
+
+**Time budgets.** A request answers within about 8 s, whatever the network does:
+
+* each TCP connect gets 3 s;
+* each SMTP dialogue after the connect gets 6 s;
+* the whole request gets 8 s.
+
+All addresses are checked concurrently. A check still running when the 8 s are
+up comes back as `unknown`, with reason "request budget of 8000ms exhausted...".
+Its syntax and the role, disposable and past-bounce hints are still real. The
+check keeps running and caches its answer for the next request. At most 2 MX
+hosts are tried, and no attempt starts without its connect budget left.
+
+**Outbound :25 gate.** One TCP connect to a canary MX
+(`gmail-smtp-in.l.google.com:25`, no SMTP command sent) decides whether outbound
+:25 works from this host. The answer is cached for 1 h. OCI drops outbound :25,
+so on oci-apps the gate is normally *blocked*. Remote mailbox probes are then
+skipped instantly: the `mailbox` outcome is `unknown`, with reason "outbound :25
+blocked on probe host (...)", and `size_limit` is `unknown`. Syntax, domain/MX,
+null MX, past-bounce and hint checks are unaffected.
+
+Local domains (`diegonmarcos.com`) are exempt from the gate. They are probed at
+Stalwart's own SMTP over wg0 (`10.0.0.3:2025`), within the same budgets, and get
+real answers.
 
 ---
 

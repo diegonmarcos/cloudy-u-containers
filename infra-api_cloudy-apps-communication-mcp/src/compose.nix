@@ -90,7 +90,12 @@ in
         PROBE_HELO              = dprobe.helo or "localhost";
         PROBE_MAIL_FROM         = dprobe.mail_from or "";
         PROBE_PORT              = toString (dprobe.port or 25);
-        PROBE_TIMEOUT_MS        = toString (dprobe.timeout_ms or 8000);
+        PROBE_TIMEOUT_MS        = toString (dprobe.timeout_ms or 6000);
+        PROBE_DIALOGUE_BUDGET_MS    = toString (dprobe.timeout_ms or 6000);
+        PROBE_CONNECT_TIMEOUT_MS    = toString (dprobe.connect_timeout_ms or 3000);
+        PROBE_CANARY_HOST           = dprobe.canary_host or "gmail-smtp-in.l.google.com";
+        PROBE_PORT25_RECHECK_MS     = toString (dprobe.recheck_ms or 3600000);
+        RECIPIENT_REQUEST_BUDGET_MS = toString (dprobe.request_budget_ms or 8000);
         PROBE_OVERRIDES         = probeOverrides;
         RECIPIENT_CACHE_TTL_MS         = toString (dapi.recipient_cache_ttl_ms or 21600000);
         RECIPIENT_CACHE_TTL_UNKNOWN_MS = toString (dapi.recipient_cache_ttl_unknown_ms or 900000);

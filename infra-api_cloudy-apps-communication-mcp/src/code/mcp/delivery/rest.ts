@@ -100,16 +100,6 @@ export async function statusFor(deps: RestDeps, id: string, account: string | nu
   return { ...status, ...sentView(status) };
 }
 
-/** Map with bounded concurrency (probes are real TCP sessions; keep them few). */
-async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let i = 0;
-  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
-    while (i < items.length) { const k = i++; out[k] = await fn(items[k]); }
-  }));
-  return out;
-}
-
 /** Returns true when the request was a /v1 route (handled here), false to fall through to MCP. */
 export async function handleRest(req: IncomingMessage, res: ServerResponse, deps: RestDeps): Promise<boolean> {
   const url = new URL(req.url ?? "/", "http://local");
@@ -181,7 +171,19 @@ export async function handleRest(req: IncomingMessage, res: ServerResponse, deps
       if (wait > 0) { fail(res, 429, "rate_limited", `rate limit: ${deps.checker.cfg.rateLimit.addresses} addresses per ${Math.round(deps.checker.cfg.rateLimit.perMs / 1000)}s per caller`, { "Retry-After": String(Math.ceil(wait / 1000)) }); return true; }
       const size = j?.message_size_bytes;
       if (size !== undefined && size !== null && (typeof size !== "number" || !Number.isFinite(size) || size < 0)) { fail(res, 400, "invalid_request", "message_size_bytes must be a non-negative number"); return true; }
-      const raw = await pool(uniq, 4, (a) => deps.checker.check(a));
+      // All addresses concurrently, under one request budget: whatever has not
+      // finished when it runs out is answered as unknown (partial), and keeps running
+      // in the background so its real answer lands in the cache for the next ask.
+      const budget = deps.checker.cfg.requestBudgetMs;
+      const deadline = Date.now() + budget;
+      const raw = await Promise.all(uniq.map((a) => {
+        let t: ReturnType<typeof setTimeout> | undefined;
+        const late = new Promise<ReturnType<typeof deps.checker.partial>>((r) => {
+          t = setTimeout(() => r(deps.checker.partial(a, `request budget of ${budget}ms exhausted before this check finished`)), budget);
+        });
+        const real = deps.checker.check(a, deadline).catch((e) => deps.checker.partial(a, `check failed: ${(e as Error).message}`));
+        return Promise.race([real, late]).finally(() => clearTimeout(t));
+      }));
       // `checks` is the client's list form; the full per-check record stays in `check_details`.
       const results = raw.map((r) => ({ ...checkView(r, typeof size === "number" ? size : null), check_details: r.checks, cached: r.cached, checked_at: r.checked_at }));
       send(res, 200, { results });

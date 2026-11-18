@@ -5,11 +5,11 @@ import assert from "node:assert/strict";
 import { RecipientChecker, RateLimiter, checkSyntax, type CheckerConfig } from "./recipients.ts";
 import { Ledger } from "./ledger.ts";
 import { parseWebhookBody } from "./stalwart-wire.ts";
-import { parseSize } from "./smtp-probe.ts";
+import { Port25Gate, parseSize, probeMailbox, type Connector, type ProbeConn } from "./smtp-probe.ts";
 import { fixture, recordedConnector, recordedMx } from "./fakes.test-helpers.ts";
 
 const CFG: CheckerConfig = {
-  helo: "probe.example.org", mailFrom: "", probePort: 25, probeTimeoutMs: 1000, maxMxTried: 2,
+  helo: "probe.example.org", mailFrom: "", probePort: 25, probeConnectTimeoutMs: 300, probeDialogueBudgetMs: 600, requestBudgetMs: 2000, maxMxTried: 2,
   probeOverrides: { "example.org": { host: "10.0.0.3", port: 2025 } },
   cacheTtlMs: 3600_000, cacheTtlUnknownMs: 600_000, maxAddressesPerRequest: 50,
   rateLimit: { addresses: 5, perMs: 60_000 },
@@ -38,7 +38,7 @@ test("existing mailbox at a real MX: ok, SIZE read from EHLO, and the probe neve
   assert.deepEqual(r.checks.domain_mx.hosts, ["mx1.remote.example", "mx2.remote.example"]);
   assert.ok(sent.some((l) => l.endsWith("RCPT TO:<probe@remote.example>")), "catch-all control probe sent");
   assert.ok(!sent.some((l) => /\bDATA\b/i.test(l)), "no DATA");
-  assert.deepEqual(sent.map((l) => l.split("> ")[1].split(/[ :]/)[0]), ["EHLO", "MAIL", "RCPT", "RCPT", "RSET", "QUIT"]);
+  assert.deepEqual(sent.map((l) => l.split("> ")[1].split(/[ :]/)[0]), ["EHLO", "MAIL", "RCPT", "RCPT", "QUIT"]);
 });
 
 test("unknown user is fail", async () => {
@@ -131,4 +131,81 @@ test("EHLO SIZE parsing", () => {
   assert.equal(parseSize("250-mx\n250-SIZE 1000\n250 HELP"), 1000);
   assert.equal(parseSize("250-mx\n250 SIZE"), 0);
   assert.equal(parseSize("250 mx"), null);
+});
+
+// ── budgets and the outbound-:25 gate (no sockets: hanging / silent fake transports) ──
+
+const hangingConnector: Connector = () => new Promise<ProbeConn>(() => {});      // dropped SYN, connector ignores its timeout
+const silentConnector: Connector = async () => ({                                 // connects, then never says a word
+  reply: () => new Promise(() => {}), send() {}, close() {},
+});
+const refusingConnector = (calls: string[]): Connector => async (host) => {
+  calls.push(host);
+  throw Object.assign(new Error(`connect ETIMEDOUT ${host}:25`), { code: "ETIMEDOUT" });
+};
+
+test("probe: a connect that never completes is cut at the connect budget", async () => {
+  const t0 = Date.now();
+  const r = await probeMailbox(hangingConnector, "mx.example", "a@example", { helo: "h", mailFrom: "", port: 25, connectTimeoutMs: 150, dialogueBudgetMs: 400 });
+  const dt = Date.now() - t0;
+  assert.equal(r.connected, false);
+  assert.equal(r.mailbox, "unknown");
+  assert.match(r.reason, /connect timeout after 150ms/);
+  assert.ok(dt < 400, `took ${dt}ms`);
+});
+
+test("probe: a server that connects and goes silent is cut at the dialogue budget", async () => {
+  const t0 = Date.now();
+  const r = await probeMailbox(silentConnector, "mx.example", "a@example", { helo: "h", mailFrom: "", port: 25, connectTimeoutMs: 150, dialogueBudgetMs: 200 });
+  const dt = Date.now() - t0;
+  assert.equal(r.mailbox, "unknown");
+  assert.match(r.reason, /dialogue budget of 200ms exhausted/);
+  assert.ok(dt < 500, `took ${dt}ms`);
+});
+
+test("Port25Gate: one canary connect decides, cached for the TTL, shared by concurrent callers", async () => {
+  let t = 0;
+  const calls: string[] = [];
+  const gate = new Port25Gate(refusingConnector(calls), "canary.example", 25, 100, 3600_000, () => t);
+  const [a, b] = await Promise.all([gate.state(), gate.state()]);
+  assert.equal(a.blocked, true);
+  assert.equal(b.blocked, true);
+  assert.match(a.reason, /canary\.example:25 failed/);
+  await gate.state();
+  assert.deepEqual(calls, ["canary.example"], "exactly one connect while cached");
+  t = 3600_001;
+  await gate.state();
+  assert.equal(calls.length, 2, "rechecked after the TTL");
+  const open = new Port25Gate(recordedConnector([]), "mx1.remote.example", 25, 100, 3600_000);
+  assert.equal((await open.state()).blocked, false);
+});
+
+test("blocked :25: remote mailbox is unknown at once and no MX is dialled; the local wg0 probe still runs", async () => {
+  const dialled: string[] = [];
+  const sent: string[] = [];
+  const base = recordedConnector(sent);
+  const spy: Connector = (h, p, ms) => { dialled.push(h); return base(h, p, ms); };
+  const gate = new Port25Gate(refusingConnector([]), "canary.example", 25, 100, 3600_000);
+  const c = new RecipientChecker(CFG, recordedMx(), spy, null, Date.now, gate);
+  const t0 = Date.now();
+  const r = await c.check("alice@remote.example");
+  assert.ok(Date.now() - t0 < 300);
+  assert.equal(r.checks.mailbox.state, "unknown");
+  assert.match(r.checks.mailbox.reason, /outbound :25 blocked on probe host/);
+  assert.equal(r.verdict, "unknown");
+  assert.equal(r.checks.domain_mx.state, "ok", "DNS checks still answer");
+  assert.ok(!dialled.includes("mx1.remote.example"));
+  const local = await c.check("sender@example.org");
+  assert.equal(local.verdict, "ok", "local override over wg0 is exempt from the gate");
+  assert.deepEqual(dialled, ["10.0.0.3"]);
+});
+
+test("partial(): syntax and hints stay real, the network checks are unknown", () => {
+  const c = new RecipientChecker(CFG, recordedMx(), hangingConnector, null);
+  const p = c.partial("postmaster@remote.example", "request budget of 8000ms exhausted");
+  assert.equal(p.verdict, "unknown");
+  assert.equal(p.checks.syntax.state, "ok");
+  assert.equal(p.checks.role, true);
+  assert.equal(p.checks.mailbox.state, "unknown");
+  assert.equal(c.partial("not-an-address", "x").verdict, "fail");
 });

@@ -18,7 +18,8 @@ export interface ProbeConn {
   send(line: string): void;
   close(): void;
 }
-export type Connector = (host: string, port: number, timeoutMs: number) => Promise<ProbeConn>;
+/** Opens a TCP session; MUST reject within `connectTimeoutMs` if the peer never answers. */
+export type Connector = (host: string, port: number, connectTimeoutMs: number) => Promise<ProbeConn>;
 
 export interface ProbeResult {
   host: string;
@@ -32,8 +33,14 @@ export interface ProbeResult {
 }
 
 export function tcpConnector(): Connector {
-  return (host, port, timeoutMs) => new Promise((resolve, reject) => {
+  return (host, port, connectTimeoutMs) => new Promise((resolve, reject) => {
     const sock = netConnect({ host, port });
+    // A dropped SYN (OCI/GCP drop outbound :25 silently) never errors on its own; before
+    // this timer the promise stayed pending forever and so did the HTTP request.
+    const connectTimer = setTimeout(() => {
+      sock.destroy();
+      reject(Object.assign(new Error(`connect timeout after ${connectTimeoutMs}ms`), { code: "ETIMEDOUT" }));
+    }, connectTimeoutMs);
     let buf = "";
     const waiters: Array<{ res: (l: Line) => void; rej: (e: Error) => void }> = [];
     const ready: Line[] = [];
@@ -43,8 +50,8 @@ export function tcpConnector(): Connector {
       while (ready.length && waiters.length) (waiters.shift() as { res: (l: Line) => void }).res(ready.shift() as Line);
       if (dead) while (waiters.length) (waiters.shift() as { rej: (e: Error) => void }).rej(dead);
     };
-    sock.setTimeout(timeoutMs, () => { dead = new Error(`timeout after ${timeoutMs}ms`); sock.destroy(); flush(); });
-    sock.on("error", (e) => { dead = e; flush(); reject(e); });
+    sock.setTimeout(connectTimeoutMs * 2, () => { dead = new Error("idle timeout"); sock.destroy(); flush(); });
+    sock.on("error", (e) => { clearTimeout(connectTimer); dead = e; flush(); reject(e); });
     sock.on("close", () => { dead = dead ?? new Error("connection closed"); flush(); });
     sock.on("data", (chunk) => {
       buf += chunk.toString("latin1");
@@ -60,12 +67,20 @@ export function tcpConnector(): Connector {
       }
       flush();
     });
-    sock.on("connect", () => resolve({
+    sock.on("connect", () => { clearTimeout(connectTimer); resolve({
       reply: () => new Promise<Line>((res, rej) => { waiters.push({ res, rej }); flush(); }),
       send: (l: string) => { if (/^\s*DATA\b/i.test(l)) throw new Error("probe must never send DATA"); sock.write(l + "\r\n"); },
       close: () => sock.destroy(),
-    }));
+    }); });
   });
+}
+
+function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  let t: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    p,
+    new Promise<T>((_r, rej) => { t = setTimeout(() => rej(Object.assign(new Error(what), { code: "EBUDGET" })), Math.max(0, ms)); }),
+  ]).finally(() => clearTimeout(t));
 }
 
 export function parseSize(ehlo: string): number | null {
@@ -80,7 +95,8 @@ export function parseSize(ehlo: string): number | null {
 export interface ProbeOptions {
   helo: string;
   mailFrom: string;           // "" = null reverse-path <>
-  timeoutMs: number;
+  connectTimeoutMs: number;   // TCP connect budget
+  dialogueBudgetMs: number;   // whole SMTP dialogue after connect, greeting to last RCPT
   port: number;
   random?: () => string;      // catch-all probe local part (tests pin it)
 }
@@ -90,14 +106,20 @@ export async function probeMailbox(connector: Connector, host: string, address: 
   const result: ProbeResult = { host, connected: false, sizeLimit: null, mailbox: "unknown", code: null, reason: "", transcript };
   let conn: ProbeConn;
   try {
-    conn = await connector(host, opt.port, opt.timeoutMs);
+    // Raced as well: the budget holds even for a connector that ignores its timeout.
+    conn = await withTimeout(connector(host, opt.port, opt.connectTimeoutMs), opt.connectTimeoutMs, `connect timeout after ${opt.connectTimeoutMs}ms`);
   } catch (e) {
     result.reason = `cannot reach ${host}:${opt.port} from the server (${(e as Error).message})`;
     return result;
   }
   result.connected = true;
   const say = (l: string) => { transcript.push(`C: ${l}`); conn.send(l); };
-  const hear = async () => { const r = await conn.reply(); transcript.push(`S: ${r.text}`); return r; };
+  const deadline = Date.now() + opt.dialogueBudgetMs;
+  const hear = async () => {
+    const r = await withTimeout(conn.reply(), deadline - Date.now(), `SMTP dialogue budget of ${opt.dialogueBudgetMs}ms exhausted`);
+    transcript.push(`S: ${r.text}`);
+    return r;
+  };
   try {
     const greet = await hear();
     if (greet.code !== 220) { result.reason = `greeting ${greet.text}`; return result; }
@@ -134,7 +156,48 @@ export async function probeMailbox(connector: Connector, host: string, address: 
     result.reason = `probe to ${host} aborted: ${(e as Error).message}`;
     return result;
   } finally {
-    try { say("RSET"); await hear().catch(() => undefined); say("QUIT"); await hear().catch(() => undefined); } catch { /* closing */ }
+    // Polite close without waiting on the peer: the answer is already decided.
+    try { say("QUIT"); } catch { /* socket already gone */ }
     conn.close();
+  }
+}
+
+/**
+ * Is outbound TCP/25 usable from this host at all? Decided by one TCP connect to a
+ * canary MX (no SMTP command is sent), cached for `ttlMs`; concurrent callers share
+ * the in-flight attempt. OCI and GCP drop outbound :25, so on the fleet this is
+ * normally "blocked" and remote mailbox probes are skipped instantly instead of
+ * each burning a connect timeout.
+ */
+export class Port25Gate {
+  private cached: { blocked: boolean; reason: string; at: number } | null = null;
+  private inflight: Promise<{ blocked: boolean; reason: string; at: number }> | null = null;
+  private readonly connector: Connector;
+  private readonly canary: string;
+  private readonly port: number;
+  private readonly connectTimeoutMs: number;
+  private readonly ttlMs: number;
+  private readonly now: () => number;
+  constructor(connector: Connector, canary: string, port: number, connectTimeoutMs: number, ttlMs: number, now: () => number = Date.now) {
+    this.connector = connector; this.canary = canary; this.port = port;
+    this.connectTimeoutMs = connectTimeoutMs; this.ttlMs = ttlMs; this.now = now;
+  }
+  async state(): Promise<{ blocked: boolean; reason: string; at: number }> {
+    if (this.cached && this.now() - this.cached.at < this.ttlMs) return this.cached;
+    if (this.inflight) return this.inflight;
+    this.inflight = (async () => {
+      let res: { blocked: boolean; reason: string; at: number };
+      try {
+        const c = await withTimeout(this.connector(this.canary, this.port, this.connectTimeoutMs), this.connectTimeoutMs, `connect timeout after ${this.connectTimeoutMs}ms`);
+        c.close();
+        res = { blocked: false, reason: `TCP connect to ${this.canary}:${this.port} succeeded`, at: this.now() };
+      } catch (e) {
+        res = { blocked: true, reason: `TCP connect to ${this.canary}:${this.port} failed: ${(e as Error).message}`, at: this.now() };
+      }
+      this.cached = res;
+      this.inflight = null;
+      return res;
+    })();
+    return this.inflight;
   }
 }

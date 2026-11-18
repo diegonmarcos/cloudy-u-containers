@@ -4,7 +4,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { Ledger } from "./ledger.ts";
 import { RecipientChecker } from "./recipients.ts";
-import { tcpConnector } from "./smtp-probe.ts";
+import { Port25Gate, tcpConnector } from "./smtp-probe.ts";
 import { handleRest, type RestDeps } from "./rest.ts";
 import { stalwartDirectory, systemMx, systemTxt } from "./adapters.ts";
 
@@ -30,18 +30,24 @@ export function deliveryDeps(): RestDeps {
     localDomains: csv(e.DELIVERY_LOCAL_DOMAINS, "").map((d) => d.toLowerCase()),
     retentionDays: parseInt(e.DELIVERY_RETENTION_DAYS ?? "90", 10),
   });
+  const connector = tcpConnector();
+  const connectTimeout = parseInt(e.PROBE_CONNECT_TIMEOUT_MS ?? "3000", 10);
+  const gate = new Port25Gate(connector, e.PROBE_CANARY_HOST ?? "gmail-smtp-in.l.google.com", parseInt(e.PROBE_PORT ?? "25", 10),
+    connectTimeout, parseInt(e.PROBE_PORT25_RECHECK_MS ?? "3600000", 10));
   const checker = new RecipientChecker({
     helo: e.PROBE_HELO ?? "localhost",
     mailFrom: e.PROBE_MAIL_FROM ?? "",
     probePort: parseInt(e.PROBE_PORT ?? "25", 10),
-    probeTimeoutMs: parseInt(e.PROBE_TIMEOUT_MS ?? "8000", 10),
+    probeConnectTimeoutMs: connectTimeout,
+    probeDialogueBudgetMs: parseInt(e.PROBE_DIALOGUE_BUDGET_MS ?? e.PROBE_TIMEOUT_MS ?? "6000", 10),
+    requestBudgetMs: parseInt(e.RECIPIENT_REQUEST_BUDGET_MS ?? "8000", 10),
     maxMxTried: 2,
     probeOverrides: overrides(e.PROBE_OVERRIDES ?? ""),
     cacheTtlMs: parseInt(e.RECIPIENT_CACHE_TTL_MS ?? String(6 * 3600_000), 10),
     cacheTtlUnknownMs: parseInt(e.RECIPIENT_CACHE_TTL_UNKNOWN_MS ?? String(15 * 60_000), 10),
     maxAddressesPerRequest: 50,
     rateLimit: { addresses: parseInt(e.RECIPIENT_RATE_LIMIT ?? "60", 10), perMs: 60_000 },
-  }, systemMx(), tcpConnector(), ledger);
+  }, systemMx(), connector, ledger, Date.now, gate);
   deps = {
     ledger,
     directory: stalwartDirectory(),
