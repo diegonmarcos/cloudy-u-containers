@@ -94,7 +94,11 @@ test("recipients/check: results, per-request cap, per-caller 429 with Retry-Afte
     const r = await post(`${base}/v1/recipients/check`, { addresses: ["alice@remote.example", "a@nullmx.example"] }, { "X-Forwarded-For": "10.0.0.50" });
     assert.equal(r.status, 200);
     const j = await r.json();
-    assert.deepEqual(j.results.map((x: any) => x.verdict), ["ok", "fail"]);
+    assert.deepEqual(j.results.map((x: any) => x.verdict), ["ok", "will_fail"]);
+    const ok = j.results[0];
+    assert.deepEqual(ok.checks.map((c: any) => c.check), ["syntax", "domain", "mailbox", "past_bounce", "disposable_role", "size_limit"]);
+    assert.ok(ok.checks.every((c: any) => ["pass", "warn", "fail", "unknown"].includes(c.outcome)));
+    assert.equal(ok.check_details.mailbox.state, "exists");
     const cap = await post(`${base}/v1/recipients/check`, { addresses: ["a@x.example", "b@x.example", "c@x.example", "d@x.example"] });
     assert.equal((await cap.json()).code, "too_many_addresses");
     const more = await post(`${base}/v1/recipients/check`, { addresses: ["b@grey.example", "c@grey.example", "d@grey.example"] }, { "X-Forwarded-For": "10.0.0.50" });
@@ -103,5 +107,53 @@ test("recipients/check: results, per-request cap, per-caller 429 with Retry-Afte
     assert.equal((await more.json()).code, "rate_limited");
     const other = await post(`${base}/v1/recipients/check`, { addresses: ["b@grey.example"] }, { "X-Forwarded-For": "10.0.0.51" });
     assert.equal(other.status, 200);
+    const badSize = await post(`${base}/v1/recipients/check`, { addresses: ["a@x.example"], message_size_bytes: "big" }, { "X-Forwarded-For": "10.0.0.52" });
+    assert.equal((await badSize.json()).code, "invalid_request");
+  } finally { srv.close(); }
+});
+
+test("client shapes: submission / sender / recipients, keyed by account + Message-ID", async () => {
+  const { base, srv } = await serve(deps(["127.0.0.1"]));
+  try {
+    await post(`${base}/v1/internal/stalwart/mta-hook`, fixture("mta-hook-submission.json"));
+    await post(`${base}/v1/internal/stalwart/events`, fixture("webhook-relay-batch.json"));
+    // Raw text, as Stalwart sends it: a bare u64 queueId (a JS number literal would already be rounded).
+    await post(`${base}/v1/internal/stalwart/events`, '{"events":[' +
+      '{"createdAt":"2026-11-18T10:10:00Z","type":"delivery.attempt-start","data":{"spanId":77,"queueId":289356276058554411,"to":["alice@remote.example"]}},' +
+      '{"createdAt":"2026-11-18T10:10:01Z","type":"delivery.connect-error","data":{"spanId":77,"hostname":"smtp.email.eu-marseille-1.oci.oraclecloud.com","details":"timed out"}}]}');
+    await new Promise((r) => setImmediate(r));
+    const j = await (await fetch(`${base}/v1/sent/${encodeURIComponent(MSGID)}/status?account=sender@example.org`)).json();
+    assert.deepEqual(j.submission, { accepted: true, at: "2026-11-18T10:00:01Z", smtp_code: 250, message_id: MSGID, text: "250 2.0.0 Message queued with id 40400000000002b" });
+    assert.equal(j.sender.may_use_from, true);
+    assert.equal(j.sender.dkim_signed, true);
+    assert.equal(j.sender.dkim_selector, "rsa-2026");
+    assert.equal(j.sender.spf_aligned, true);
+    assert.equal(j.sender.dmarc_aligned, true);
+    const by = Object.fromEntries(j.recipients.map((r: any) => [r.address, r]));
+    assert.equal(by["alice@remote.example"].state, "deferred");
+    assert.equal(by["bob@remote.example"].state, "bounced");
+    assert.equal(by["bob@remote.example"].smtp_code, 550);
+    assert.equal(by["bob@remote.example"].remote_mx, "smtp.email.eu-marseille-1.oci.oraclecloud.com");
+    assert.equal(by["carol@example.org"].state, "delivered");
+    const other = await fetch(`${base}/v1/sent/${encodeURIComponent(MSGID)}/status?account=someone@example.org`);
+    assert.equal(other.status, 404, "another account's Message-ID is not found");
+    const batch = await (await post(`${base}/v1/sent/status`, { account: "sender", ids: [MSGID, "<none@example.org>"] })).json();
+    assert.equal(batch.results[0].found, true);
+    assert.deepEqual([batch.results[1].submission, batch.results[1].sender, batch.results[1].recipients], [null, null, null]);
+  } finally { srv.close(); }
+});
+
+test("size_limit: message_size_bytes over the EHLO SIZE makes the verdict will_fail", async () => {
+  const { base, srv } = await serve(deps([]));
+  try {
+    const j = await (await post(`${base}/v1/recipients/check`, { addresses: ["alice@remote.example"], message_size_bytes: 60_000_000 })).json();
+    const r = j.results[0];
+    assert.equal(r.verdict, "will_fail");
+    assert.equal(r.checks.find((c: any) => c.check === "size_limit").outcome, "fail");
+    const ok = await (await post(`${base}/v1/recipients/check`, { addresses: ["anyone@catchall.example"], message_size_bytes: 1000 })).json();
+    const m = ok.results[0].checks.find((c: any) => c.check === "mailbox");
+    assert.equal(m.outcome, "warn");
+    assert.equal(m.accepts_all, true);
+    assert.equal(ok.results[0].verdict, "risky");
   } finally { srv.close(); }
 });

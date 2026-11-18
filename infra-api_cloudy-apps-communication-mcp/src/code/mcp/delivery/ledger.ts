@@ -39,7 +39,9 @@ export interface Submission {
 
 interface QueueRec { queueId: string; spanId: string | null; at: string; from: string | null; to: string[]; size: number | null }
 interface Attempt { spanId: string; queueId: string; at: string; to: string[] }
-interface RcptEvent { rcpt: string; state: State; at: string; reason: string; host: string | null; code: number | null; hop: "relay" | "mx" | "local" | "dsn" | "queue" }
+// deferral: a pending result that is a temporary failure Stalwart will retry (4xx, connect error,
+// DSN "delayed"), as opposed to pending because a relay accepted it or it is simply still queued.
+interface RcptEvent { rcpt: string; state: State; at: string; reason: string; host: string | null; code: number | null; hop: "relay" | "mx" | "local" | "dsn" | "queue"; deferral?: boolean }
 interface SessionError { type: string; at: string; reason: string }
 interface DsnRec { at: string; dsn: Dsn }
 
@@ -68,6 +70,12 @@ function reasonOf(d: Record<string, unknown>): string {
     .filter((x) => x !== undefined && x !== null && x !== "")
     .map((x) => (typeof x === "object" ? JSON.stringify(x) : String(x)));
   return parts.join(" ").trim();
+}
+
+/** "552 5.2.2 Mailbox full" -> 552 (the SMTP code a DSN's Diagnostic-Code carries), else null. */
+function dsnCode(diag: string | null): number | null {
+  const m = diag?.match(/^\s*([2-5]\d\d)\b/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 export class Ledger {
@@ -245,7 +253,7 @@ export class Ledger {
           state = "pending";
           reason = `RCPT TO to ${host} did not complete, will retry: ${reasonOf(d)}`;
         }
-        this.pushRcpt(a.queueId, { rcpt, state, at: e.at, reason, host, code, hop });
+        this.pushRcpt(a.queueId, { rcpt, state, at: e.at, reason, host, code, hop, deferral: state === "pending" && e.type !== "delivery.delivered" });
         return true;
       }
       case "delivery.message-rejected":
@@ -258,7 +266,7 @@ export class Ledger {
         const perm = e.type !== "delivery.connect-error" && code !== null && code >= 500;
         for (const rcpt of a.to) {
           this.pushRcpt(a.queueId, {
-            rcpt, state: perm ? "failed" : "pending", at: e.at, host, code, hop: this.hopFor(host),
+            rcpt, state: perm ? "failed" : "pending", at: e.at, host, code, hop: this.hopFor(host), deferral: !perm,
             reason: `${e.type.replace("delivery.", "")} at ${host ?? "next hop"}${perm ? "" : " (will retry)"}: ${reasonOf(d)}`,
           });
         }
@@ -341,7 +349,7 @@ export class Ledger {
     };
   }
 
-  recipients(q: string): Array<{ rcpt: string; state: State; at: string | null; reason: string; hop?: string; host?: string | null }> {
+  recipients(q: string): Array<{ rcpt: string; state: State; at: string | null; reason: string; hop?: string; host?: string | null; code?: number | null; deferral?: boolean }> {
     const qr = this.queue.get(q);
     const sub = this.submissions.get(q);
     const rcpts = [...new Set([...(qr?.to ?? []), ...(sub?.envelopeTo ?? [])])];
@@ -353,7 +361,8 @@ export class Ledger {
         if (dsn.originalMessageId !== msgId) continue;
         for (const r of dsn.recipients) {
           dsnEvs.push({
-            rcpt: r.rcpt, state: dsnActionState(r.action), at, host: r.remoteMta ?? dsn.reportingMta, code: null, hop: "dsn",
+            rcpt: r.rcpt, state: dsnActionState(r.action), at, host: r.remoteMta ?? dsn.reportingMta, code: dsnCode(r.diagnostic), hop: "dsn",
+            deferral: r.action === "delayed",
             reason: `DSN from ${dsn.reportingMta ?? "remote MTA"}: ${r.action}${r.status ? " " + r.status : ""}${r.diagnostic ? " — " + r.diagnostic : ""}`,
           });
         }
@@ -366,7 +375,7 @@ export class Ledger {
       // A recipient that already failed stays failed; otherwise the latest record wins.
       const failed = mine.find((e) => e.state === "failed");
       const last = failed ?? mine[mine.length - 1];
-      if (last) return { rcpt, state: last.state, at: last.at, reason: last.reason, hop: last.hop, host: last.host };
+      if (last) return { rcpt, state: last.state, at: last.at, reason: last.reason, hop: last.hop, host: last.host, code: last.code, deferral: !!last.deferral };
       if (done && this.isLocal(rcpt)) {
         return { rcpt, state: "ok" as State, at: done, reason: "delivered into the local store (route local); message completed in the queue", hop: "local", host: null };
       }

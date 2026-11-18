@@ -53,21 +53,70 @@ Every response is `application/json` with `Cache-Control: no-store`.
 * the Stalwart queue id in hex, as printed in the SMTP reply
   `250 2.0.0 Message queued with id 40400000000002b.`
 
-Possible answers are 200 (body below) and 404 `not_found` (no record yet, or
-older than the 90-day retention).
+Optional query `?account=<address or login>` keys the lookup by account and
+Message-ID: only that account's submissions count, so another account's message
+is a 404. Possible answers are 200 (body below) and 404 `not_found` (no record
+yet, another account's message, or older than the 90-day retention).
 
 ### `POST /v1/sent/status`
 
 ```json
-{ "ids": ["<CAF00d1e.4711@phone.example.org>", "40400000000002b"] }
+{ "account": "sender@example.org", "ids": ["<CAF00d1e.4711@phone.example.org>", "40400000000002b"] }
 ```
+
+`account` is optional and works the same way as `?account=`.
 
 The limit is 100 ids, and duplicates are collapsed. The response is
 `{"results": [ ...one status object per id... ]}`. An unknown id comes back as
 `{"id": "...", "found": false, "messageId": "...", "reason": "..."}` inside
-`results`, not as a 404.
+`results`, not as a 404. Its `submission`, `sender` and `recipients` are `null`.
 
 ### Status object
+
+The response has two views of the same records:
+
+* **Client fields** (`submission`, `sender`, `recipients`). These are what the
+  Android client binds. Each field is `null` while it has no record yet.
+* **Stage detail** (`stages`). This holds the four stages with their evidence,
+  and is where every client field comes from.
+
+```json
+{
+  "submission": { "accepted": true, "at": "2026-11-18T10:00:01Z", "smtp_code": 250,
+                  "message_id": "<CAF00d1e.4711@phone.example.org>",
+                  "text": "250 2.0.0 Message queued with id 40400000000002b" },
+  "sender": { "may_use_from": true, "dkim_signed": true, "dkim_selector": "rsa-2026",
+              "spf_aligned": true, "dmarc_aligned": true, "at": "2026-11-18T10:00:01Z",
+              "text": "From authorised, DKIM signed, DMARC aligned" },
+  "recipients": [
+    { "address": "alice@remote.example", "state": "pending", "at": "2026-11-18T10:00:03Z", "smtp_code": 250,
+      "remote_mx": "smtp.email.eu-marseille-1.oci.oraclecloud.com",
+      "detail": "accepted by relay smtp.email.eu-marseille-1.oci.oraclecloud.com (250 2.0.0 Ok: queued as 7F3A2); ..." },
+    { "address": "bob@remote.example", "state": "bounced", "at": "2026-11-18T10:00:03Z", "smtp_code": 550,
+      "remote_mx": "smtp.email.eu-marseille-1.oci.oraclecloud.com",
+      "detail": "rejected by smtp.email.eu-marseille-1.oci.oraclecloud.com: 550 5.1.1 Recipient address rejected: suppressed (hard bounce)" },
+    { "address": "carol@example.org", "state": "delivered", "at": "2026-11-18T10:00:04Z", "smtp_code": null,
+      "remote_mx": null, "detail": "delivered into the local store (route local); message completed in the queue" }
+  ]
+}
+```
+
+How the client fields map:
+
+* `submission.accepted` is true, false or null when `stages.received` is ok,
+  failed or pending. `smtp_code` is 250 once the message is queued.
+* In `sender`, `may_use_from`, `dkim_signed` and `dmarc_aligned` follow the
+  `from_authorized`, `dkim` and `dmarc` checks (ok gives true, failed gives
+  false, pending gives null). `spf_aligned` is the SPF check's alignment, or
+  null while that check is pending.
+* `recipients[].state` takes one of four values:
+  * `delivered` when the final hop gave 250, or the message was stored locally;
+  * `bounced` on a 5xx or a failed DSN;
+  * `deferred` on a 4xx, a connect error or a delayed DSN (Stalwart retries);
+  * `pending` while queued, or when only the relay accepted it.
+
+  `remote_mx` is the next-hop host that answered. Through the OCI relay, that is
+  the relay's host name.
 
 Each stage is `{ "state": "ok" | "pending" | "failed", "at": RFC3339 | null, "reason": string }`.
 
@@ -186,8 +235,11 @@ itself, so many recipients will stay `pending` with that reason. Present this as
 ### `POST /v1/recipients/check`
 
 ```json
-{ "addresses": ["alice@remote.example", "anyone@catchall.example", "a@nullmx.example"] }
+{ "addresses": ["alice@remote.example", "anyone@catchall.example", "a@nullmx.example"], "message_size_bytes": 1048576 }
 ```
+
+`message_size_bytes` is optional. When it is given and the recipient server's
+EHLO `SIZE` is smaller, `size_limit` is `fail` and the verdict is `will_fail`.
 
 The limit is 50 addresses per request; duplicates are collapsed. The rate limit
 is **60 addresses per minute per caller**. Over the limit you get 429
@@ -195,36 +247,64 @@ is **60 addresses per minute per caller**. Over the limit you get 429
 `unknown` result is cached for only 15 min. Cached results carry `"cached": true`.
 
 Response: `{"results": [CheckResult, ...]}`. The results come back in the order
-of the deduplicated input.
+of the deduplicated input. Each result has the client's list form in `checks`,
+and the full per-check record in `check_details`:
 
 ```json
 {
-  "address": "alice@remote.example",
-  "verdict": "ok",
-  "reason": "mailbox confirmed by mx1.remote.example",
-  "checks": {
-    "syntax":      { "state": "ok", "normalized": "alice@remote.example" },
-    "domain_mx":   { "state": "ok", "hosts": ["mx1.remote.example", "mx2.remote.example"] },
-    "mailbox":     { "state": "exists", "host": "mx1.remote.example", "code": 250, "reason": "mx1.remote.example: 250 2.1.5 Ok" },
-    "past_bounce": { "state": "none" },
-    "disposable":  false,
-    "role":        false,
-    "size_limit":  { "bytes": 52428800, "host": "mx1.remote.example" }
-  },
+  "address": "anyone@catchall.example",
+  "verdict": "risky",
+  "reason": "catch-all domain",
+  "checks": [
+    { "check": "syntax", "outcome": "pass" },
+    { "check": "domain", "outcome": "pass", "detail": "MX: mx.catchall.example" },
+    { "check": "mailbox", "outcome": "warn", "accepts_all": true,
+      "detail": "mx.catchall.example accepts any address at catchall.example (catch-all), so 250 proves nothing" },
+    { "check": "past_bounce", "outcome": "pass" },
+    { "check": "disposable_role", "outcome": "pass" },
+    { "check": "size_limit", "outcome": "pass", "detail": "server limit 10240000 bytes (EHLO SIZE at mx.catchall.example)" }
+  ],
+  "check_details": { "...": "same object as below" },
   "cached": false,
   "checked_at": "2026-11-18T10:05:00.000Z"
 }
 ```
 
+The client `verdict` is `ok | risky | will_fail | unknown`, where `will_fail` is
+the `fail` verdict described below. Each check's `outcome` maps as follows:
+
+| check | pass | warn | fail | unknown |
+|---|---|---|---|---|
+| `syntax` | valid | | invalid | |
+| `domain` | has a mail host | | NXDOMAIN, null MX, or no MX/A/AAAA | DNS lookup failed |
+| `mailbox` | `exists` | `accepts_all` (`accepts_all: true`) | `does_not_exist` | anything else |
+| `past_bounce` | none | bounced before | | |
+| `disposable_role` | neither | disposable domain or role address | | |
+| `size_limit` | within limit, or no limit advertised | | `message_size_bytes` over the limit | SIZE not advertised, or server not reached |
+
+The `check_details` object, for `alice@remote.example`:
+
+```json
+{
+  "syntax":      { "state": "ok", "normalized": "alice@remote.example" },
+  "domain_mx":   { "state": "ok", "hosts": ["mx1.remote.example", "mx2.remote.example"] },
+  "mailbox":     { "state": "exists", "host": "mx1.remote.example", "code": 250, "reason": "mx1.remote.example: 250 2.1.5 Ok" },
+  "past_bounce": { "state": "none" },
+  "disposable":  false,
+  "role":        false,
+  "size_limit":  { "bytes": 52428800, "host": "mx1.remote.example" }
+}
+```
+
 | field | values |
 |---|---|
-| `verdict` | `ok`, `risky`, `fail`, `unknown` |
-| `checks.syntax.state` | `ok` / `fail` (+`reason`). The domain is IDNA-normalized |
-| `checks.domain_mx` | `state` `ok`/`fail`/`unknown`, `hosts[]`. `implicit: true` means no MX, fell back to A/AAAA (RFC 5321 §5.1). `null_mx: true` means RFC 7505 null MX (`fail`) |
-| `checks.mailbox.state` | `exists`, `does_not_exist`, `accepts_all` (catch-all), `unknown`, `not_checked` |
-| `checks.past_bounce` | `{state: "none"}` or `{state: "bounced", at, reason}`, taken from the #1802 records |
-| `checks.disposable`, `checks.role` | booleans (hints) |
-| `checks.size_limit.bytes` | the EHLO `SIZE` value. `0` means advertised without a limit; `null` means not advertised or not reached |
+| `verdict` (internal) | `ok`, `risky`, `fail`, `unknown`. The client field reports `fail` as `will_fail` |
+| `check_details.syntax.state` | `ok` / `fail` (+`reason`). The domain is IDNA-normalized |
+| `check_details.domain_mx` | `state` `ok`/`fail`/`unknown`, `hosts[]`. `implicit: true` means no MX, fell back to A/AAAA (RFC 5321 §5.1). `null_mx: true` means RFC 7505 null MX (`fail`) |
+| `check_details.mailbox.state` | `exists`, `does_not_exist`, `accepts_all` (catch-all), `unknown`, `not_checked` |
+| `check_details.past_bounce` | `{state: "none"}` or `{state: "bounced", at, reason}`, taken from the #1802 records |
+| `check_details.disposable`, `check_details.role` | booleans (hints) |
+| `check_details.size_limit.bytes` | the EHLO `SIZE` value. `0` means advertised without a limit; `null` means not advertised or not reached |
 
 Verdict rules:
 
@@ -246,7 +326,7 @@ DATA**; the code throws if it is asked to, and a test checks the transcript. At
 most 2 MX hosts are tried, with an 8 s timeout and 4 probes at a time. Local
 domains (`diegonmarcos.com`) are probed against Stalwart's own SMTP over wg0
 (`10.0.0.3:2025`). Remote MX probes come from oci-apps, where **OCI blocks
-outbound TCP/25**. Expect `mailbox.state: "unknown"` with
+outbound TCP/25**. Expect `check_details.mailbox.state: "unknown"` (client: `mailbox` outcome `unknown`) with
 `"cannot reach <mx>:25 from the server (...)"` for external domains. Everything
 else (syntax, MX, null MX, past bounce, hints) still works.
 

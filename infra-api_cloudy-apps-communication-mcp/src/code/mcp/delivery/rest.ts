@@ -16,6 +16,7 @@ import type { Ledger } from "./ledger.ts";
 import { senderValid, type Directory, type TxtResolver } from "./sender-valid.ts";
 import type { RecipientChecker } from "./recipients.ts";
 import { parseMtaHookBody, parseWebhookBody } from "./stalwart-wire.ts";
+import { checkView, sentView } from "./client-view.ts";
 
 export interface RestDeps {
   ledger: Ledger;
@@ -64,16 +65,27 @@ export function callerId(req: IncomingMessage): string {
   return xff || sourceIp(req);
 }
 
-export async function statusFor(deps: RestDeps, id: string): Promise<Record<string, unknown>> {
+/** SASL login "user" or "user@domain" vs the client's account address. */
+export function accountMatches(login: string | null | undefined, account: string): boolean {
+  if (!login) return false;
+  const l = login.toLowerCase(), a = account.toLowerCase();
+  return l === a || (!l.includes("@") && a.split("@")[0] === l);
+}
+
+export async function statusFor(deps: RestDeps, id: string, account: string | null = null): Promise<Record<string, unknown>> {
   const { ledger } = deps;
-  const { messageId, queueIds } = ledger.resolve(id);
-  if (!queueIds.length) return { id, messageId, found: false, reason: "no Stalwart record for this id (unknown Message-ID / queue id, or older than the retention window)" };
+  const resolved = ledger.resolve(id);
+  const { messageId } = resolved;
+  // Keyed by account + Message-ID: with an account, only that account's submissions count.
+  const queueIds = account ? resolved.queueIds.filter((q) => accountMatches(ledger.submission(q)?.saslLogin, account)) : resolved.queueIds;
+  if (!queueIds.length) return { id, account, messageId, found: false, reason: "no Stalwart record for this id (unknown Message-ID / queue id, another account's message, or older than the retention window)", submission: null, sender: null, recipients: null };
   const q = queueIds[queueIds.length - 1];
   const sv = await senderValid(ledger, q, deps.directory, deps.txt);
   const delivered = ledger.deliveredStage(q);
-  return {
+  const status = {
     id,
     found: true,
+    account: account ?? ledger.submission(q)?.saslLogin ?? null,
     messageId: ledger.submission(q)?.messageId ?? messageId,
     queueId: q,
     ...(queueIds.length > 1 ? { queueIds } : {}),
@@ -84,6 +96,8 @@ export async function statusFor(deps: RestDeps, id: string): Promise<Record<stri
       delivered,
     },
   };
+  // Client fields (submission / sender / recipients) next to the stage detail they come from.
+  return { ...status, ...sentView(status) };
 }
 
 /** Map with bounded concurrency (probes are real TCP sessions; keep them few). */
@@ -136,7 +150,7 @@ export async function handleRest(req: IncomingMessage, res: ServerResponse, deps
     // ── #1802 ──
     const one = p.match(/^\/v1\/sent\/(.+)\/status$/);
     if (one && m === "GET") {
-      const body = await statusFor(deps, one[1]);
+      const body = await statusFor(deps, one[1], url.searchParams.get("account"));
       if (!body.found) { send(res, 404, { error: body.reason, code: "not_found", id: body.id, messageId: body.messageId }); return true; }
       send(res, 200, body);
       return true;
@@ -148,7 +162,8 @@ export async function handleRest(req: IncomingMessage, res: ServerResponse, deps
       const max = deps.maxBatchIds ?? 100;
       if (!Array.isArray(ids) || !ids.length || ids.some((x: unknown) => typeof x !== "string" || !x)) { fail(res, 400, "invalid_request", "body must be {\"ids\": [\"<message-id or queue id>\", ...]}"); return true; }
       if (ids.length > max) { fail(res, 400, "too_many_ids", `at most ${max} ids per request`); return true; }
-      const results = await Promise.all([...new Set(ids as string[])].map((id) => statusFor(deps, id)));
+      const account = typeof j?.account === "string" && j.account ? j.account : null;
+      const results = await Promise.all([...new Set(ids as string[])].map((id) => statusFor(deps, id, account)));
       send(res, 200, { results });
       return true;
     }
@@ -164,7 +179,11 @@ export async function handleRest(req: IncomingMessage, res: ServerResponse, deps
       const uniq = [...new Set((addrs as string[]).map((a) => a.trim()))];
       const wait = deps.checker.limiter.take(callerId(req), uniq.length);
       if (wait > 0) { fail(res, 429, "rate_limited", `rate limit: ${deps.checker.cfg.rateLimit.addresses} addresses per ${Math.round(deps.checker.cfg.rateLimit.perMs / 1000)}s per caller`, { "Retry-After": String(Math.ceil(wait / 1000)) }); return true; }
-      const results = await pool(uniq, 4, (a) => deps.checker.check(a));
+      const size = j?.message_size_bytes;
+      if (size !== undefined && size !== null && (typeof size !== "number" || !Number.isFinite(size) || size < 0)) { fail(res, 400, "invalid_request", "message_size_bytes must be a non-negative number"); return true; }
+      const raw = await pool(uniq, 4, (a) => deps.checker.check(a));
+      // `checks` is the client's list form; the full per-check record stays in `check_details`.
+      const results = raw.map((r) => ({ ...checkView(r, typeof size === "number" ? size : null), check_details: r.checks, cached: r.cached, checked_at: r.checked_at }));
       send(res, 200, { results });
       return true;
     }
