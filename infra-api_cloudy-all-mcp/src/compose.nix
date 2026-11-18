@@ -18,6 +18,12 @@ in
       container_name = app.container_name;
       network_mode   = "host";
       env_file       = [ ".secrets" ];
+      # The Ship render (vault overlaid) auto-adds these two mounts; declaring them here makes the public render
+      # identical to it, so the committed dist/ never drifts (same as cloudy-browser-headless).
+      volumes = [
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
+      ];
       environment = {
         PORT          = port;
         MCP_HTTP_HOST = vmIp;
