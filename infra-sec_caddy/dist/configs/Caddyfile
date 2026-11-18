@@ -3430,7 +3430,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:3118 {
+  reverse_proxy 10.0.0.1:3118 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -3450,7 +3450,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.6:3020 {
+  reverse_proxy 10.0.0.1:3020 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -5397,7 +5397,7 @@ handle /scrappers/health {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
           uri strip_prefix /cloudy-browser-scrapper-api
-        reverse_proxy 10.0.0.6:3020
+        reverse_proxy 10.0.0.1:3020
         }
         handle {
           error "Forbidden" 403
@@ -5407,7 +5407,7 @@ handle /scrappers/openapi.json {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
           uri strip_prefix /cloudy-browser-scrapper-api
-        reverse_proxy 10.0.0.6:3020
+        reverse_proxy 10.0.0.1:3020
         }
         handle {
           error "Forbidden" 403
@@ -5427,7 +5427,7 @@ handle_path /cloudy-browser-scrapper-api/* {
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
     }
-      reverse_proxy 10.0.0.6:3020 {
+      reverse_proxy 10.0.0.1:3020 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -5466,7 +5466,7 @@ handle_path /cloudy-browser-scrapper-api/* {
       header_up X-Forwarded-Uri {http.request.orig_uri}
       copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
     }
-      reverse_proxy 10.0.0.6:3020 {
+      reverse_proxy 10.0.0.1:3020 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -6724,7 +6724,7 @@ handle {
 handle_path /cloudy-browser-headless/* {
   @wg remote_ip 10.0.0.0/24 fd0c:1d00::/64
         handle @wg {
-          reverse_proxy 10.0.0.6:3118 {
+          reverse_proxy 10.0.0.1:3118 {
           header_up X-Real-IP {http.request.remote.host}
         }
         }
@@ -6926,12 +6926,12 @@ import request_limits
         }
       }
       handle_path /cloudy-browser-headless/* {
-        reverse_proxy 10.0.0.6:3118 {
+        reverse_proxy 10.0.0.1:3118 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
       handle_path /cloudy-browser-scrapper-api/* {
-        reverse_proxy 10.0.0.6:3020 {
+        reverse_proxy 10.0.0.1:3020 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
@@ -10228,7 +10228,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3118 {
+    reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -10277,7 +10277,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3020 {
+    reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -10326,7 +10326,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3020 {
+    reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13639,7 +13639,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3118 {
+      reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13680,7 +13680,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3020 {
+      reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13721,7 +13721,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3020 {
+      reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -16386,7 +16386,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3118 {
+      reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -16427,7 +16427,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.6:3020 {
+      reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -19182,7 +19182,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3118 {
+    reverse_proxy 10.0.0.1:3118 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -19224,7 +19224,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    reverse_proxy 10.0.0.6:3020 {
+    reverse_proxy 10.0.0.1:3020 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
