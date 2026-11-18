@@ -14,8 +14,11 @@
 #      NO tls{} block of its own (no internal issuer, no on_demand, no
 #      force_automate), so Caddy 2.10+ serves it from the managed wildcard and
 #      never issues a per-name cert (names stay out of CT logs);
-#   3. the two-label cloud.<name>.mesh aliases keep `issuer internal { ca mesh }`
-#      and the gate (documented: the one-label wildcard cannot cover them);
+#   3. the multi-label cloud.<name>.mesh aliases get one public cert per name
+#      (first issuer ACME DNS-01; the mesh CA only as the Let's Encrypt
+#      rate-limit fallback) and keep the gate;
+#   3b. no mesh vhost takes its certificate from the internal issuer, except as
+#      that fallback and the underscore names no public CA can issue;
 #   4. globals: the mesh CA (`pki { ca mesh }`) and `acme_dns cloudflare` are
 #      still there; no `prefer_wildcard` (rejected by the 2.10+ adapter: wildcard
 #      preference is the default) and no tls_automate_names for mesh names;
@@ -23,7 +26,8 @@
 #      site block whose address is NOT under .mesh.diegonmarcos.com must be
 #      byte-identical between the two renders;
 #   2b. one-label names that are not valid hostnames (underscore canonical
-#      aliases) keep `tls force_automate { issuer internal { ca mesh } }`;
+#      aliases) keep `tls force_automate { issuer internal { ca mesh } }` and
+#      each has a hyphenated twin served by the wildcard;
 #   6. with a `caddy` binary on PATH (or CADDY=...), the file adapts and the
 #      adapted JSON never names a single-label (LDH) mesh host in any TLS
 #      automation policy or the automate loader (a per-name certificate).
@@ -85,23 +89,47 @@ while IFS= read -r h; do
     || { bad "$h: non-LDH mesh name not pinned to the mesh CA (tls force_automate + issuer internal)"; bad_nonldh=$((bad_nonldh+1)); }
   if grep -q 'on_demand' <<<"$b"; then bad "$h: on_demand defeats the force_automate pin (wildcard wins at handshake)"; bad_nonldh=$((bad_nonldh+1)); fi
   grep -q 'error @not_mesh "Forbidden" 403' <<<"$b" || { bad "$h: lost the @not_mesh gate"; bad_nonldh=$((bad_nonldh+1)); }
+  twin="${h//_/-}"; tb="$(body_of "$twin")"
+  if [ -z "$tb" ]; then bad "$h: no hyphenated twin $twin"; bad_nonldh=$((bad_nonldh+1))
+  elif grep -qE '^\s*tls(\s|\{|$)|issuer internal' <<<"$tb" || ! grep -q 'error @not_mesh "Forbidden" 403' <<<"$tb"; then
+    bad "$twin: twin must be wildcard-served (no tls{}) and gated"; bad_nonldh=$((bad_nonldh+1)); fi
 done <<<"$nonldh"
-[ "$bad_nonldh" -eq 0 ] && ok "$n_nonldh non-LDH one-label mesh vhosts pinned to the mesh CA + gate"
+[ "$bad_nonldh" -eq 0 ] && ok "$n_nonldh non-LDH one-label mesh vhosts pinned to the mesh CA + gate, each with a wildcard-served hyphenated twin"
 
-# ── 3. two-label cloud.<name>.mesh aliases keep the private CA ──
+# ── 3. multi-label cloud.<name>.mesh aliases: one public cert per name ──
+#      first issuer ACME DNS-01; the mesh CA may follow ONLY as the
+#      Let's Encrypt rate-limit fallback; never on_demand; gate kept.
 multi="$(awk -F'\t' -v sfx=".$MESH" '{ a=$1; if (substr(a, length(a)-length(sfx)+1) == sfx) { l=substr(a,1,length(a)-length(sfx)); if (l ~ /\./ && l !~ /[ ,*]/) print a } }' <<<"$ALL")"
 n_multi=$(grep -c . <<<"$multi" || true)
 bad_multi=0
 while IFS= read -r h; do
   [ -n "$h" ] || continue
   b="$(body_of "$h")"
-  grep -q 'issuer internal' <<<"$b" && grep -q 'ca mesh' <<<"$b" || { bad "$h: lost the mesh CA issuer"; bad_multi=$((bad_multi+1)); }
+  first="$(grep -oE 'issuer (acme|internal)' <<<"$b" | head -1)"
+  [ "$first" = "issuer acme" ] && grep -q 'dns cloudflare {env.CF_API_TOKEN}' <<<"$b" \
+    || { bad "$h: first issuer is not ACME DNS-01 ($first)"; bad_multi=$((bad_multi+1)); }
+  if grep -q 'on_demand' <<<"$b"; then bad "$h: on_demand on a public per-name cert"; bad_multi=$((bad_multi+1)); fi
   grep -q 'error @not_mesh "Forbidden" 403' <<<"$b" || { bad "$h: lost the @not_mesh gate"; bad_multi=$((bad_multi+1)); }
 done <<<"$multi"
-[ "$bad_multi" -eq 0 ] && ok "$n_multi multi-label mesh vhosts keep issuer internal { ca mesh } + gate"
+[ "$bad_multi" -eq 0 ] && ok "$n_multi multi-label mesh vhosts: public ACME DNS-01 first (mesh CA only as fallback) + gate"
+
+# ── 3b. no mesh vhost uses the internal issuer as its certificate source.
+#        Allowed: internal AFTER acme (rate-limit fallback), and the pinned
+#        underscore names (no public CA can issue them; twin checked in 2b).
+bad_int=0
+while IFS=$'\t' read -r a body; do
+  case "$a" in *".$MESH") ;; *) continue ;; esac
+  b="$(tr '\001' '\n' <<<"$body")"
+  grep -q 'issuer internal' <<<"$b" || continue
+  first="$(grep -oE 'issuer (acme|internal)' <<<"$b" | head -1)"
+  [ "$first" = "issuer acme" ] && continue
+  case "${a%.$MESH}" in *_*) grep -q 'tls force_automate {' <<<"$b" && continue ;; esac
+  bad "$a: served from the internal issuer"; bad_int=$((bad_int+1))
+done <<<"$ALL"
+[ "$bad_int" -eq 0 ] && ok "no mesh vhost takes its certificate from the internal issuer (except fallback / underscore pins)"
 
 # ── 4. globals ──
-grep -qE '^\s*ca mesh \{' "$CF"                  && ok "pki { ca mesh } still declared" || bad "pki ca mesh missing (breaks cloud.* aliases)"
+grep -qE '^\s*ca mesh \{' "$CF"                  && ok "pki { ca mesh } still declared" || bad "pki ca mesh missing (breaks underscore pins, *.db and the cloud.* fallback)"
 grep -q 'acme_dns cloudflare {env.CF_API_TOKEN}' "$CF" && ok "global acme_dns cloudflare"  || bad "global acme_dns cloudflare missing"
 grep -q 'prefer_wildcard' "$CF"                  && bad "prefer_wildcard set (Caddy 2.10+ rejects it)" || ok "no prefer_wildcard (default in 2.10+)"
 grep -qE "tls_automate_names.*\.${MESH_RE}" "$CF" && bad "tls_automate_names lists a mesh name (per-name cert)" || ok "no tls_automate_names for mesh names"

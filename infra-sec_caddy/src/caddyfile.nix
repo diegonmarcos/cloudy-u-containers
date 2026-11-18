@@ -1367,12 +1367,19 @@ ${handleErrors}
   # itself is gated the same way and serves nothing (404 for an undeclared
   # mesh name, 403 off-mesh).
   #
-  # Private CA kept where the wildcard cannot reach: a wildcard covers ONE
-  # label, so the two-label cloud.<name>.mesh.diegonmarcos.com aliases
-  # (mkPrivateMeshRoute) and the bare *.db catalog names keep
-  # `issuer internal { ca mesh }` for now. Clients that pinned the mesh CA keep
-  # working on those, and on the single-label names they only need the
-  # system trust store, which every mesh-ca.crt install sits alongside.
+  # Where the one-label wildcard cannot reach (architect decision: every
+  # mesh name gets publicly trusted HTTPS):
+  #  · two-label cloud.<name>.mesh.diegonmarcos.com aliases (mkPrivateMeshRoute):
+  #    one public cert per name over the same DNS-01 path, mesh CA as the
+  #    rate-limit fallback (meshTlsBlock.publicPerName). Their names do reach
+  #    CT logs; accepted by the owner.
+  #  · underscore one-label names: invalid in any public SAN, so each gets a
+  #    hyphenated twin under the wildcard (withHyphenTwin); the old name
+  #    keeps its pinned mesh-CA leaf (rule 16).
+  #  · bare *.db catalog names are not under a domain the fleet owns: no public
+  #    CA can issue them; they keep `issuer internal { ca mesh }`.
+  # Clients that pinned the mesh CA keep working: they trust the system roots
+  # as well, and every leftover private leaf is still from the same CA.
   meshDomain   = global.mesh_domain or "mesh.diegonmarcos.com";
   meshWildcard = "*.${meshDomain}";
   # Hosts of a site address (comma-separated), whitespace-trimmed.
@@ -1400,15 +1407,62 @@ ${handleErrors}
   # Built line by line so the private-CA output stays byte-identical to the
   # pre-#1797 templates.
   meshTlsBlock = { addr, onDemand ? false }:
+    let
+      allMesh = let hs = addrHosts addr; in hs != [] && lib.all (h: lib.hasSuffix ".${meshDomain}" h) hs;
+      pin = wildcardWouldServe addr;
+      privateCa = lib.concatStringsSep "\n" (
+        [ (if pin then "    tls force_automate {" else "    tls {") ]
+        # on_demand defeats the pin: at handshake certmagic finds the cached
+        # wildcard before it would issue the on-demand leaf (verified on
+        # 2.11.9), so a pinned name is issued up front from the internal CA.
+        ++ lib.optional (onDemand && !pin) "      on_demand"
+        ++ [ "      issuer internal {" "        ca mesh" "      }" "    }" ]);
+      # Multi-label mesh names (cloud.<name>.mesh): no shared parent, so one
+      # public certificate per name over the same DNS-01 path. `issuer
+      # internal { ca mesh }` follows as a FALLBACK only: Let's Encrypt allows
+      # 50 new certificates per registered domain per 7 days, fewer than the
+      # 87 aliases. Until the cap refills, a name that ACME refuses keeps
+      # being served from the mesh CA (as before #1797) instead of going
+      # dark; each renewal of that short-lived leaf tries ACME first, so the
+      # fleet converges on public certificates on its own.
+      publicPerName = lib.concatStringsSep "\n" [
+        "    tls {"
+        "      issuer acme {"
+        "        dns cloudflare {env.CF_API_TOKEN}"
+        "        resolvers 1.1.1.1 8.8.8.8"
+        "        propagation_delay 30s"
+        "        propagation_timeout 5m"
+        "      }"
+        "      issuer internal {"
+        "        ca mesh"
+        "      }"
+        "    }"
+      ];
+    in
     if coveredByMeshWildcard addr then
       "    # TLS: served from the public ${meshWildcard} wildcard (#1797); no per-name cert."
-    else let pin = wildcardWouldServe addr; in lib.concatStringsSep "\n" (
-      [ (if pin then "    tls force_automate {" else "    tls {") ]
-      # on_demand defeats the pin: at handshake certmagic finds the cached
-      # wildcard before it would issue the on-demand leaf (verified on 2.11.9),
-      # so a pinned name is issued up front from the internal CA instead.
-      ++ lib.optional (onDemand && !pin) "      on_demand"
-      ++ [ "      issuer internal {" "        ca mesh" "      }" "    }" ]);
+    else if pin then privateCa       # one-label, not a valid hostname: see hyphenAlias
+    else if allMesh then publicPerName
+    else privateCa;                  # not a mesh name (bare *.db catalog): no public CA can issue
+
+  # Underscore labels cannot be in a public certificate. Each such one-label
+  # mesh name also gets a hyphenated twin (etherpad_app-http-3012 ->
+  # etherpad-app-http-3012) served under the wildcard; the underscore name
+  # stays (rule 16) on its pinned mesh-CA leaf.
+  hyphenAlias = addr:
+    let hs = addrHosts addr; in
+    if lib.length hs == 1 && meshLabel (lib.head hs) != null && lib.hasInfix "_" (meshLabel (lib.head hs))
+    then lib.replaceStrings [ "_" ] [ "-" ] (meshLabel (lib.head hs)) + ".${meshDomain}"
+    else null;
+  # Render mk for e, plus its hyphenated twin when e's name has an underscore
+  # and no route already claims the hyphenated name.
+  withHyphenTwin = mk: e:
+    let alias = hyphenAlias (withMesh e.service); in
+    mk e + lib.optionalString (alias != null && !(declaredMeshNames.${alias} or false))
+      ("\n" + mk (e // { service = alias; }));
+  declaredMeshNames = lib.genAttrs (map (r: r.service) (
+    (caddyRoutes.internal_routes or []) ++ (caddyRoutes.all_app_urls or []) ++ privateMeshRoutes
+    ++ (caddyRoutes.s3_routes or []))) (_: true);
 
   meshWildcardBlock = subst {
     "@MESH_WILDCARD@"    = meshWildcard;
@@ -1616,7 +1670,7 @@ ${mkProxyDashboardBlock}
   # INTERNAL ROUTES — portless *.mesh.diegonmarcos.com via HTTP:80 on WireGuard
   # ════════════════════════════════════════════════════════════
 
-${lib.concatMapStringsSep "\n" mkInternalRoute (caddyRoutes.internal_routes or [])}
+${lib.concatMapStringsSep "\n" (withHyphenTwin mkInternalRoute) (caddyRoutes.internal_routes or [])}
 
   # ════════════════════════════════════════════════════════════
   # MESH WILDCARD — public *.mesh.diegonmarcos.com cert, WG mesh only (#1797)
@@ -1634,9 +1688,9 @@ ${lib.concatMapStringsSep "\n" mkPrivateMeshRoute privateMeshRoutes}
   # APP URL ALIASES — {container}-{protocol}-{port}.mesh.diegonmarcos.com canonical routes
   # ════════════════════════════════════════════════════════════
 
-${lib.concatMapStringsSep "\n" mkCanonicalAppRoute dedupedCanonicals}
+${lib.concatMapStringsSep "\n" (withHyphenTwin mkCanonicalAppRoute) dedupedCanonicals}
 
-${lib.concatMapStringsSep "\n" mkPortlessAppRoute dedupedPortless}
+${lib.concatMapStringsSep "\n" (withHyphenTwin mkPortlessAppRoute) dedupedPortless}
 
   # ════════════════════════════════════════════════════════════
   # DB ZONE — {container}-{engine}-{port}.db HTTPS catalog endpoints
