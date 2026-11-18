@@ -151,7 +151,7 @@
           "dns": "mcp-oauth.mesh.diegonmarcos.com",
           "port": 4183,
           "protocol": "http",
-          "mesh_route": false
+          "mesh_route": true
         }
       ],
       "routes": [],

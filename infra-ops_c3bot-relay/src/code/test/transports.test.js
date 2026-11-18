@@ -96,12 +96,25 @@ test('WebSocket: hello, live push, send frame, bad bearer refused', async () => 
 });
 
 test('messages from non-allowlisted senders never reach any transport', () => {
+  // #1579: a foreign sender yields at most ONE telegram.chat metadata event per chat signature (chat/topic registry),
+  // never a telegram.message, never its text and never its sender.
   const before = relay.cursor;
   inject(5, 999, 'spam');
-  assert.equal(relay.cursor, before);
+  const evs = relay.since(before);
+  assert.ok(evs.length <= 1);
+  for (const e of evs) {
+    assert.equal(e.type, 'telegram.chat');
+    assert.equal(e.text, undefined);
+    assert.equal(e.from, undefined);
+    assert.ok(!JSON.stringify(e).includes('spam'));
+    assert.ok(!JSON.stringify(e).includes('999'));
+  }
+  const after = relay.cursor;
+  inject(6, 999, 'spam again');
+  assert.equal(relay.cursor, after, 'the same chat is announced once');
 });
 
-test('botA.state is exposed (loop not started in test)', () => { assert.ok(['idle', 'polling', 'error', 'standby'].includes(telegram.state)); });
+test('botA.state is exposed (loop not started in test)', () => { assert.ok(['idle', 'polling', 'error', 'standby'].includes(botA.state)); });
 
 // ---- #1579 webhook ingestion (Bot A), mode switching (webhook <-> getUpdates on the same token) and dedupe ----
 const post = (body, secret = 'wh-secret', path = '/c3bot-relay/telegram/webhook') =>
