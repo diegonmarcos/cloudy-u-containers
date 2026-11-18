@@ -254,6 +254,22 @@ fn auth_backfill(
         return Ok(());
     }
 
+    // 2026-11-18 oci-mail incident: the "done" hash above is written only after a fully successful pass, so
+    // any error (a locked DB, a failed backup, an OOM kill mid-copy) made EVERY poll re-walk the whole INBOX,
+    // back up the DB and re-run the copy. An attempt for these auth rules is now recorded BEFORE the walk,
+    // and a failed or interrupted attempt is retried at most once per BACKUP_MIN_INTERVAL instead of every
+    // poll. The retry itself stays (the copy is idempotent per body).
+    let attempt = db::auth_backfill_attempt_path(db_path);
+    if mode == "apply" {
+        if let Some(age) = db::attempt_age(&attempt, hash) {
+            if age < backup_min_interval() {
+                return Ok(());
+            }
+            tracing::warn!("auth backfill — retrying an attempt from {}s ago that did not complete", age.as_secs());
+        }
+        db::write_state_hash(&attempt, hash)?;
+    }
+
     const PAGE: i64 = 2000;
     let mut after = 0i64;
     let mut per_folder: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
@@ -283,8 +299,9 @@ fn auth_backfill(
     // No originals are marked: this is a copy-only pass.
     let (copied, skipped) = db::apply_plan(conn, inbox_id, user_id, &plans, &[])?;
     tracing::info!("auth backfill — copied={copied} skipped={skipped}");
-    db::resync_msgs_count(conn, user_id)?;
+    // Done as soon as the copy committed: a failing count resync must not re-run the whole backfill.
     db::write_state_hash(&state, hash)?;
+    db::resync_msgs_count(conn, user_id)?;
     Ok(())
 }
 

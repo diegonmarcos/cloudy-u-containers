@@ -38,7 +38,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn open(db_path: &str) -> anyhow::Result<Connection> {
     let conn = Connection::open(db_path)?;
-    conn.execute_batch("PRAGMA foreign_keys = ON;")?;
+    // busy_timeout: maddy itself writes this DB while the sorter runs, and without a timeout every
+    // overlap failed at once with SQLITE_BUSY ("database is locked"), failing the whole pass.
+    conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;")?;
     Ok(conn)
 }
 
@@ -105,6 +107,21 @@ pub fn sender_state_file_path(db_path: &str) -> String {
 pub fn auth_backfill_state_path(db_path: &str) -> String {
     let dir = Path::new(db_path).parent().unwrap_or(Path::new("/data"));
     dir.join(".auth-backfill.hash").to_string_lossy().into_owned()
+}
+
+/// Attempt marker of the auth-axis backfill: the hash of the auth rules an attempt last STARTED for.
+pub fn auth_backfill_attempt_path(db_path: &str) -> String {
+    let dir = Path::new(db_path).parent().unwrap_or(Path::new("/data"));
+    dir.join(".auth-backfill.attempt").to_string_lossy().into_owned()
+}
+
+/// Age of the marker at `path` when it records `hash`; `None` when it is missing, unreadable or for other rules.
+pub fn attempt_age(path: &str, hash: u64) -> Option<std::time::Duration> {
+    if read_state_hash(path)? != hash {
+        return None;
+    }
+    let modified = std::fs::metadata(path).ok()?.modified().ok()?;
+    SystemTime::now().duration_since(modified).ok()
 }
 
 /// Hash of just the auth-axis rules (what a backfill is a function of).
