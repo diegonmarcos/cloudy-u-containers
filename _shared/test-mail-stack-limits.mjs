@@ -152,6 +152,27 @@ check(`L7 the four ceilings together leave the host >= 250MiB of the 954MiB`,
     Number(env.POLL_INTERVAL) >= 1800, `got ${JSON.stringify(env.POLL_INTERVAL)}`);
 }
 
+// ── memory.low: protect stalwart's hot pages, without starving the host ──
+// reservations.memory renders to cgroup v2 memory.low. 2026-11-18 the box
+// was refaulting ~12MB/s of file pages; stalwart (~70MiB resident) gets a
+// floor that also covers its hot RocksDB pages. The sum stays far under RAM
+// because memory.low that overcommits the box protects nothing.
+{
+  const resv = (e) => {
+    const r = ((bj(e.dir).containers || {})[e.role] || {}).resources || {};
+    return toBytes((r.reservations || {}).memory || r.mem_reservation);
+  };
+  const st = render(STACK[0]);
+  const rendered = toBytes((((st.deploy || {}).resources || {}).reservations || {}).memory);
+  check("R1 stalwart rendered reservations.memory >= 96M (resident ~70MiB + hot RocksDB pages)",
+    rendered !== null && rendered >= toBytes("96M"), `rendered ${rendered}`);
+  check("R2 stalwart reservation <= its mem_limit",
+    rendered !== null && rendered <= toBytes(bj(STACK[0].dir).containers.app.resources.mem_limit));
+  const sum = STACK.reduce((a, e) => a + (resv(e) || 0), 0);
+  check("R3 mail-stack reservations together <= 320MiB (memory.low must not overcommit the 954MiB box)",
+    sum > 0 && sum <= toBytes("320M"), `sum ${Math.round(sum / 1048576)}MiB`);
+}
+
 // ── file re-reads: the sorter must not make Stalwart read every blob ──────
 // 2026-11-18, oci-mail: io PSI some 61.6 / full 13.4, ~12MB/s of file
 // refaults, stalwart 1474MB of cgroup reads. Stalwart v0.16.5 reads the WHOLE
