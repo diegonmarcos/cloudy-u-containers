@@ -739,6 +739,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "fin-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "chrono",
+ "fincept-agents-investors",
+ "fincept-core",
+ "fincept-datahub",
+ "fincept-mcp",
+ "fincept-storage",
+ "flate2",
+ "futures",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "fincept-agents-core"
 version = "0.1.0"
 dependencies = [
@@ -957,7 +983,7 @@ name = "fincept-client"
 version = "0.1.0"
 dependencies = [
  "axum",
- "fincept-server",
+ "fin-api",
  "reqwest",
  "serde",
  "serde_json",
@@ -1272,28 +1298,6 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
-]
-
-[[package]]
-name = "fincept-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "fincept-agents-investors",
- "fincept-core",
- "fincept-datahub",
- "fincept-mcp",
- "futures",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

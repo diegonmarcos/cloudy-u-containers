@@ -849,7 +849,7 @@ fn free_flag(s: &Value) -> bool {
     freestack::flag_on(s.pointer("/flag/default").and_then(Value::as_bool).unwrap_or(false), std::env::var(env).ok().as_deref())
 }
 
-async fn put_doc(pool: &SqlitePool, id: &str, v: &Value) -> anyhow::Result<()> {
+pub(crate) async fn put_doc(pool: &SqlitePool, id: &str, v: &Value) -> anyhow::Result<()> {
     sqlx::query("INSERT INTO fin_doc (id, value, at) VALUES (?1, ?2, ?3) ON CONFLICT(id) DO UPDATE SET value = excluded.value, at = excluded.at")
         .bind(id)
         .bind(v.to_string())

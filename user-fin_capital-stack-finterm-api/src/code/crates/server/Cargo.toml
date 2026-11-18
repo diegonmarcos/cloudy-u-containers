@@ -37,6 +37,8 @@ reqwest = { workspace = true }
 chrono = { workspace = true }
 sqlx = { workspace = true }
 fincept-storage = { path = "../storage" }
+# #1786 the Bank of England yield-curve archive (a zipped workbook): raw deflate for finterm/sovereign.rs's zip reader
+flate2 = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "macros", "rt-multi-thread"] }

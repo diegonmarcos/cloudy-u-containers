@@ -31,6 +31,7 @@ pub fn router() -> Router<AppState> {
         .route("/v1/fundamentals/{symbol}", get(fundamentals))
         .route("/v1/admin/refresh/{job}", post(admin_refresh))
         .merge(super::store::router())
+        .merge(super::sovereign::router())
 }
 
 /// The jobs serving `path`, run once now when none of them has an answer yet.

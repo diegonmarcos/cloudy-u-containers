@@ -1,0 +1,69 @@
+{
+  "_doc": "#1786 /v1/rates/sovereign-curves: the government yield curves FinTerm's CB/Home reads for the economies the yield store does not already serve as a full daily curve (GB spot, JP, CN). API-owned declaration, embedded by finterm/sovereign.rs: no provider address is typed in Rust. Per country the sources are tried in order (the first is the primary, the rest the fallbacks); a tenor a source does not publish is left out, never interpolated or made up. US: /v1/curves/ust_par (US Treasury daily par curve, treasury_xml). Euro area: /v1/curves/EA (ECB AAA spot curve, ecb_yc_aaa, yield store).",
+  "route": "/v1/rates/sovereign-curves",
+  "default_countries": ["GB", "JP", "CN"],
+  "default_tenors": ["2", "5", "10", "30"],
+  "aliases": { "UK": "GB" },
+  "ttl_s": 21600,
+  "retry_s": 900,
+  "elsewhere": {
+    "US": "served by /v1/curves/ust_par (US Treasury daily par yield curve)",
+    "EA": "served by /v1/curves/EA (ECB euro area AAA government spot curve)"
+  },
+  "countries": {
+    "GB": [
+      {
+        "id": "boe_glc_nominal_spot",
+        "name": "Bank of England daily nominal government liability spot curve (GLC, current month)",
+        "format": "boe_glc_zip",
+        "url": "https://www.bankofengland.co.uk/-/media/boe/files/statistics/yield-curves/latest-yield-curve-data.zip",
+        "member": "GLC Nominal daily data current month.xlsx",
+        "sheet": "4. spot curve",
+        "licence": "Bank of England, attribution"
+      },
+      {
+        "id": "boe_iadb_nominal_zc",
+        "name": "Bank of England IADB nominal zero-coupon (spot) yields, 5/10/20 years",
+        "format": "boe_iadb_csv",
+        "url": "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom={from_dmy}&Dateto=now&SeriesCodes=IUDSNZC,IUDMNZC,IUDLNZC&CSVF=TN&UsingCodes=Y",
+        "lookback_days": 20,
+        "years": { "IUDSNZC": 5, "IUDMNZC": 10, "IUDLNZC": 20 },
+        "licence": "Bank of England, attribution"
+      }
+    ],
+    "JP": [
+      {
+        "id": "mof_jgb",
+        "name": "Ministry of Finance Japan JGB interest rates (current month)",
+        "format": "mof_jgb_csv",
+        "url": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv",
+        "licence": "Ministry of Finance Japan, attribution"
+      },
+      {
+        "id": "mof_jgb_all",
+        "name": "Ministry of Finance Japan JGB interest rates (history since 1974)",
+        "format": "mof_jgb_csv",
+        "url": "https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
+        "licence": "Ministry of Finance Japan, attribution"
+      }
+    ],
+    "CN": [
+      {
+        "id": "chinabond_cgb",
+        "name": "ChinaBond China government bond yield curve (MOF-China, via yield.chinabond.com.cn)",
+        "format": "chinabond_chart_json",
+        "url": "https://yield.chinabond.com.cn/cbweb-czb-web/czb/czbChartSearch",
+        "method": "POST",
+        "curve_id": "2c9081e50a2f9606010a3068cae70001",
+        "licence": "Ministry of Finance of the PRC / China Central Depository & Clearing, attribution"
+      },
+      {
+        "id": "chinabond_cgb_table",
+        "name": "ChinaBond MOF-China government bond yield curve key tenors (published table)",
+        "format": "chinabond_table_html",
+        "url": "https://yield.chinabond.com.cn/cbweb-czb-web/czb/moreInfo?locale=en_US&nameType=1",
+        "licence": "Ministry of Finance of the PRC / China Central Depository & Clearing, attribution"
+      }
+    ]
+  }
+}

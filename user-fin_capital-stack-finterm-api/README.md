@@ -22,6 +22,11 @@ GET  /capital-stack-finterminal-api/api/v1/topics/:topic/peek
 GET  /capital-stack-finterminal-api/api/v1/mcp/tools
 POST /capital-stack-finterminal-api/api/v1/mcp/tools/:name/call
 GET  /capital-stack-finterminal-api/api/v1/ws              # WebSocket — {op:subscribe|publish|ping}
+GET  /capital-stack-finterm-api/v1/rates/sovereign-curves?countries=GB,JP,CN&tenors=2,5,10,30
+     # #1786 government yield curves: {as_of, curves:{CC:{tenor:{value,date,source}}}, unavailable:{CC:reason}, meta}
+     # GB = BoE GLC nominal spot (fallback IADB zero-coupon 5/10/20y), JP = MoF JGB CSV, CN = ChinaBond CGB curve.
+     # Sources declared in src/code/sovereign-curves.json; cached 6 h per country, fail soft per country.
+     # US: /v1/curves/ust_par, euro area: /v1/curves/EA (existing).
 ```
 
 ## Deploy

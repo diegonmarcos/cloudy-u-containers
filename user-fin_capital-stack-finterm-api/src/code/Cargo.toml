@@ -89,6 +89,7 @@ once_cell = "1"
 
 # HTTP / WS
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "gzip", "brotli", "stream"] }
+flate2 = "1"
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-native-roots"] }
 
 # Storage

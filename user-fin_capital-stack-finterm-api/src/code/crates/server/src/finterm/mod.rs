@@ -10,6 +10,7 @@ pub mod scheduler;
 pub mod freestack;
 pub mod fxmatrix;
 pub mod g20bonds;
+pub mod sovereign;
 pub mod store;
 
 use serde_json::Value;
@@ -69,6 +70,8 @@ pub struct Finterm {
     pub universe: Value,
     /// The market store (FINTERM_DB), set once by `store::start`; unset when the server runs without a database.
     pub store: OnceLock<sqlx::SqlitePool>,
+    /// #1786 /v1/rates/sovereign-curves: its declaration (sovereign-curves.json) and the per-country cache.
+    pub sovereign: sovereign::Sovereign,
 }
 
 impl Finterm {
@@ -104,6 +107,7 @@ impl Finterm {
             status: Mutex::new(status),
             client,
             store: OnceLock::new(),
+            sovereign: sovereign::Sovereign::from_json(sovereign::DECL_JSON)?,
         })
     }
 
