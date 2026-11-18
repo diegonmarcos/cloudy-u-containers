@@ -195,6 +195,36 @@ pub fn clear_distributed(conn: &Connection, inbox_id: i64, ids: &[i64]) -> anyho
     Ok(())
 }
 
+/// Age of the newest `<db>.bak-*` beside `db_path`, or `None` when there is none.
+fn newest_backup_age(db_path: &str) -> Option<std::time::Duration> {
+    let dir = Path::new(db_path).parent().unwrap_or(Path::new("/data"));
+    let prefix = format!("{}.bak-", Path::new(db_path).file_name()?.to_str()?);
+    std::fs::read_dir(dir)
+        .ok()?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_name().to_str().is_some_and(|n| n.starts_with(&prefix)))
+        .filter_map(|e| e.metadata().ok()?.modified().ok())
+        .max()
+        .and_then(|t| SystemTime::now().duration_since(t).ok())
+}
+
+/// Same backup as [`backup`], skipped while the newest one is younger than `min_interval`.
+///
+/// 2026-11-18 oci-mail incident: [`backup`] is a full `std::fs::copy` of imapsql.db, and it ran on EVERY poll
+/// that found new INBOX mail (every 120 s with steady inbound), inside maddy's 128M cgroup. Each copy pushed
+/// the DB's own page cache out of the cgroup, so every query re-read it from disk (maddy: 145 GB read / 29 GB
+/// written, IO PSI ~75%, load 13). The pre-apply backup stays: there is always one at most `min_interval`
+/// old, and the newest-20 retention is unchanged. `min_interval` 0 restores one backup per apply.
+pub fn backup_if_due(db_path: &str, min_interval: std::time::Duration) -> anyhow::Result<()> {
+    if let Some(age) = newest_backup_age(db_path) {
+        if age < min_interval {
+            tracing::debug!("backup skipped: newest is {}s old (< {}s)", age.as_secs(), min_interval.as_secs());
+            return Ok(());
+        }
+    }
+    backup(db_path)
+}
+
 pub fn backup(db_path: &str) -> anyhow::Result<()> {
     let ts = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     let bak = format!("{db_path}.bak-{ts}");

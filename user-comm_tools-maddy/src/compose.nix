@@ -28,7 +28,15 @@ in
         IMAPSQL_DB = "/data/imapsql.db";
         RULES_PATH = "/data/mail-rules.json";
         STARTUP_DELAY = "30";
-        POLL_INTERVAL = "120";
+        # 120 -> 300 (2026-11-18 oci-mail incident: load 13, IO PSI ~75%,
+        # maddy 145 GB read). Only the category COPIES wait on this; INBOX
+        # delivery is immediate and unaffected.
+        POLL_INTERVAL = "300";
+        # The pre-apply imapsql.db backup is a full file copy. It ran on every
+        # pass that found new mail, evicting the DB's page cache from this
+        # 128-192M cgroup each time. Now at most one per 6 h (newest-20
+        # retention unchanged). See db::backup_if_due.
+        BACKUP_MIN_INTERVAL = "21600";
       };
       volumes = [
         "maddy_data:/data"

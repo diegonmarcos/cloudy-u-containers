@@ -158,7 +158,7 @@ fn one_run(db_path: &str, rules_path: &str, rules: &Rules) -> Result<()> {
         }
     }
 
-    db::backup(db_path)?;
+    db::backup_if_due(db_path, backup_min_interval())?;
     let (copied, skipped) = db::apply_plan(&mut conn, inbox_id, user_id, &plans, &all_ids)?;
     tracing::info!("copied={copied} skipped={skipped} of {} planned", plans.len());
     if !jev_pending.is_empty() {
@@ -204,6 +204,12 @@ fn settle_jev_outcomes(db_path: &str, rules: &Rules, conn: &rusqlite::Connection
         }
     }
     jev::save_pending(&path, &keep);
+}
+
+/// Minimum age of the newest imapsql.db backup before another one is taken (`BACKUP_MIN_INTERVAL`, seconds;
+/// default 6 h). See [`db::backup_if_due`] for the incident behind it.
+fn backup_min_interval() -> Duration {
+    Duration::from_secs(env_or("BACKUP_MIN_INTERVAL", 6 * 3600u64))
 }
 
 static DRY_RUN_LOGGED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -273,7 +279,7 @@ fn auth_backfill(
         return Ok(());
     }
     tracing::info!("auth backfill — copying {} message(s): {summary}", plans.len());
-    db::backup(db_path)?;
+    db::backup_if_due(db_path, backup_min_interval())?;
     // No originals are marked: this is a copy-only pass.
     let (copied, skipped) = db::apply_plan(conn, inbox_id, user_id, &plans, &[])?;
     tracing::info!("auth backfill — copied={copied} skipped={skipped}");

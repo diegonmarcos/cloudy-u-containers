@@ -75,6 +75,20 @@ in
         STALWART_RECOVERY_MODE  = "1";
         STALWART_RECOVERY_ADMIN = "admin:\${ADMIN_PASSWORD}";
       });
+      # Overrides the image's HEALTHCHECK (stalwartlabs/stalwart v0.16.5
+      # Dockerfile: interval 30s, timeout 5s, start-period 30s, retries 3).
+      # The probe is the image's own, with $STALWART_HEALTHCHECK_URL written
+      # out (compose would interpolate a bare `$`). Only the timing changes:
+      # on oci-mail (1 OCPU, 954MiB) 2026-11-18, under IO pressure Stalwart
+      # answered SMTP fine but /healthz/live took longer than 5s, so it was
+      # reported unhealthy (FailingStreak 7) while serving mail.
+      healthcheck = {
+        test = [ "CMD-SHELL" "curl -fsSk -H 'X-Forwarded-For: 127.0.0.1' https://127.0.0.1:443/healthz/live || curl -fsS -H 'X-Forwarded-For: 127.0.0.1' http://127.0.0.1:8080/healthz/live || exit 1" ];
+        interval     = "60s";
+        timeout      = "20s";
+        retries      = 3;
+        start_period = "180s";
+      };
       volumes = [
         "stalwart_data:/opt/stalwart-mail/data"
         # TLS provisioned out-of-band by Caddy (shared with maddy's /opt/containers/maddy/tls)
