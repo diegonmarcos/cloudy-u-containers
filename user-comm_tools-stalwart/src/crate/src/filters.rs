@@ -24,15 +24,87 @@ use crate::rules::{Predicate, PredicateNode, Rules, View};
 /// Emails per `Email/get` / `Email/set` call.
 const BATCH_SIZE: usize = 100;
 
+/// Properties fetched for every message on every pass. All of them are
+/// served by Stalwart from stored metadata, with no read of the message blob.
+///
+/// `bodyStructure` is deliberately NOT here. In Stalwart v0.16.5
+/// (crates/jmap/src/email/get.rs, `needs_body`) asking for bodyStructure,
+/// textBody, htmlBody, attachments or bodyValues makes the server read the
+/// WHOLE raw message blob, attachments included. Headers (`from`,
+/// `header:X:asText`) come from the stored raw headers and need no blob read.
+/// With bodyStructure in this list every pass read the entire mailbox
+/// (~11.7k messages) off disk. On oci-mail (954MiB, boot-disk IO) on
+/// 2026-11-18 that showed up as io PSI some 61.6 / full 13.4, ~12MB/s of
+/// file re-reads, and stalwart topping cgroup reads at 1474MB.
+///
+/// A message's MIME tree never changes (JMAP Email is immutable), so the
+/// one predicate that needs it (`attach_type`) is served from
+/// [`AttachTypeCache`]: bodyStructure is fetched once per message per
+/// process, for messages that are in scope, and only when a view uses
+/// `attach_type`. Gate: `email_props_never_force_a_blob_read` below.
 pub const EMAIL_PROPS: &[&str] = &[
     "size",
     "receivedAt",
     "keywords",
     "mailboxIds",
     "hasAttachment",
-    "bodyStructure",
     "from",
 ];
+
+/// JMAP Email properties that make Stalwart read the full message blob.
+pub const BLOB_READING_PROPS: &[&str] =
+    &["bodyStructure", "textBody", "htmlBody", "attachments", "bodyValues"];
+
+/// Attachment MIME types per email id, kept for the life of the process.
+///
+/// Bounded by the scanned set: after each pass every id that was not part of
+/// it is dropped ([`AttachTypeCache::retain_ids`]), so the cache never holds
+/// more than one entry per message in scope (~11.7k ids, well under 2MB).
+#[derive(Debug, Default)]
+pub struct AttachTypeCache {
+    types: HashMap<String, HashSet<String>>,
+}
+
+impl AttachTypeCache {
+    pub fn get(&self, id: &str) -> Option<&HashSet<String>> {
+        self.types.get(id)
+    }
+
+    pub fn insert(&mut self, id: String, types: HashSet<String>) {
+        self.types.insert(id, types);
+    }
+
+    pub fn len(&self) -> usize {
+        self.types.len()
+    }
+
+    /// Drop every id that is not in `live`.
+    pub fn retain_ids(&mut self, live: &[String]) {
+        let live: HashSet<&str> = live.iter().map(String::as_str).collect();
+        self.types.retain(|id, _| live.contains(id.as_str()));
+    }
+
+    /// Ids in `emails` that are in scope and not cached yet.
+    pub fn missing<'a>(&self, emails: impl Iterator<Item = &'a Email>) -> Vec<String> {
+        emails
+            .filter(|em| !self.types.contains_key(&em.id))
+            .map(|em| em.id.clone())
+            .collect()
+    }
+}
+
+/// True if any atom in the tree is `attach_type` (the only predicate that
+/// needs `bodyStructure`).
+pub fn uses_attach_type(node: &PredicateNode) -> bool {
+    match node {
+        PredicateNode::AnyOf(children) | PredicateNode::AllOf(children) => {
+            children.iter().any(uses_attach_type)
+        }
+        PredicateNode::Not(child) => uses_attach_type(child),
+        PredicateNode::Atom(Predicate::AttachType { .. }) => true,
+        PredicateNode::Atom(_) => false,
+    }
+}
 
 fn header<'a>(em: &'a Email, name: &str) -> Option<&'a str> {
     em.headers.get(&format!("header:{name}:asText")).and_then(Value::as_str)
@@ -81,7 +153,16 @@ fn has_attachment(em: &Email) -> bool {
 }
 
 /// MIME `type`s of the attachment parts in `bodyStructure`, lowercased.
+/// Prefers the cached set (see [`AttachTypeCache`]) when the pass filled one.
 fn attachment_types(em: &Email) -> HashSet<String> {
+    if let Some(t) = &em.attach_types {
+        return t.clone();
+    }
+    body_attachment_types(em)
+}
+
+/// The bodyStructure walk behind [`attachment_types`].
+fn body_attachment_types(em: &Email) -> HashSet<String> {
     fn walk(part: &BodyPart, out: &mut HashSet<String>) {
         let disp = part.disposition.as_deref().unwrap_or("").to_ascii_lowercase();
         if disp == "attachment" || part.name.is_some() {
@@ -195,6 +276,7 @@ pub fn maintain_filters(
     rules: &Rules,
     name_to_id: &HashMap<String, String>,
     mailboxes: &[Mailbox],
+    attach_cache: &mut AttachTypeCache,
 ) -> Result<usize> {
     let views = &rules.filters.views;
     if views.is_empty() {
@@ -308,8 +390,29 @@ pub fn maintain_filters(
     let now = crate::now_epoch();
     let mut updates: Map<String, Value> = Map::new();
 
+    let need_types = views.iter().any(|v| uses_attach_type(&v.predicate));
+    let mut body_fetches = 0usize;
+
     for batch in email_ids.chunks(BATCH_SIZE) {
-        let emails = client.email_get(batch, &props)?;
+        let mut emails = client.email_get(batch, &props)?;
+
+        if need_types {
+            // Only in-scope messages can match a view; the rest are here just
+            // to have stale view bits cleared, which needs no MIME tree.
+            let missing = attach_cache.missing(emails.iter().filter(|em| {
+                em.mailbox_ids.keys().any(|id| source_set.contains(id.as_str()))
+            }));
+            if !missing.is_empty() {
+                body_fetches += missing.len();
+                for full in client.email_get(&missing, &["bodyStructure"])? {
+                    let types = body_attachment_types(&full);
+                    attach_cache.insert(full.id, types);
+                }
+            }
+            for em in emails.iter_mut() {
+                em.attach_types = attach_cache.get(&em.id).cloned();
+            }
+        }
 
         for em in &emails {
             // Membership is edited as RFC 8620 patch paths (`mailboxIds/<id>`),
@@ -354,6 +457,16 @@ pub fn maintain_filters(
         }
     }
 
+    if need_types {
+        attach_cache.retain_ids(&email_ids);
+        if body_fetches > 0 {
+            tracing::info!(
+                "Filter views: fetched bodyStructure for {body_fetches} new message(s) ({} cached)",
+                attach_cache.len()
+            );
+        }
+    }
+
     let mut total = 0usize;
     if !updates.is_empty() {
         let items: Vec<(String, Value)> = updates.into_iter().collect();
@@ -388,6 +501,41 @@ mod tests {
 
     fn pred(v: Value) -> PredicateNode {
         serde_json::from_value(v).expect("predicate fixture")
+    }
+
+    #[test]
+    fn email_props_never_force_a_blob_read() {
+        // Stalwart v0.16.5 reads the whole message blob for any of these
+        // (crates/jmap/src/email/get.rs `needs_body`); the per-pass property
+        // list must be metadata-only, or every pass re-reads the mailbox.
+        for p in EMAIL_PROPS {
+            assert!(!BLOB_READING_PROPS.contains(p), "{p} in EMAIL_PROPS forces a full blob read per message per pass");
+        }
+    }
+
+    #[test]
+    fn cached_attach_types_drive_attach_type_without_body_structure() {
+        let p = pred(json!({"type": "attach_type", "values": ["application/pdf"]}));
+        assert!(uses_attach_type(&p));
+        assert!(!uses_attach_type(&pred(json!({"type": "has_attachment"}))));
+        let mut em = email(json!({"id": "e", "hasAttachment": true}));
+        assert!(!email_matches(&em, &p, 0.0), "no tree and no cache: no type");
+        em.attach_types = Some(HashSet::from(["application/pdf".to_string()]));
+        assert!(email_matches(&em, &p, 0.0), "cached types must be used");
+    }
+
+    #[test]
+    fn attach_cache_fetches_once_and_stays_bounded() {
+        let mut c = AttachTypeCache::default();
+        let a = email(json!({"id": "a"}));
+        let b = email(json!({"id": "b"}));
+        assert_eq!(c.missing([&a, &b].into_iter()), vec!["a".to_string(), "b".to_string()]);
+        c.insert("a".into(), HashSet::new());
+        assert_eq!(c.missing([&a, &b].into_iter()), vec!["b".to_string()], "cached ids are not fetched again");
+        c.insert("b".into(), HashSet::new());
+        c.retain_ids(&["b".to_string()]);
+        assert_eq!(c.len(), 1, "ids that left the scanned set are dropped");
+        assert!(c.get("a").is_none());
     }
 
     #[test]

@@ -68,6 +68,11 @@ pub struct Email {
     pub has_attachment: Option<bool>,
     #[serde(rename = "bodyStructure", default, deserialize_with = "null_default")]
     pub body_structure: Option<BodyPart>,
+    /// Attachment MIME types resolved from the sorter's per-process cache
+    /// (`filters::AttachTypeCache`), so `bodyStructure` is not re-fetched for
+    /// every message every pass. Never on the wire.
+    #[serde(skip)]
+    pub attach_types: Option<std::collections::HashSet<String>>,
     #[serde(default, deserialize_with = "null_default")]
     pub from: Vec<EmailAddress>,
     /// Catches every `header:X:asText`-shaped property a view's predicate

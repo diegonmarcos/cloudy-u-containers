@@ -73,7 +73,11 @@ fn take_reapply_request(client: &jmap::Client) -> Result<bool> {
     Ok(true)
 }
 
-fn one_poll(client: &jmap::Client, rules: &Rules) -> Result<()> {
+fn one_poll(
+    client: &jmap::Client,
+    rules: &Rules,
+    attach_cache: &mut filters::AttachTypeCache,
+) -> Result<()> {
     // One-time in-place renames first (old -> new name), so a renamed folder
     // keeps its emails instead of being recreated empty and the old one reaped
     // by cleanup_stale. Idempotent.
@@ -92,7 +96,7 @@ fn one_poll(client: &jmap::Client, rules: &Rules) -> Result<()> {
     // Routing is owned by the Sieve. The sorter only maintains the dynamic
     // A*/B*/C*/D* filter views over the emails in the numeric folders
     // (membership add/remove; no $seen/$Sorted, no copies).
-    filters::maintain_filters(client, rules, &name_to_id, &mailboxes)?;
+    filters::maintain_filters(client, rules, &name_to_id, &mailboxes, attach_cache)?;
     // Routing is owned by the Sieve at DELIVERY, but sieve never revisits a
     // message. Re-applying the same rules here is what makes a rule fix reach
     // mail that already arrived -- see routing.rs.
@@ -160,6 +164,8 @@ fn main() -> Result<()> {
 
     let mut client = jmap::Client::new(&jmap_url, &user, &password)?;
     let mut reconnect_delay = Duration::from_secs(5);
+    // Lives across passes AND reconnects: a message's MIME tree never changes.
+    let mut attach_cache = filters::AttachTypeCache::default();
 
     loop {
         match client.discover() {
@@ -176,7 +182,7 @@ fn main() -> Result<()> {
         }
 
         loop {
-            if let Err(e) = one_poll(&client, &rules) {
+            if let Err(e) = one_poll(&client, &rules, &mut attach_cache) {
                 if is_transport_error(&e) {
                     tracing::warn!("Connection lost: {e:#}, reconnecting...");
                     break;
