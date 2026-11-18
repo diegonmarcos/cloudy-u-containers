@@ -9756,6 +9756,51 @@ error @not_mesh "Forbidden" 403
   import edge_errors
   }
 
+  chat.mesh.diegonmarcos.com {
+    # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
+    # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
+    # own Caddy server (srv1, listen=[10.0.0.1:8443]) that caddy-l4's
+    # forward target 127.0.0.1:8443 never reached — the whole .app/.db zone
+    # was unreachable. Removing the bind entirely (first attempt, 6e3b65364)
+    # was ALSO insufficient: Caddy's Caddyfile adapter groups servers by the
+    # LITERAL listen string, and "no bind" (implicit ":8443") produced a
+    # THIRD, still-different server (srv2) from the public routes' explicit
+    # "0.0.0.0:8443" — even though both cover the same sockets. Only an
+    # byte-identical bind directive guarantees one merged server. 2026-07-09.
+  bind 0.0.0.0 10.0.0.1
+@not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+error @not_mesh "Forbidden" 403
+    # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
+    reverse_proxy 10.0.0.6:8065 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+    }
+  import edge_errors
+  }
+
   webmail.mesh.diegonmarcos.com {
     # MUST match the public routes' bind LITERALLY (publicBindLine, i.e.
     # "bind 0.0.0.0 10.0.0.1"). `bind 10.0.0.1` alone put this site on its
@@ -13406,6 +13451,53 @@ error @not_mesh "Forbidden" 403
   }
 
   cloud.chat-mattermost.mesh.diegonmarcos.com {
+  bind 0.0.0.0 10.0.0.1
+    tls {
+      issuer acme {
+        dns cloudflare {env.CF_API_TOKEN}
+        resolvers 1.1.1.1 8.8.8.8
+        propagation_delay 30s
+        propagation_timeout 5m
+      }
+      issuer internal {
+        ca mesh
+      }
+    }
+    @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
+    error @not_mesh "Forbidden" 403
+    handle {
+      reverse_proxy 10.0.0.6:8065 {
+        # Empty-body guard: an upstream that answers 200 with Content-Length 0
+        # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
+        # handle_errors renders the diagnostic page instead of a silent blank.
+        # Gated to GET so legitimately-empty HEAD/OPTIONS responses pass through.
+        #
+        # CRITICAL: once ANY named handle_response matcher exists on a
+        # reverse_proxy, Caddy defers writing the response entirely — a
+        # response that matches NO handle_response block writes NOTHING
+        # (not "pass through unmodified"). Confirmed via production incident
+        # 2026-07-09: this guard alone silently emptied every real response
+        # (gitea.mesh.diegonmarcos.com 14821b -> 0b, snappymail.mesh.diegonmarcos.com 161138b -> 0b) fleet-wide,
+        # a worse outage than the bug it fixed. The bare fallback block below
+        # is MANDATORY and MUST come after @empty_ok — it copies through every
+        # response that isn't the empty-200 false-green.
+        @empty_ok {
+          status 200
+          header Content-Length 0
+        }
+        handle_response @empty_ok {
+          @get method GET
+          error @get 502
+        }
+        handle_response {
+          copy_response
+        }
+      }
+    }
+  import edge_errors
+  }
+
+  cloud.chat.mesh.diegonmarcos.com {
   bind 0.0.0.0 10.0.0.1
     tls {
       issuer acme {
