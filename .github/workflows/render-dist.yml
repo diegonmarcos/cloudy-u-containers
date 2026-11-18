@@ -121,12 +121,16 @@ jobs:
             (cd "$SERVICE" && bash ./build.sh build)
             echo "::endgroup::"
           done
-      - name: Put back the committed secret mounts (reinject_secret_mounts)
-        if: env.REINJECT == 'true'
+      # Chained runs (the courier handed a push over) always reinject: nobody is there to pick the flag,
+      # and the helper only restores secret mounts the COMMITTED compose already has (no-op for a service
+      # without them). Without it a vault-secret service (e.g. dagu, 2026-11-18 run 44403379762) is
+      # refused by the guard below and the chain falls back to shipping the stale source commit.
+      - name: Put back the committed secret mounts (reinject_secret_mounts, always on a chained run)
+        if: env.REINJECT == 'true' || env.COURIER_BEFORE != ''
         working-directory: infra/a_solutions
         run: |
           bash _shared/test/render-dist-reinject-secret-mounts.test.sh
-          bash _shared/render-dist-reinject-secret-mounts.sh . "$SERVICES"   # exactly one (validated)
+          for SERVICE in $SERVICES; do bash _shared/render-dist-reinject-secret-mounts.sh . "$SERVICE"; done
       - name: Restore the paths declared keep_committed (vault-secret compose)
         working-directory: infra/a_solutions
         run: |
