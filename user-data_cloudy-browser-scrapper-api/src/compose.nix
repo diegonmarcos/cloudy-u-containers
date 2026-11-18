@@ -25,7 +25,7 @@ in
       network_mode = "none";
       volumes = [ "scrappers_data:/v/data" "scrappers_session:/v/session" ];
       command = [ "sh" "-c" "set -eu; chown -R 10001:999 /v/data /v/session; left=$$(find /v/data /v/session ! -user 10001 | wc -l); echo \"[scrappers-volume-owner] wrong-owner paths left=$$left\"; [ \"$$left\" -eq 0 ]" ];
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
     scrappers-api = {
       depends_on = { scrappers-api-volume-owner = { condition = "service_completed_successfully"; }; };
       image = binariesImage;
@@ -57,7 +57,7 @@ in
         retries = 3;
         start_period = "20s";
       };
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
   volumes = {
     scrappers_data = { name = "scrappers-api_scrappers_data"; }; # #1450: pinned to the existing VM volume

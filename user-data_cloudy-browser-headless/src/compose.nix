@@ -53,6 +53,6 @@ in
         retries = 3;
         start_period = "20s";
       };
-    };
+    } // (if buildJson.containers.app ? cloud_run_bridge then { profiles = [ "cloud-run" ]; } else {});
   };
 }
