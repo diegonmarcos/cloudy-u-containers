@@ -6,7 +6,7 @@
 # ║ Source:  a_solutions/user-comm_tools-stalwart/src/flake.nix
 # ║ Rebuild: a_solutions/user-comm_tools-stalwart/build.sh ship
 # ╚══════════════════════════════════════════════════════════════════╝
-# Type B — wrap upstream, arch=amd64
+# Type B — wrap upstream, arch=arm64
 FROM stalwartlabs/stalwart:v0.16.5
 LABEL org.opencontainers.image.source="https://github.com/diegonmarcos/cloudy-t-infra"
 LABEL cloud.diegonmarcos.from-image="stalwartlabs/stalwart:v0.16.5"

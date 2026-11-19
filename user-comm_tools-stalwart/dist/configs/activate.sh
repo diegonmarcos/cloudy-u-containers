@@ -33,7 +33,7 @@
 # single-quoted strings; NEVER reference the @VAR@ tokens in comments
 # (engine substitutes everywhere — multi-line values break shell parsing).
 set -e
-BASE="https://10.0.0.3:2443"
+BASE="https://10.0.0.6:2443"
 SECRETS_DIR="/opt/containers/stalwart/.secrets.d"
 CONFIGS_DIR="/opt/containers/stalwart/configs"
 SIEVE_FILE="$CONFIGS_DIR/default.sieve"
