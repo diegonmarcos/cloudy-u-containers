@@ -1,5 +1,6 @@
 import { ImapFlow } from "imapflow";
 import { getServer, getAccount } from "./config.js";
+import { guardImapErrors } from "./imap-guard.js";
 
 export async function withImap<T>(
   server: string,
@@ -27,6 +28,7 @@ export async function withImap<T>(
     socketTimeout: 60000,
   });
 
+  guardImapErrors(client, `${server}/${account}`);
   await client.connect();
   try {
     return await fn(client);
