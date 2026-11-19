@@ -1,24 +1,17 @@
-// Cloudflare Email Worker - Parallel triple-delivery inbound email (#1811)
-// Three inbound legs run in PARALLEL (Promise.allSettled), each independent, so
-// the message lands in all three stores at the same time:
-//   Google:   Google Workspace via Gmail API (service account JWT).
-//   Maddy:    maddy via the c3-public-api http-to-smtp bridge, X-Mail-Target:
-//             maddy-direct = maddy's :2526 listener, which stores in maddy ONLY.
-//   Stalwart: Stalwart (JMAP store) via the same bridge, X-Mail-Target: stalwart
-//             = Stalwart's SMTP ingest :2025.
-// History: until #1811 Stalwart was fed by maddy's on-disk stalwart_queue (the
-//   Worker sent to maddy:25, which mirrors), so Stalwart got its copy later than
-//   the others. A direct Stalwart leg next to maddy:25 would deliver every mail
-//   twice (2026-08-18 shadow-leg duplication: neither store dedups on
-//   Message-ID). The maddy-direct listener has no mirror, so each store now
-//   gets exactly one copy, from its own leg. health_mail-reconcile still diffs
-//   Gmail against both stores and repairs either one.
-// Acceptance rule: accept if ANY leg succeeded; reject (sender's MTA retries)
-//   only when ALL THREE failed. No leg can bounce a mail another one holds.
+// Cloudflare Email Worker - Dual-delivery inbound email
+// Two inbound legs run in PARALLEL (Promise.allSettled), each independent:
+//   Google: Google Workspace via Gmail API (service account JWT).
+//   Maddy:  Maddy via the c3-public-api http-to-smtp bridge (self-hosted mesh store).
+//           Maddy itself durably feeds Stalwart (JMAP store) through its on-disk
+//           stalwart_queue (max_tries 20), so Stalwart is NOT a third worker leg:
+//           a direct worker->Stalwart leg would deliver every mail twice, as
+//           neither maddy nor Stalwart dedups on Message-ID. health_mail-reconcile
+//           diffs Gmail against both stores and repairs either one.
+// Acceptance rule: accept if Google OR Maddy succeeded; reject (sender's MTA
+//   retries) only when BOTH failed. Neither leg can bounce a mail the other holds.
 // Each leg has its own inline attempt, its own background retry (ctx.waitUntil, so
 //   it never blocks the SMTP accept) and its own loud lost-leg log line:
 //     MESH_LEG_LOST   target=maddy   (see notifyLegLost)
-//     JMAP_LEG_LOST   target=stalwart
 //     GOOGLE_LEG_LOST target=google
 //   A lost leg is never silent - that silence hid a 9-day outage in May 2026 - and
 //   the missing copy is replayed later by health_mail-reconcile.
@@ -41,21 +34,18 @@ export default {
 
     const rawEmail = await new Response(message.raw).text();
 
-    // Google, Maddy, Stalwart and the health check all run inline and in parallel.
-    // allSettled (not all) so one leg throwing can never take the others' result down.
-    const [g, m, s, h] = await Promise.allSettled([
+    // Google, Maddy and the health check all run inline and in parallel. allSettled
+    // (not all) so one leg throwing can never take the others' result down with it.
+    const [g, m, h] = await Promise.allSettled([
       deliverToGoogle(rawEmail, env),
       deliverToMaddy(rawEmail, to, env),
-      deliverToStalwart(rawEmail, to, env),
       checkMailHealth(env),
     ]);
     const googleOk = g.status === 'fulfilled' && g.value === true;
     const maddy = m.status === 'fulfilled' ? m.value : { ok: false, status: `threw: ${m.reason}` };
     const maddyOk = maddy.ok;
-    const stalwart = s.status === 'fulfilled' ? s.value : { ok: false, status: `threw: ${s.reason}` };
-    const stalwartOk = stalwart.ok;
     const healthy = h.status === 'fulfilled' && h.value === true;
-    console.log(`Results: google=${googleOk}, maddy=${maddyOk}, stalwart=${stalwartOk}, healthy=${healthy}`);
+    console.log(`Results: google=${googleOk}, maddy=${maddyOk}, healthy=${healthy}`);
 
     // Each failed leg keeps retrying in the background. The failures seen in
     // production (452 4.4.5 rate limit, transient 5xx from the Caddy->c3-public-api
@@ -65,14 +55,6 @@ export default {
         retryLeg('Maddy', () => deliverToMaddy(rawEmail, to, env), 2, [1000, 2000], maddy.status).then(
           ({ ok, status }) => ok ? undefined :
             notifyLegLost('MESH_LEG_LOST', 'maddy', { messageId, from, to, status })
-        )
-      );
-    }
-    if (!stalwartOk) {
-      ctx.waitUntil(
-        retryLeg('Stalwart', () => deliverToStalwart(rawEmail, to, env), 2, [1000, 2000], stalwart.status).then(
-          ({ ok, status }) => ok ? undefined :
-            notifyLegLost('JMAP_LEG_LOST', 'stalwart', { messageId, from, to, status })
         )
       );
     }
@@ -94,14 +76,14 @@ export default {
     }
 
     // Accept as long as at least one durable copy landed.
-    if (googleOk || maddyOk || stalwartOk) {
+    if (googleOk || maddyOk) {
       return;
     }
 
-    // All three legs failed - reject so the sending MTA retries rather than us
-    // silently dropping the message.
-    console.error(`Google, Maddy and Stalwart delivery all failed - rejecting`);
-    message.setReject(`Google, Maddy and Stalwart delivery all failed`);
+    // Both legs failed - reject so the sending MTA retries rather than us silently
+    // dropping the message.
+    console.error(`Google and Maddy delivery both failed - rejecting`);
+    message.setReject(`Google and Maddy delivery both failed`);
   }
 };
 
@@ -134,21 +116,8 @@ export async function notifyLegLost(marker, target, { messageId, from, to, statu
   );
 }
 
-// ── Maddy / Stalwart delivery via the c3-public-api http-to-smtp bridge ──────
-// One bridge, one call per store: X-Mail-Target picks the store (#1811).
-//   maddy-direct -> maddy :2526 (maddy only, no mirror to Stalwart)
-//   stalwart     -> Stalwart SMTP ingest :2025
-export const MAIL_TARGETS = { maddy: 'maddy-direct', stalwart: 'stalwart' };
-
-function deliverToMaddy(rawEmail, to, env) {
-  return deliverViaBridge(rawEmail, to, env, MAIL_TARGETS.maddy, 'Maddy');
-}
-
-function deliverToStalwart(rawEmail, to, env) {
-  return deliverViaBridge(rawEmail, to, env, MAIL_TARGETS.stalwart, 'Stalwart');
-}
-
-async function deliverViaBridge(rawEmail, to, env, target, label) {
+// ── Maddy delivery via http-to-smtp-proxy-api ────────────────────────────────
+async function deliverToMaddy(rawEmail, to, env) {
   try {
     const controller = new AbortController();
     // 25s, not 10s. Measured on gcp-proxy's Caddy access log over a week of real
@@ -182,7 +151,6 @@ async function deliverViaBridge(rawEmail, to, env, target, label) {
         // updated to trust upstream auth-only.
         'X-API-Key': env.HTTP_TO_SMTP_PROXY_API_KEY,
         'X-Original-To': to,
-        'X-Mail-Target': target,
       },
       body: rawEmail,
       signal: controller.signal,
@@ -190,13 +158,13 @@ async function deliverViaBridge(rawEmail, to, env, target, label) {
     clearTimeout(timeoutId);
     if (!response.ok) {
       const bodyText = await response.text();
-      console.error(`${label} http-to-smtp-proxy-api error: ${response.status} ${bodyText}`);
+      console.error(`Maddy http-to-smtp-proxy-api error: ${response.status} ${bodyText}`);
       return { ok: false, status: `HTTP ${response.status}: ${bodyText}`.slice(0, 200) };
     }
-    console.log(`${label}: delivered via http-to-smtp-proxy-api (${target})`);
+    console.log(`Maddy: delivered via http-to-smtp-proxy-api`);
     return { ok: true, status: 'ok' };
   } catch (e) {
-    console.error(`${label} http-to-smtp-proxy-api failed: ${e.message}`);
+    console.error(`Maddy http-to-smtp-proxy-api failed: ${e.message}`);
     return { ok: false, status: e.message };
   }
 }
