@@ -82,6 +82,47 @@ msgpipeline local_routing {
     }
 }
 
+# Parallel-fan-out pipeline (#1811): maddy's own store ONLY. The CF Worker
+# delivers every inbound message to Gmail, maddy and Stalwart in parallel, so
+# Stalwart gets its copy straight from the Worker at the same moment; mirroring
+# here as well would put every message into Stalwart twice (neither store
+# dedups on Message-ID - the 2026-08-18 shadow-leg duplication). Same rcpt
+# rewrite and the same local_mailboxes target (sieve included) as local_routing.
+# Port 25 keeps local_routing (with the mirror) for every other ingress.
+msgpipeline local_routing_direct {
+    destination postmaster $(local_domains) {
+        modify {
+            replace_rcpt &local_rewrites
+        }
+        deliver_to &local_mailboxes
+    }
+    default_destination {
+        reject 550 5.1.1 "User doesn't exist"
+    }
+}
+
+# ── Inbound SMTP, direct (port 2526) — CF Worker fan-out leg (#1811) ─────────
+# Same limits and Tier-2 checks as :25; the only difference is the pipeline
+# (no Stalwart mirror, see local_routing_direct). WG binds only, like :25.
+smtp tcp://10.0.0.3:2526 tcp://10.1.0.3:2526 {
+    limits {
+        all rate 20 1s
+        all concurrency 10
+    }
+    check {
+        dkim
+        spf
+    }
+    default_source {
+        destination postmaster $(local_domains) {
+            deliver_to &local_routing_direct
+        }
+        default_destination {
+            reject 550 5.1.1 "User doesn't exist"
+        }
+    }
+}
+
 # ── Inbound SMTP (port 25) — from CF Worker via c3-public-api bridge ──────────
 # Phase 4 dual-bind: `tcp://10.0.0.3:25 tcp://10.1.0.3:25` expands to one `tcp://<ip>:25` per bind in
 # build.json extra_ports[port=25].bind (wg0 10.0.0.3 + wg-public 10.1.0.3).
