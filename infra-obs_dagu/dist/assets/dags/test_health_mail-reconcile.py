@@ -400,6 +400,31 @@ except D2 as e:
 check(res is not None and lg.count("data") == 1,
       "Stalwart repair: failure during DATA is deferred, never retried in-run")
 
+# ---- warming hand-off: a planned skip is green, a broken maddy step is red --
+guard = between(sw_cmd, "EXCL=/tmp/recon_maddy_missing.fps\n", "NOW=")
+check("rm -f \"$WARMING\"" in cmd and "> \"$WARMING\"" in cmd,
+      "maddy step clears the warming marker first and sets it only on the warming exit")
+check(cmd.index("> \"$WARMING\"") > partial_guard,
+      "the warming marker is written inside the '#partial' branch")
+with tempfile.TemporaryDirectory() as td:
+    ex, wm = os.path.join(td, "ex.fps"), os.path.join(td, "warm")
+    g = ("EXCL=%s\n" % ex) + guard.replace("/tmp/recon_maddy_warming", wm) + "echo REACHED-DIFF\n"
+    r = sh(g)
+    check(r.returncode == 1 and "did not complete" in r.stdout,
+          "no hand-off and no warming marker -> Stalwart step fails (maddy step broke)")
+    open(wm, "w").write("15297\n")
+    r = sh(g)
+    check(r.returncode == 0 and "15297 bodies left" in r.stdout and "REACHED-DIFF" not in r.stdout,
+          "warming marker -> green, Stalwart diff deferred (no early repair, no duplicates)")
+    open(wm, "w").write("")
+    r = sh(g)
+    check(r.returncode == 1, "an empty warming marker does not count as warming")
+    os.remove(wm)
+    open(ex, "w").write("")
+    r = sh(g)
+    check(r.returncode == 0 and "REACHED-DIFF" in r.stdout,
+          "with the maddy hand-off present the Stalwart diff runs")
+
 print()
 if failures:
     print("FAILED (%d)" % len(failures))
