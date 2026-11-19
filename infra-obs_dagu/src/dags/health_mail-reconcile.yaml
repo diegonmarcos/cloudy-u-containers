@@ -233,7 +233,17 @@ steps:
       fi > "$KEYS.raw" || exit 1
       awk 'NF' "$KEYS.raw" | sort -u > "$KEYS"; rm -f "$KEYS.raw"
       [ -s "$KEYS" ] || exit 1
-      awk -F'\t' 'FILENAME==ARGV[1] { seen[$1]; next } !($1 in seen)' "$CACHE" "$KEYS" |
+      # At most SCAN_MAX uncached bodies are parsed per run. A cold cache is
+      # ~30k bodies on a 1 GB VM: in one run that is ~2h of random reads
+      # that starve stalwart and maddy (2026-11-19, IO PSI 50-70). Over the
+      # cap, the first output line is "#partial <left>": the cache keeps
+      # what was done, the next run continues, and the caller must not diff
+      # a partial fingerprint set (it would look like mass mail loss).
+      SCAN_MAX=${SCAN_MAX:-3000}
+      TODO="$CACHE.todo"
+      awk -F'\t' 'FILENAME==ARGV[1] { seen[$1]; next } !($1 in seen)' "$CACHE" "$KEYS" > "$TODO" || exit 1
+      LEFT=$(( $(wc -l < "$TODO") - SCAN_MAX ))
+      head -n "$SCAN_MAX" "$TODO" |
       while IFS= read -r k; do
         [ -f "$MSG_DIR/$k" ] || continue
         m=$(awk -f "$AWK_PROG" "$MSG_DIR/$k" 2>/dev/null)
@@ -242,6 +252,8 @@ steps:
       done
       awk -F'\t' 'FILENAME==ARGV[1] { live[$1]; next } ($1 in live) && !dup[$1]++' "$KEYS" "$CACHE" > "$CACHE.new" \
         && mv "$CACHE.new" "$CACHE"
+      rm -f "$TODO"
+      if [ "$LEFT" -gt 0 ]; then echo "#partial $LEFT"; fi
       awk -F'\t' '$2 != "-" { print $2 }' "$CACHE" | sort -u
       SCANEOF
 
@@ -255,6 +267,13 @@ steps:
           -H "Tags: warning,email" \
           -d "The reconciliation DAG could not fingerprint the maddy store on oci-mail. maddy or the WG path may be down. Silent mail loss is undetectable while this is failing."
         exit 1
+      fi
+      if head -n 1 "$TMP/maddy.fps" | grep -q '^#partial '; then
+        # Cache still warming (see SCAN_MAX): a partial set must not be
+        # diffed, or every unparsed body would count as missing and trigger
+        # a "Mail LOST" alert or a duplicate re-injection.
+        echo "maddy fingerprint cache warming: $(head -n 1 "$TMP/maddy.fps" | cut -d' ' -f2) bodies left; diff skipped this run"
+        exit 0
       fi
       echo "maddy_distinct_fps=$(wc -l < "$TMP/maddy.fps")"
 
