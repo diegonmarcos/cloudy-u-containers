@@ -23,6 +23,8 @@ export interface Limits {
   rate_per_ip_per_min: number;
   rate_per_sid_per_min: number;
   request_timeout_ms: number;
+  smtp_timeout_ms: number;
+  dedupe_ttl_ms: number;
 }
 
 import type { MailTarget } from "./mail-target.js";
@@ -75,7 +77,12 @@ export function loadConfig(): AppConfig {
     rate_per_ip_per_min: 60,
     rate_per_sid_per_min: 1000,
     request_timeout_ms: 5000,
+    smtp_timeout_ms: 120000,
+    dedupe_ttl_ms: 1800000,
   });
+  // #1819: older LIMITS_JSON without the two new keys keeps working.
+  limits.smtp_timeout_ms ??= Math.max(limits.request_timeout_ms, 120000);
+  limits.dedupe_ttl_ms ??= 1800000;
 
   const resolvedAuthHeaders: Record<string, string | undefined> = {};
   for (const [slug, cfg] of Object.entries(backends)) {

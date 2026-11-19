@@ -39,6 +39,7 @@ import { z } from "zod";
 import type { AppConfig } from "../../shared/config.js";
 import { authPlugin } from "../plugins/auth.js";
 import { DECLARED_TARGETS, pickTarget } from "../../shared/mail-target.js";
+import { createDeliveryLedger, ledgerKey } from "../../shared/delivery-ledger.js";
 
 const jsonWrapperSchema = z.object({
   raw: z.string().min(1),
@@ -98,6 +99,9 @@ function decodeBody(req: FastifyRequest): Buffer {
 }
 
 export async function registerMail(app: FastifyInstance, cfg: AppConfig) {
+  // #1819: one SMTP session per (target, Message-ID, rcpt), however often the
+  // Worker retries; see shared/delivery-ledger.ts.
+  const ledger = createDeliveryLedger(cfg.limits.dedupe_ttl_ms);
   await app.register(async (scope) => {
     // Bearer gate scoped to /mail/* only.
     await scope.register(authPlugin);
@@ -142,32 +146,44 @@ export async function registerMail(app: FastifyInstance, cfg: AppConfig) {
       // Named targets are always plaintext over WG (WG encrypts; maddy's own
       // stalwart_relay to :2025 uses `starttls no` for the same reason, and
       // Stalwart's cert does not validate against the WG IP).
-      const primary = nodemailer.createTransport({
-        host: pick.host,
-        port: pick.port,
-        secure: false,
-        ignoreTLS: pick.port === 25 || req.headers["x-mail-target"] !== undefined, // pure plaintext for MX-style hop
-        requireTLS: false,
-        name: cfg.mail.heloDomain,
-        connectionTimeout: cfg.limits.request_timeout_ms,
-        greetingTimeout: cfg.limits.request_timeout_ms,
-        socketTimeout: cfg.limits.request_timeout_ms,
-      });
-
-      try {
-        await primary.sendMail({
-          envelope: { from: mailFrom, to: [mailTo] },
-          raw, // nodemailer accepts a Buffer for raw RFC 5322 messages
+      // The SMTP session runs on smtp_timeout_ms (long: a slow store still
+      // gets the message); the HTTP answer waits at most request_timeout_ms.
+      const send = async () => {
+        const primary = nodemailer.createTransport({
+          host: pick.host,
+          port: pick.port,
+          secure: false,
+          ignoreTLS: pick.port === 25 || req.headers["x-mail-target"] !== undefined, // pure plaintext for MX-style hop
+          requireTLS: false,
+          name: cfg.mail.heloDomain,
+          connectionTimeout: cfg.limits.smtp_timeout_ms,
+          greetingTimeout: cfg.limits.smtp_timeout_ms,
+          socketTimeout: cfg.limits.smtp_timeout_ms,
         });
-        req.log.info({ req: reqId, msg_id: msgId, from: mailFrom, to: mailTo, target: pick.name }, "smtp.delivered");
-      } catch (err) {
-        req.log.error({ req: reqId, err: (err as Error).message, msg_id: msgId, target: pick.name }, "smtp.delivery_failed");
-        return reply.code(500).send({ status: "error", error: (err as Error).message });
-      } finally {
-        primary.close();
-      }
+        try {
+          await primary.sendMail({
+            envelope: { from: mailFrom, to: [mailTo] },
+            raw, // nodemailer accepts a Buffer for raw RFC 5322 messages
+          });
+          req.log.info({ req: reqId, msg_id: msgId, from: mailFrom, to: mailTo, target: pick.name }, "smtp.delivered");
+        } catch (err) {
+          req.log.error({ req: reqId, err: (err as Error).message, msg_id: msgId, target: pick.name }, "smtp.delivery_failed");
+          throw err;
+        } finally {
+          primary.close();
+        }
+      };
 
-      return reply.code(200).send({ status: "delivered", from: mailFrom, to: mailTo, target: pick.name });
+      const r = await ledger.deliver(ledgerKey(pick.name, msgId, mailTo), send, cfg.limits.request_timeout_ms);
+      if (r.state === "pending") {
+        req.log.warn({ req: reqId, msg_id: msgId, target: pick.name, joined: r.joined }, "smtp.pending");
+        return reply.code(504).send({ status: "pending", error: "delivery still in progress; retry joins it", target: pick.name });
+      }
+      if (r.state === "failed") {
+        return reply.code(500).send({ status: "error", error: r.error });
+      }
+      if (r.deduped) req.log.info({ req: reqId, msg_id: msgId, target: pick.name }, "smtp.deduped");
+      return reply.code(200).send({ status: "delivered", from: mailFrom, to: mailTo, target: pick.name, deduped: r.deduped });
     });
   }, { prefix: "/mail" });
 }
