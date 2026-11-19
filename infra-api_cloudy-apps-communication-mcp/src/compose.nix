@@ -63,7 +63,11 @@ in
       user           = "0:0";
       restart        = "no";
       network_mode   = "none";
-      volumes        = [ "./data:/data" ];
+      # env_file + the two secret mounts are what the Ship render (vault overlaid)
+      # adds to every service here; declaring them keeps the public render identical
+      # to what ships (no dist drift, Ship 44476939145). This container reads none of them.
+      env_file       = [ ".secrets" ];
+      volumes        = [ "./data:/data" "./.secrets.d:/run/secrets:ro" "./.secrets.json:/run/secrets.json:ro" ];
       command        = [ "sh" "-c" "set -eu; chown -R 10001:999 /data; left=$$(find /data ! -user 10001 | wc -l); echo \"[comm-mcp-data-owner] wrong-owner paths left=$$left\"; [ \"$$left\" -eq 0 ]" ];
     };
     "cloudy-apps-communication-mcp" = {
