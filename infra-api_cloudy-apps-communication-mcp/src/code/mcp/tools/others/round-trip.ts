@@ -48,6 +48,7 @@ import type { ImapFlow } from "imapflow";
 import { getTransport } from "../../shared/smtp.js";
 import { withImap } from "../../shared/imap.js";
 import { getServer, getAccount, DOMAIN } from "../../shared/config.js";
+import { fetchConnectRetry } from "../../shared/fetch-connect-retry.js";
 
 const DEADLINE_MILLISECONDS = 180_000;
 const POLL_MILLISECONDS = 15_000;
@@ -146,7 +147,7 @@ async function stalwartRoundTrip(messageId: string, sentAt: number): Promise<Sto
   const authorization = "Basic " + Buffer.from(`${credentials.user}:${credentials.password}`).toString("base64");
 
   // Session discovery and apiUrl rebase — same as count-since.ts and jmap.ts.
-  const sessionResponse = await fetch(new URL("/jmap/session", server.jmap).toString(), { headers: { Authorization: authorization } });
+  const sessionResponse = await fetchConnectRetry(new URL("/jmap/session", server.jmap).toString(), { headers: { Authorization: authorization } });
   if (!sessionResponse.ok) throw new Error(`JMAP session ${sessionResponse.status}`);
   const session = (await sessionResponse.json()) as { apiUrl: string; primaryAccounts: Record<string, string> };
   const accountId = session.primaryAccounts?.["urn:ietf:params:jmap:mail"];
@@ -156,7 +157,7 @@ async function stalwartRoundTrip(messageId: string, sentAt: number): Promise<Sto
   const apiUrl = base.origin + advertised.pathname + advertised.search;
 
   const call = async (methodCalls: unknown[]) => {
-    const response = await fetch(apiUrl, {
+    const response = await fetchConnectRetry(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: authorization },
       body: JSON.stringify({ using: ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"], methodCalls }),

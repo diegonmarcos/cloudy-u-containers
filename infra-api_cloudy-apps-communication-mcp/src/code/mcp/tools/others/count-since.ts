@@ -41,6 +41,7 @@
 import { readFileSync } from "node:fs";
 import { withImap } from "../../shared/imap.js";
 import { getServer, getAccount } from "../../shared/config.js";
+import { fetchConnectRetry } from "../../shared/fetch-connect-retry.js";
 
 // A store can hold a message from slightly before Gmail's timestamp, and a
 // re-injected one from long after it, so the stores are not windowed to
@@ -101,7 +102,7 @@ async function stalwartMessageIds(from: Date): Promise<Set<string>> {
   // Session discovery — same direct-session-resource pattern as jmap.ts
   // (avoids depending on the /.well-known/jmap redirect).
   const sessionUrl = new URL("/jmap/session", srv.jmap).toString();
-  const sres = await fetch(sessionUrl, { headers: { Authorization: auth } });
+  const sres = await fetchConnectRetry(sessionUrl, { headers: { Authorization: auth } });
   if (!sres.ok) throw new Error(`JMAP session ${sres.status}: ${await sres.text()}`);
   const session = (await sres.json()) as { apiUrl: string; primaryAccounts: Record<string, string> };
   const accountId = session.primaryAccounts?.["urn:ietf:params:jmap:mail"];
@@ -118,7 +119,7 @@ async function stalwartMessageIds(from: Date): Promise<Set<string>> {
   const pageSize = 250;
   const ids = new Set<string>();
   for (let position = 0; ; ) {
-    const res = await fetch(apiUrl, {
+    const res = await fetchConnectRetry(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: auth },
       body: JSON.stringify({

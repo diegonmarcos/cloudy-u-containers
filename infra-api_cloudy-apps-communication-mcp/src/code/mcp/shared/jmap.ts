@@ -7,6 +7,7 @@
 // dns.lookup, which honors the container's /etc/hosts extra_hosts pin
 // (jmap.diegonmarcos.com -> oci-mail WG IP), so no SMTP/nodemailer DNS quirk.
 import { getServer, getAccount } from "./config.js";
+import { fetchConnectRetry } from "./fetch-connect-retry.js";
 
 export interface JmapSendMsg {
   to: string;
@@ -36,7 +37,7 @@ function authHeader(user: string, pass: string): string {
 // (TLS, ECONNREFUSED, DNS); the real reason lives in err.cause. Surface it.
 export async function doFetch(url: string, init: RequestInit, what: string): Promise<Response> {
   try {
-    return await fetch(url, init);
+    return await fetchConnectRetry(url, init);
   } catch (e) {
     const c: any = (e as any)?.cause;
     const detail = c ? ` (cause: ${c.code ?? c.reason ?? c.message ?? JSON.stringify(c)})` : "";
