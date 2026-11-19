@@ -190,6 +190,41 @@ check(re.search(r'else\s*\{\s*exit\s*\}', awk_prog) is not None,
 check(not re.search(r'^\s*done\s*\{\s*next\s*\}', awk_prog, re.M),
       "no `done { next }`: that form reads every message to EOF")
 
+# ---- 3c. cold-cache cap (2026-11-19 oci-mail: a 30k-body cold scan ran ~2h) --
+with tempfile.TemporaryDirectory() as td:
+    msgs = os.path.join(td, "messages"); os.mkdir(msgs)
+    open(os.path.join(td, "mid.awk"), "w").write(awk_prog)
+    open(os.path.join(td, "scan.sh"), "w").write(scan)
+    names = ["c%02d" % i for i in range(7)]
+    for n in names:
+        open(os.path.join(msgs, n), "w").write("Message-ID: <%s@example.test>\r\n\r\n" % n)
+    open(os.path.join(td, "keys"), "w").write("\n".join(names) + "\n")
+    env = {"KEYS_CMD": "cat '%s'" % os.path.join(td, "keys"), "MSG_DIR": msgs,
+           "CACHE": os.path.join(td, "cache.tsv"), "AWK_PROG": os.path.join(td, "mid.awk"),
+           "LEGACY_CACHE": os.path.join(td, "no-legacy.tsv"), "SCAN_MAX": "3"}
+    outs = [sh("sh scan.sh", env, cwd=td) for _ in range(3)]
+    l1, l2, l3 = (o.stdout.splitlines() for o in outs)
+    check(all(o.returncode == 0 for o in outs), "capped scans exit 0")
+    check(l1[0] == "#partial 4" and len(l1) == 4,
+          "run 1 parses SCAN_MAX bodies and flags '#partial <left>' first")
+    check(l2[0] == "#partial 1" and len(l2) == 7,
+          "run 2 continues from the cache (no re-parse), still partial")
+    check(not any(x.startswith("#") for x in l3)
+          and sorted(l3) == sorted(fp("%s@example.test" % n) for n in names),
+          "run 3 is complete: no marker, every fingerprint")
+    check(not os.path.exists(os.path.join(td, "cache.tsv.todo")),
+          "the per-run todo list is removed")
+    r = sh("sh scan.sh", dict(env, SCAN_MAX="3000"), cwd=td)
+    check(r.stdout.splitlines()[0] != "#partial 0" and not r.stdout.startswith("#"),
+          "a warm cache under the cap never emits the marker")
+check(re.search(r'SCAN_MAX=\$\{SCAN_MAX:-\d+\}', scan) is not None,
+      "SCAN_MAX has a default in the scan")
+partial_guard = cmd.index("grep -q '^#partial '")
+check(partial_guard < cmd.index('comm -23 "$TMP/gmail.fps" "$TMP/maddy.fps"'),
+      "a '#partial' scan exits before the Gmail/maddy diff (no false loss, no re-injection)")
+check(partial_guard > cmd.index('if [ ! -s "$TMP/maddy.fps" ]'),
+      "an empty scan still alerts (the partial guard comes after it)")
+
 with tempfile.TemporaryDirectory() as td:
     open(os.path.join(td, "mid.awk"), "w").write(awk_prog)
     # Legacy /tmp cache seeds the new location once, so moving it is not a cold scan.
