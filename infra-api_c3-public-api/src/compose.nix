@@ -1,5 +1,5 @@
 # compose.nix — docker-compose spec for c3-public-api (Type A own-code)
-# Runs on oci-analytics, host-network, public via Caddy at /c3-public-api/*.
+# Runs on oci-apps (#1816; was oci-analytics), host-network, public via the edge Caddy at /c3-public-api/*.
 # Reverse-proxies /analytics/* to matomo/umami/openobserve (resolved at build time
 # from cloud-data, cross-VM via wg0). Bridges /mail/http-to-smtp (Bearer) to maddy
 # on oci-mail (maddy's dual-write relays to stalwart) — same JSON-in/SMTP-out contract
@@ -12,12 +12,11 @@ let
   app = buildJson.containers.app;
   binariesImage = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
 
-  # oci-analytics WG IP for binding + healthcheck.
-  # svc."c3-public-api" appears once the derive engine has run; fall back to
-  # services.<deploy.host>.ip lookup via cloud-data vms table. We hard-default
-  # to the published oci-analytics wg0 IP only as a safety net so the flake
-  # evaluates even before 9_others has emitted this service's entry.
-  myIp = svc."c3-public-api".ip or "10.0.0.4";
+  # Host WG IP for binding + healthcheck: the deploy.host's address from cloud-data.
+  # svc."c3-public-api" appears once the derive engine has run. The safety-net
+  # default is the oci-apps wg0 IP (#1816 moved it there from oci-analytics
+  # 10.0.0.4) so the flake evaluates even before 9_others has emitted this entry.
+  myIp = svc."c3-public-api".ip or "10.0.0.6";
   port = toString buildJson.ports.app;
   basePath = buildJson.proxy.primary.base_path;
 

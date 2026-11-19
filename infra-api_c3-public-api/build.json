@@ -29,7 +29,8 @@
     }
   },
   "deploy": {
-    "host": "oci-analytics",
+    "_doc_host": "#1816 2026-11-19: moved oci-analytics -> oci-apps. The edge VM (E2.1.Micro, 954 MB) was memory-thrashing (PSI full ~11%, ~530 MB swap, SSH and deploy health gates timing out) and this Node/tsx service's mail bridge timed out on every SMTP delivery. Caddy stays on the edge (caddy-public) and proxies to this service over WG; oci-apps (A1, 24 GB) already reaches oci-mail on wg0.",
+    "host": "oci-apps",
     "remote_path": "/opt/containers/c3-public-api",
     "compose_flags": "--build",
     "host_sync": {
