@@ -1,4 +1,4 @@
-schedule: "0 4 */3 * *"
+schedule: "0 4 * * *"
 env:
   - SSH: ssh -i /home/dagu/.ssh/vault_id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR
   - NTFY_URL: http://10.0.0.6:8090
@@ -38,6 +38,16 @@ steps:
         # unknown flag, so that spelling is not the fix (#413).
         # Mirrors cloud-infra vm-pilot infra/prune-maintenance.nix.
         RESULT=$($SSH "$USER@$IP" "docker container prune -f --filter label!=com.docker.compose.project >/dev/null && docker image prune -f 2>&1 | tail -1 && docker builder prune -f --max-used-space=1G >/dev/null" 2>/dev/null || echo "FAILED")
+        # Superseded fleet images (#1820). Each Ship pulls a new :latest of a
+        # ghcr.io/diegonmarcos image; the previous one stays as <none> with a
+        # repo digest, which `image prune` (dangling only) never removes, so
+        # oci-apps lost ~4 GB a day to them and fell under the 12 GB deploy
+        # guard twice on 2026-11-19. Removed here only when ALL hold: repository
+        # is ghcr.io/diegonmarcos/* (always pullable again), tag is <none>, and no
+        # container, running or stopped, references the image ID. Local-only
+        # images (matomo) and every tagged image are untouched; no -f.
+        SUPERSEDED=$($SSH "$USER@$IP" 'n=0; for id in $(docker images --filter "reference=ghcr.io/diegonmarcos/*" --format "{{.Tag}} {{.ID}}" | awk "\$1==\"<none>\"{print \$2}" | sort -u); do docker ps -a -q --filter ancestor=$id | grep -q . && continue; docker rmi $id >/dev/null 2>&1 && n=$((n+1)); done; echo "superseded fleet images removed: $n"' 2>/dev/null || echo "superseded: FAILED")
+        RESULT="$RESULT; $SUPERSEDED"
 
         AFTER=$($SSH "$USER@$IP" "df --output=used / | tail -1" 2>/dev/null || echo "?")
         FREED=$(( (BEFORE - AFTER) / 1024 ))
