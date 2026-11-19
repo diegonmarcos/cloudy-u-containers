@@ -1860,7 +1860,7 @@ error @not_wg "Forbidden" 403
     # JMAP discovery on jmap vhost (public per RFC 8620) (well-known — public per spec)
     handle /.well-known/jmap {
         rewrite * /jmap/session
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -1868,7 +1868,7 @@ reverse_proxy https://10.0.0.3:2443 {
     }
     # JMAP session/api/download/upload/eventsource follow-through on jmap vhost (well-known — public per spec)
     handle /jmap/* {
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -4833,7 +4833,7 @@ error @not_wg "Forbidden" 403
     # JMAP discovery on the mails vhost (well-known — public per spec)
     handle /.well-known/jmap {
         rewrite * /jmap/session
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -4841,7 +4841,7 @@ reverse_proxy https://10.0.0.3:2443 {
     }
     # JMAP session/api follow-through on the mails vhost (well-known — public per spec)
     handle /jmap/* {
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -7101,7 +7101,7 @@ handle /auth {
     # JMAP discovery on jmap vhost (public per RFC 8620) (well-known — public per spec)
     handle /.well-known/jmap {
         rewrite * /jmap/session
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
