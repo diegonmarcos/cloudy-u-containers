@@ -112,6 +112,10 @@ steps:
       # its maddy diff, and the Stalwart step then refuses to run.
       EXCL=/tmp/recon_maddy_missing.fps
       rm -f "$EXCL"
+      # Set only by the cache-warming exit below: tells the Stalwart step that
+      # the maddy diff was skipped ON PURPOSE (not that this step broke).
+      WARMING=/tmp/recon_maddy_warming
+      rm -f "$WARMING"
 
       # Epoch seconds, never yyyy/mm/dd: Gmail reads search DATES as midnight
       # US Pacific, which silently cut the newest 1.5-2 days out of the window.
@@ -273,6 +277,7 @@ steps:
         # diffed, or every unparsed body would count as missing and trigger
         # a "Mail LOST" alert or a duplicate re-injection.
         echo "maddy fingerprint cache warming: $(head -n 1 "$TMP/maddy.fps" | cut -d' ' -f2) bodies left; diff skipped this run"
+        head -n 1 "$TMP/maddy.fps" | cut -d' ' -f2 > "$WARMING"
         exit 0
       fi
       echo "maddy_distinct_fps=$(wc -l < "$TMP/maddy.fps")"
@@ -535,6 +540,13 @@ steps:
       TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
       EXCL=/tmp/recon_maddy_missing.fps
       if [ ! -f "$EXCL" ]; then
+        # Cache warming is a planned skip, not a failure: the run stays green
+        # (it reddened every run for ~15 h after each cold cache, 2026-11-19).
+        # The Stalwart diff still waits: repairing Stalwart before maddy would
+        # duplicate there once maddy's repair re-delivers through its queue.
+        if [ -s /tmp/recon_maddy_warming ]; then
+          echo "maddy fingerprint cache warming ($(cat /tmp/recon_maddy_warming) bodies left); Stalwart diff deferred to the first full maddy diff"; exit 0
+        fi
         echo "maddy phase did not complete; skipping Stalwart diff"; exit 1
       fi
       NOW=${NOW:-$(date -u +%s)}
