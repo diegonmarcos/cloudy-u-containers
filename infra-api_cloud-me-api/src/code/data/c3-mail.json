@@ -9,7 +9,7 @@
       "description": "Stalwart Mail Server — JMAP webmail backend (jmap.diegonmarcos.com)",
       "category": "app",
       "enabled": true,
-      "host": "oci-mail",
+      "host": "oci-apps",
       "dns": "stalwart.mesh.diegonmarcos.com",
       "domain": "jmap.diegonmarcos.com",
       "containers": [

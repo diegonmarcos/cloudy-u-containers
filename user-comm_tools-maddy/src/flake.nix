@@ -63,6 +63,8 @@
       MAIL_DOMAIN    = buildJson.domain;
       OCI_RELAY_HOST = buildJson.oci_relay.host;
       OCI_RELAY_PORT = buildJson.oci_relay.port;
+      STALWART_RELAY_HOST = buildJson.stalwart_relay.host;
+      STALWART_RELAY_PORT = toString buildJson.stalwart_relay.port;
     };
 
     # User creation block — generated from build.json#users (this service's SoT).

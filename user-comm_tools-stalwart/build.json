@@ -339,8 +339,7 @@
     ]
   },
   "build": {
-    "headers_enforced": true,
-    "ship_hold": "#1821 cutover in progress: Stalwart moves oci-mail -> oci-apps. Starting it on oci-apps before its RocksDB volume has been copied would create a second, empty store next to the live one on oci-mail. Remove this field (and the matching absent_redeploy.exclude entry in cloudy-t-infra 9_others/ship-reconcile.json) only after the data copy."
+    "headers_enforced": true
   },
   "_doc_tests": "Registered #502 (this repo's tester CI only runs what a build.json's `tests` key names, per .github/scripts/run-service-tests.sh -- an unnamed tester sits in the tree, executable, and reached by nothing, same pattern cloud-u-android's #368 found 44 times over). mail-rules was a golden+structural suite for derive-mail-rules.ts with no build.json anywhere pointing at it, so it had never run in CI despite existing since #269. It pins the declared mail folder tree (parent/child nesting, not just names) and the Sieve/maddy artifact derivation; #502 added the structural assertions for the Alerts/noAlerts split, the 24 House -> F0 move (with real de-dup), and the CLOUD -> 40 C3 renumber.",
   "tests": {

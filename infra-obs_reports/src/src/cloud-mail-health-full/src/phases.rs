@@ -159,22 +159,22 @@ pub async fn path_checker() -> Vec<Check> {
     // it declared inbound healthy while describing only the store the user does
     // not read. These two steps carry it to the actual destination.
     let t = Instant::now();
-    let ok = tcp(MAIL_WG_IP, 2025).await;
+    let ok = tcp(STALWART_WG_IP, 2025).await;
     checks.push(Check {
         name: "IN→7 stalwart_relay :2025 (dual-write)".into(),
         passed: ok,
-        details: format!("tcp {}:2025 {}", MAIL_WG_IP, if ok { "OPEN" } else { "CLOSED" }),
+        details: format!("tcp {}:2025 {}", STALWART_WG_IP, if ok { "OPEN" } else { "CLOSED" }),
         duration_ms: t.elapsed().as_millis() as u64,
         error: if ok { None } else { Some("Stalwart not accepting maddy's mirror — mail queues on disk".into()) },
         severity: if ok { Severity::Info } else { Severity::Critical },
     });
 
     let t = Instant::now();
-    let ok = tcp(MAIL_WG_IP, 2993).await;
+    let ok = tcp(STALWART_WG_IP, 2993).await;
     checks.push(Check {
         name: "IN→8 Stalwart IMAPS :2993 (user store)".into(),
         passed: ok,
-        details: format!("tcp {}:2993 {}", MAIL_WG_IP, if ok { "OPEN" } else { "CLOSED" }),
+        details: format!("tcp {}:2993 {}", STALWART_WG_IP, if ok { "OPEN" } else { "CLOSED" }),
         duration_ms: t.elapsed().as_millis() as u64,
         error: if ok { None } else { Some("user-facing store unreachable".into()) },
         severity: if ok { Severity::Info } else { Severity::Critical },

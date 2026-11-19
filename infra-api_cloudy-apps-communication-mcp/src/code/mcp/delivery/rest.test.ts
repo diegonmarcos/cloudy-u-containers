@@ -7,7 +7,7 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { Ledger } from "./ledger.ts";
 import { RecipientChecker } from "./recipients.ts";
-import { handleRest, type RestDeps } from "./rest.ts";
+import { handleRest, sourceAllowed, type RestDeps } from "./rest.ts";
 import { stalwartDirectory } from "./adapters.ts";
 import { fixture, recordedConnector, recordedMx, recordedRegistry, recordedTxt } from "./fakes.test-helpers.ts";
 
@@ -86,6 +86,18 @@ test("ingest refuses any source but the mail server", async () => {
     assert.equal(r.status, 403);
     assert.equal((await r.json()).code, "forbidden");
   } finally { srv.close(); }
+});
+
+test("ingest allow-list: exact addresses and IPv4 CIDRs (#1821: Stalwart on the local docker bridge)", () => {
+  const allowed = ["10.0.0.3", "10.1.0.3", "172.16.0.0/12"];
+  assert.equal(sourceAllowed(allowed, "10.0.0.3"), true);
+  assert.equal(sourceAllowed(allowed, "172.18.0.2"), true, "inside 172.16.0.0/12");
+  assert.equal(sourceAllowed(allowed, "172.31.255.254"), true, "last address of the /12");
+  assert.equal(sourceAllowed(allowed, "172.32.0.1"), false, "just outside the /12");
+  assert.equal(sourceAllowed(allowed, "10.0.0.50"), false, "another mesh peer is not the mail server");
+  assert.equal(sourceAllowed(allowed, ""), false);
+  assert.equal(sourceAllowed(["bad/99", "10.0.0.0/x"], "10.0.0.1"), false, "malformed entries match nothing");
+  assert.equal(sourceAllowed([], "10.0.0.3"), false);
 });
 
 test("recipients/check: results, per-request cap, per-caller 429 with Retry-After", async () => {

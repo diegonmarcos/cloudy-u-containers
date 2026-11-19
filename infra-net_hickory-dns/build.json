@@ -44,7 +44,7 @@
         {
           "name": "stalwart",
           "type": "A",
-          "value": "10.0.0.3"
+          "value": "10.0.0.6"
         },
         {
           "name": "maddy",
@@ -54,7 +54,7 @@
         {
           "name": "stalwart",
           "type": "AAAA",
-          "value": "fd0c:1d00::3"
+          "value": "fd0c:1d00::6"
         },
         {
           "name": "git-proxy-api",
@@ -69,7 +69,7 @@
         {
           "name": "cloud.stalwart",
           "type": "A",
-          "value": "10.0.0.3"
+          "value": "10.0.0.6"
         },
         {
           "name": "cloud.maddy",
@@ -79,7 +79,7 @@
         {
           "name": "cloud.stalwart",
           "type": "AAAA",
-          "value": "fd0c:1d00::3"
+          "value": "fd0c:1d00::6"
         },
         {
           "name": "cloud.git-proxy-api",

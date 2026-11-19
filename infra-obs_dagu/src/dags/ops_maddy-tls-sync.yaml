@@ -40,6 +40,34 @@ steps:
       EXPIRY=$(openssl x509 -noout -enddate -in "$TMP/fullchain.pem" | cut -d= -f2)
       sudo install -m 644 "$TMP/fullchain.pem" "$DST/fullchain.pem"
       sudo install -m 600 "$TMP/privkey.pem" "$DST/privkey.pem"
-      sudo docker restart maddy stalwart >/dev/null 2>&1 || docker restart maddy stalwart >/dev/null 2>&1 || true
-      echo "OK: maddy+stalwart wildcard installed from oci-analytics (expires $EXPIRY)"
+      sudo docker restart maddy >/dev/null 2>&1 || docker restart maddy >/dev/null 2>&1 || true
+      echo "OK: maddy wildcard installed from gcp-proxy (expires $EXPIRY)"
+      REMOTE
+  - name: sync-wildcard-cert-to-stalwart
+    depends:
+      - sync-wildcard-cert-to-maddy
+    command: |
+      # #1821: Stalwart runs on oci-apps now. Same wildcard, same validation, installed at the path its
+      # compose bind-mounts (/opt/containers/maddy/tls, also the dir configs/activate.sh applies to
+      # Stalwart's cert store on every deploy), then stalwart is restarted there.
+      SRC_FIND='find /var/lib/docker/volumes/caddy_caddy_data/_data/caddy/certificates -path "*wildcard_.diegonmarcos.com*"'
+      CRT_B64=$($RSYNC_SSH diego@10.0.0.1 "sudo sh -c '$SRC_FIND -name \"*.crt\" | head -1 | xargs -r base64 -w0'")
+      KEY_B64=$($RSYNC_SSH diego@10.0.0.1 "sudo sh -c '$SRC_FIND -name \"*.key\" | head -1 | xargs -r base64 -w0'")
+      [ -n "$CRT_B64" ] && [ -n "$KEY_B64" ] || { echo "FAIL: no wildcard cert found on gcp-proxy (DNS-01 issuer)"; exit 1; }
+      $RSYNC_SSH ubuntu@10.0.0.6 "CRT_B64='$CRT_B64' KEY_B64='$KEY_B64' sh -s" <<'REMOTE'
+      set -e
+      DST=/opt/containers/maddy/tls
+      sudo mkdir -p "$DST"
+      TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+      printf '%s' "$CRT_B64" | base64 -d > "$TMP/fullchain.pem"
+      printf '%s' "$KEY_B64" | base64 -d > "$TMP/privkey.pem"
+      openssl x509 -noout -ext subjectAltName -in "$TMP/fullchain.pem" 2>/dev/null | grep -q '[*].diegonmarcos.com' \
+        || { echo "FAIL: SAN is not the wildcard — refusing to ship apex"; exit 1; }
+      openssl x509 -noout -checkend 86400 -in "$TMP/fullchain.pem" \
+        || { echo "FAIL: cert expired or expiring within 24h — refusing to ship"; exit 1; }
+      EXPIRY=$(openssl x509 -noout -enddate -in "$TMP/fullchain.pem" | cut -d= -f2)
+      sudo install -m 644 "$TMP/fullchain.pem" "$DST/fullchain.pem"
+      sudo install -m 600 "$TMP/privkey.pem" "$DST/privkey.pem"
+      sudo docker restart stalwart >/dev/null 2>&1 || docker restart stalwart >/dev/null 2>&1 || true
+      echo "OK: stalwart wildcard installed on oci-apps (expires $EXPIRY)"
       REMOTE

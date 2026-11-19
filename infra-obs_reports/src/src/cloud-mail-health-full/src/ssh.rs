@@ -438,8 +438,8 @@ echo "a001 CAPABILITY" | timeout $T openssl s_client -connect localhost:993 -qui
 echo "===stalwartImap==="
 # Stalwart's IMAPS, the store the user actually reads. Must be dialled on the
 # WG IP, not localhost: stalwart is published through docker-proxy, which binds
-# only 10.0.0.3 and 10.1.0.3 — there is no loopback listener on 2993.
-echo "a001 CAPABILITY" | timeout $T openssl s_client -connect 10.0.0.3:2993 -quiet 2>/dev/null | head -3
+# only the oci-apps wg0/wg-public addresses (10.0.0.6, 10.1.0.4, #1821) — there is no loopback listener on 2993.
+echo "a001 CAPABILITY" | timeout $T openssl s_client -connect 10.0.0.6:2993 -quiet 2>/dev/null | head -3
 echo "===stalwartQueueDepth==="
 # The dual-write backlog. `maddy queue list` (used here until 2026-09-09) is not
 # a maddy subcommand at all — `maddy --help` offers only verify-config, run,

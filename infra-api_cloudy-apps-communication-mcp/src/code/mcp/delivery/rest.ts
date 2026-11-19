@@ -23,7 +23,7 @@ export interface RestDeps {
   directory: Directory;
   txt: TxtResolver;
   checker: RecipientChecker;
-  /** Source addresses allowed on /v1/internal/* (oci-mail's WG IPs). */
+  /** Source addresses (or IPv4 CIDRs) allowed on /v1/internal/*: oci-mail's WG IPs and, since #1821, the local docker bridge Stalwart runs in. */
   ingestAllowed: string[];
   maxBatchIds?: number;
 }
@@ -58,6 +58,28 @@ function readBody(req: IncomingMessage, limit: number): Promise<string> {
 
 function sourceIp(req: IncomingMessage): string {
   return String(req.socket.remoteAddress ?? "").replace(/^::ffff:/, "");
+}
+/** True when `ip` equals an entry of `allowed` or falls inside an IPv4 "a.b.c.d/nn" entry.
+ *  #1821: Stalwart now runs on this VM (oci-apps) in a docker bridge, so its webhook arrives from a
+ *  172.16.0.0/12 container address, not from oci-mail's WG IPs. */
+export function sourceAllowed(allowed: string[], ip: string): boolean {
+  const toInt = (a: string): number | null => {
+    const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(a);
+    if (!m) return null;
+    const o = m.slice(1).map(Number);
+    if (o.some((x) => x > 255)) return null;
+    return ((o[0] << 24) | (o[1] << 16) | (o[2] << 8) | o[3]) >>> 0;
+  };
+  const addr = toInt(ip);
+  return allowed.some((entry) => {
+    if (entry === ip) return true;
+    const [net, bitsStr] = entry.split("/");
+    if (bitsStr === undefined || addr === null) return false;
+    const base = toInt(net), bits = Number(bitsStr);
+    if (base === null || !Number.isInteger(bits) || bits < 0 || bits > 32) return false;
+    const mask = bits === 0 ? 0 : (~0 << (32 - bits)) >>> 0;
+    return ((addr & mask) >>> 0) === ((base & mask) >>> 0);
+  });
 }
 /** Rate-limit key: the first X-Forwarded-For hop Caddy sets, else the socket peer. */
 export function callerId(req: IncomingMessage): string {
@@ -110,7 +132,7 @@ export async function handleRest(req: IncomingMessage, res: ServerResponse, deps
     // ── ingest (Stalwart -> ledger) ──
     if (p.startsWith("/v1/internal/stalwart/")) {
       if (m !== "POST") { fail(res, 405, "method_not_allowed", "POST only"); return true; }
-      if (!deps.ingestAllowed.includes(sourceIp(req))) { fail(res, 403, "forbidden", "ingest accepts the mail server's WG addresses only"); return true; }
+      if (!sourceAllowed(deps.ingestAllowed, sourceIp(req))) { fail(res, 403, "forbidden", "ingest accepts the mail server's WG addresses only"); return true; }
       if (p === "/v1/internal/stalwart/events") {
         const events = parseWebhookBody(await readBody(req, JSON_LIMIT));
         const used = deps.ledger.ingestEvents(events);

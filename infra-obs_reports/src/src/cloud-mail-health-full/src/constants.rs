@@ -65,7 +65,11 @@ pub const JMAP_DISCOVERY_URLS: &[&str] = &[
 // stalwart is the store the mail clients actually read (Phase 3, 2026-08-07);
 // maddy is the WG-only MX that dual-writes into it. A mail health check that
 // only looked at maddy was blind to the half of the stack the user sees.
-pub const MAIL_CONTAINERS: &[&str] = &["maddy", "stalwart"];
+// #1821: Stalwart moved to oci-apps (STALWART_WG_IP). container_health() inspects oci-mail's `docker ps`
+// only, so only maddy is expected there; Stalwart is checked through its mesh ports (STALWART_WG_IP).
+pub const MAIL_CONTAINERS: &[&str] = &["maddy"];
+/// oci-apps wg0 address Stalwart's ports are published on (user-comm_tools-stalwart/build.json, #1821).
+pub const STALWART_WG_IP: &str = "10.0.0.6";
 // http-to-smtp-proxy-api runs on gcp-proxy, NOT oci-mail — container_health()
 // only ever inspects oci-mail's `docker ps`, so listing it here always
 // reports a false "NOT FOUND". Its real liveness signal is the live WG
@@ -109,7 +113,7 @@ pub const TEST_TO: &str = "me@diegonmarcos.com";
 // 2587 is deliberately absent: nothing binds it (verified `openssl s_client
 // -connect 10.0.0.3:2587` → 0 CONNECTED). Stalwart declares submission
 // internally but the compose does not map it to the host.
-pub const EXPECTED_PORTS: &[u16] = &[25, 143, 465, 993, 2025, 2443, 2993, 6190];
+pub const EXPECTED_PORTS: &[u16] = &[25, 143, 465, 993];
 
 // Stalwart-relay backlog ceiling. /data/queue-stalwart holds one file per
 // message still waiting on tcp://10.0.0.3:2025. A healthy mesh drains it to

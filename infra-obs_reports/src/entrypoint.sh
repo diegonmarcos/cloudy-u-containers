@@ -442,6 +442,7 @@ if [ -n "$CONSOLIDATED" ] && command -v jq >/dev/null 2>&1; then
 
   # FALLBACK: stalwart SMTPS port from Caddy L4 smtps.* route
   STALWART_SMTPS_PORT=""
+  STALWART_WG="$OCI_MAIL_WG"   # #1821: Stalwart left oci-mail; its VM is the L4 upstream's host
   BUILD_CADDY="${DIST_DIR}/build-caddy.json"
   if [ -f "$BUILD_CADDY" ]; then
     STALWART_SMTPS_PORT=$(jq -r '
@@ -449,6 +450,19 @@ if [ -n "$CONSOLIDATED" ] && command -v jq >/dev/null 2>&1; then
       | select((.sni // "") | ascii_downcase | startswith("smtp"))
       | (.upstream | split(":")[1])
     ' "$BUILD_CADDY" 2>/dev/null | head -1)
+    STALWART_VM=$(jq -r '
+      (.l4_routes // [])[]
+      | select((.sni // "") | ascii_downcase | startswith("smtp"))
+      | (.upstream | split(":")[0])
+    ' "$BUILD_CADDY" 2>/dev/null | head -1)
+    if [ -n "$STALWART_VM" ]; then
+      _SW=$(jq -r --arg vm "$STALWART_VM" '
+        .vms | to_entries[]
+        | select(.key == $vm or .value.ssh_alias == $vm)
+        | .value.wg_ip // empty
+      ' "$CONSOLIDATED" 2>/dev/null | head -1)
+      [ -n "$_SW" ] && STALWART_WG="$_SW"
+    fi
   fi
 
   if [ -n "$OCI_MAIL_WG" ] && [ -n "$MADDY_SMTP_PORT" ]; then
@@ -458,8 +472,8 @@ if [ -n "$CONSOLIDATED" ] && command -v jq >/dev/null 2>&1; then
     echo "[setup] WARNING: could not derive MAIL_SUBMIT_PRIMARY (oci-mail WG=$OCI_MAIL_WG maddy-port=$MADDY_SMTP_PORT) — must be set via env" >&2
   fi
 
-  if [ -n "$OCI_MAIL_WG" ] && [ -n "$STALWART_SMTPS_PORT" ]; then
-    export MAIL_SUBMIT_FALLBACK="${MAIL_SUBMIT_FALLBACK:-smtps://${OCI_MAIL_WG}:${STALWART_SMTPS_PORT}}"
+  if [ -n "$STALWART_WG" ] && [ -n "$STALWART_SMTPS_PORT" ]; then
+    export MAIL_SUBMIT_FALLBACK="${MAIL_SUBMIT_FALLBACK:-smtps://${STALWART_WG}:${STALWART_SMTPS_PORT}}"
     echo "[setup] MAIL_SUBMIT_FALLBACK=$MAIL_SUBMIT_FALLBACK (stalwart direct WG)"
   elif [ -n "${MAIL_SUBMIT_PRIMARY:-}" ]; then
     export MAIL_SUBMIT_FALLBACK="${MAIL_SUBMIT_FALLBACK:-$MAIL_SUBMIT_PRIMARY}"

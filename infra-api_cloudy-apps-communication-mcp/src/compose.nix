@@ -25,7 +25,10 @@ let
   vmIp  = (svc.${name} or svc."cloud-mail-mcp" or {}).ip or "10.0.0.6";
   port  = toString buildJson.ports.app;
   stalwartJmap = "https://${mh.stalwart}:${toString mp.stalwart_jmap_https}";
-  mailWgIp     = "10.0.0.3";   # oci-mail over the mesh
+  mailWgIp     = "10.0.0.3";   # oci-mail over the mesh (maddy)
+  # #1821: Stalwart runs on oci-apps (this VM) since the move off oci-mail; its address comes from
+  # cloud-data (deploy.host's wg0 IP), 10.0.0.6 until the derive engine has emitted the entry.
+  stalwartIp   = (svc.stalwart or {}).ip or "10.0.0.6";
 
   # Child MCPs resolved from cloud-data services{} (same as cloud-mail-mcp). Host network -> WG IPs.
   proxyCfg = buildJson.proxied_mcps or { children = []; retry = {
@@ -78,7 +81,7 @@ in
       env_file       = [ ".secrets" ];
       extra_hosts    = [
         "${mh.maddy}:${mailWgIp}"
-        "${mh.stalwart}:${mailWgIp}"
+        "${mh.stalwart}:${stalwartIp}"
       ];
       environment = {
         # cloud-mail-mcp set PORT, cloud-mattermost-mcp set MCP_HTTP_PORT; the merged code reads MCP_HTTP_PORT.
@@ -92,7 +95,7 @@ in
         MAIL_HOST           = mh.maddy;
         MADDY_HOST          = mh.maddy;
         MADDY_SMTP_IP       = mailWgIp;
-        STALWART_SMTP_IP    = mailWgIp;
+        STALWART_SMTP_IP    = stalwartIp;
         MADDY_IMAP_PORT     = toString mp.maddy_imap;
         MADDY_SMTP_PORT     = toString mp.maddy_smtp;
         STALWART_HOST       = mh.stalwart;

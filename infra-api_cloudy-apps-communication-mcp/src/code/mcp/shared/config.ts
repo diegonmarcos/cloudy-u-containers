@@ -47,7 +47,7 @@ const SERVERS: Record<string, ServerConfig> = {
     smtp: parseInt(process.env.STALWART_SMTP_PORT ?? "2465"),
     jmap: process.env.STALWART_JMAP_URL ?? "https://jmap.diegonmarcos.com:2443",
     adminUrl: process.env.STALWART_ADMIN_URL,
-    sshAlias: "oci-mail",
+    sshAlias: "oci-apps",
     container: "stalwart",
     // Internal WG endpoint serving a self-signed apex cert — env-overridable.
     tlsInsecure: (process.env.STALWART_TLS_INSECURE ?? "true") === "true",
