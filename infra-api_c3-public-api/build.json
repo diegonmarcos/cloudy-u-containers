@@ -18,7 +18,8 @@
     "registry": "ghcr.io/diegonmarcos",
     "image": "c3-public-api",
     "dockerfile": "Dockerfile",
-    "arch": "amd64",
+    "arch": "arm64",
+    "_doc_arch": "#1816: arm64 since the move to oci-apps (Ampere A1). The amd64-only image made the first oci-apps deploy fail with 'no matching manifest for linux/arm64/v8' (Ship 44516920970); the guard kept the old oci-analytics copy serving.",
     "native_build": {
       "type": "image-wrapper",
       "cmd": "npm ci --omit=dev",
