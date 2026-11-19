@@ -54,6 +54,10 @@ const apps = (wp?.wireguard_public?.peers ?? wp?.wireguard_public?.nodes ?? wp?.
 check("A7 the wg-public bind is the address wireguard-public declares for oci-apps", !apps || apps.wg_ip === WG_PUBLIC, `declared=${apps?.wg_ip}`);
 check("A8 A3 can fail: an oci-mail bind is rejected", JSON.stringify([OLD_WG0, "10.1.0.3"]) !== JSON.stringify([WG0, WG_PUBLIC].sort()));
 
+const nix = read("user-comm_tools-stalwart/src/compose.nix");
+const sub = /ipam\.config\s*=\s*\[\s*\{\s*subnet\s*=\s*"(172\.(\d+)\.\d+\.\d+)\/(\d+)"/.exec(nix);
+check("A9 the stalwart bridge subnet is pinned inside 172.16.0.0/12 (oci-apps firewall forwards/masquerades only that range)", !!sub && +sub[2] >= 16 && +sub[2] <= 31, sub ? sub[1] : "no pinned subnet");
+
 // ── C: the consumers (enforced once the hold is gone) ──────────────────────
 const phase = f.hold ? "hold" : "cutover";
 const consumer = (name, fn) => (phase === "hold" ? skipped(name, "build.ship_hold still set: consumers are re-pointed after the data copy") : fn());

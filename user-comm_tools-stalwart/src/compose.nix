@@ -166,4 +166,15 @@ in
   volumes = {
     stalwart_data = {};
   };
+  # #1821: oci-apps' firewall (b_infra firewall.nix) forwards and masquerades only 172.16.0.0/12.
+  # Docker's default pool there is exhausted (every 172.17-31 /16 is taken), so the stalwart_default
+  # bridge was handed 192.168.144.0/20: its outbound traffic (DNS, the OCI relay, the maddy relay) was
+  # dropped by the FORWARD policy and every DNS check timed out (SPF/DKIM/DMARC 15 s each). Pinning a
+  # subnet inside 172.16.0.0/12 that no other network uses (172.16.0.0/16 is unused) fixes that, and also
+  # makes the local-container source range match comm-mcp's ingest allow-list (172.16.0.0/12).
+  networks = {
+    default = {
+      ipam.config = [ { subnet = "172.16.100.0/24"; } ];
+    };
+  };
 }
