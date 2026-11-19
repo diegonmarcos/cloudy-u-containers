@@ -25,8 +25,13 @@ export interface Limits {
   request_timeout_ms: number;
 }
 
+import type { MailTarget } from "./mail-target.js";
+export type { MailTarget };
+
 export interface MailCfg {
-  primary: { host: string; port: number };
+  primary: MailTarget;
+  /** #1811 named delivery targets (X-Mail-Target), from build.json#mail.targets. */
+  targets: Record<string, MailTarget>;
   heloDomain: string;
   defaultUser: string;
 }
@@ -87,6 +92,7 @@ export function loadConfig(): AppConfig {
       host: smtpHost ?? "",
       port: smtpPort,
     },
+    targets: readJson<Record<string, MailTarget>>("MAIL_TARGETS_JSON", {}),
     heloDomain: process.env.SMTP_HELO_DOMAIN ?? "c3-public-api.local",
     defaultUser: process.env.SMTP_USER ?? "cloudflare@localhost",
   };

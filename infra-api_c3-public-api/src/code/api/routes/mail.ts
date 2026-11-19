@@ -23,6 +23,12 @@
 //     dual-write relays every local delivery to stalwart:2025, so JMAP
 //     clients see the same mail — do NOT add a second stalwart leg here
 //     (it would duplicate every message; no dedup exists in Stalwart).
+//   - #1811 parallel fan-out: with `X-Mail-Target: maddy-direct` the message
+//     goes to maddy's :2526 listener (stores in maddy, NO Stalwart mirror) and
+//     with `X-Mail-Target: stalwart` to Stalwart's SMTP ingest :2025. The CF
+//     Worker calls both in parallel next to its Gmail import, so all three
+//     stores receive the message at the same time. No header keeps the
+//     behaviour above (maddy:25 with the mirror) for every other caller.
 //
 // We do NOT replicate the Rust DNSBL / SPF / rDNS checks here — those were
 // always WARN-only on the proxy hop (the connecting IP is Cloudflare, not
@@ -32,6 +38,7 @@ import nodemailer from "nodemailer";
 import { z } from "zod";
 import type { AppConfig } from "../../shared/config.js";
 import { authPlugin } from "../plugins/auth.js";
+import { DECLARED_TARGETS, pickTarget } from "../../shared/mail-target.js";
 
 const jsonWrapperSchema = z.object({
   raw: z.string().min(1),
@@ -125,12 +132,21 @@ export async function registerMail(app: FastifyInstance, cfg: AppConfig) {
 
       req.log.info({ req: reqId, from: mailFrom, to: mailTo, msg_id: msgId, client_ip: clientIp }, "request.parsed");
 
-      // ── Delivery (maddy:25, plain SMTP over wg0) ──
+      const pick = pickTarget(req.headers["x-mail-target"], cfg.mail, DECLARED_TARGETS);
+      if (!pick.ok) {
+        req.log.warn({ req: reqId, msg_id: msgId, err: pick.error }, "request.bad_target");
+        return reply.code(pick.code).send({ status: "error", error: pick.error });
+      }
+
+      // ── Delivery (plain SMTP over WG to the picked store) ──
+      // Named targets are always plaintext over WG (WG encrypts; maddy's own
+      // stalwart_relay to :2025 uses `starttls no` for the same reason, and
+      // Stalwart's cert does not validate against the WG IP).
       const primary = nodemailer.createTransport({
-        host: cfg.mail.primary.host,
-        port: cfg.mail.primary.port,
+        host: pick.host,
+        port: pick.port,
         secure: false,
-        ignoreTLS: cfg.mail.primary.port === 25, // pure plaintext for MX-style hop
+        ignoreTLS: pick.port === 25 || req.headers["x-mail-target"] !== undefined, // pure plaintext for MX-style hop
         requireTLS: false,
         name: cfg.mail.heloDomain,
         connectionTimeout: cfg.limits.request_timeout_ms,
@@ -143,15 +159,15 @@ export async function registerMail(app: FastifyInstance, cfg: AppConfig) {
           envelope: { from: mailFrom, to: [mailTo] },
           raw, // nodemailer accepts a Buffer for raw RFC 5322 messages
         });
-        req.log.info({ req: reqId, msg_id: msgId, from: mailFrom, to: mailTo }, "smtp.delivered");
+        req.log.info({ req: reqId, msg_id: msgId, from: mailFrom, to: mailTo, target: pick.name }, "smtp.delivered");
       } catch (err) {
-        req.log.error({ req: reqId, err: (err as Error).message, msg_id: msgId }, "smtp.delivery_failed");
+        req.log.error({ req: reqId, err: (err as Error).message, msg_id: msgId, target: pick.name }, "smtp.delivery_failed");
         return reply.code(500).send({ status: "error", error: (err as Error).message });
       } finally {
         primary.close();
       }
 
-      return reply.code(200).send({ status: "delivered", from: mailFrom, to: mailTo });
+      return reply.code(200).send({ status: "delivered", from: mailFrom, to: mailTo, target: pick.name });
     });
   }, { prefix: "/mail" });
 }

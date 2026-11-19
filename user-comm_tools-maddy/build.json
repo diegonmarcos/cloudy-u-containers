@@ -127,7 +127,8 @@
       "_doc_dual_bind": "Phase 4 of public-surface collapse: each port dual-binds on wg0 (10.0.0.3) AND wg-public (10.1.0.3). Maddy is host-network so binds happen inside maddy.conf.tpl via `@LISTEN_<port>@`; flake.nix expands `bind` arrays into space-separated multi-listener prefixes (e.g. `tls://10.0.0.3:993 tls://10.1.0.3:993`). Caddy on oci-analytics reaches mail ports via wg-public; legacy clients on wg0 keep working unchanged.",
       "extra_ports": [
         { "port": 25,  "protocol": "tcp",      "bind": ["10.0.0.3", "10.1.0.3"], "service": "smtp_mx",       "desc": "MX delivery endpoint — dual-bind wg0+wg-public; CF Worker → Caddy → http-to-smtp-proxy-api → SMTP over WG is the public bridge (Phase 5)" },
-        { "port": 465, "protocol": "tls",      "bind": ["10.0.0.3", "10.1.0.3"], "service": "smtp_ssl",      "desc": "SMTPS — dual-bind wg0+wg-public, reached via Caddy L4 from oci-analytics" },
+        { "port": 2526, "protocol": "tcp",     "bind": ["10.0.0.3", "10.1.0.3"], "service": "smtp_mx_direct", "desc": "Direct inbound leg of the CF Worker parallel fan-out (#1811): stores in maddy only, no Stalwart mirror (Stalwart gets its own leg). WG-only." },
+        { "port": 465, "protocol": "tls",      "bind": ["10.0.0.3", "10.1.0.3"], "service": "smtp_ssl",     "desc": "SMTPS — dual-bind wg0+wg-public, reached via Caddy L4 from oci-analytics" },
         { "port": 993, "protocol": "tls",      "bind": ["10.0.0.3", "10.1.0.3"], "service": "imap_ssl",      "desc": "IMAPS — dual-bind wg0+wg-public, reached via Caddy L4 from oci-analytics" },
         { "port": 143, "protocol": "tcp",      "bind": ["10.0.0.3", "10.1.0.3"], "service": "imap_plain",    "desc": "IMAP plain — dual-bind wg0+wg-public" }
       ],

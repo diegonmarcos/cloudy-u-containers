@@ -50,6 +50,19 @@ let
 
   primaryPort = portForVia primarySvc mailPrimaryVia;
 
+  # #1811 named targets -> { host, port } for X-Mail-Target. A target whose
+  # service or port slug is not (yet) in cloud-data is left OUT, so the bridge
+  # answers 503 for it instead of the whole render failing; the CF Worker only
+  # switches to the targets once they are live.
+  resolveTarget = _name: t:
+    let s = svc.${t.service} or null;
+        p = if s == null then null else portForVia s t.via;
+    in if p == null then null else { host = s.ip; port = builtins.fromJSON p; };
+  resolvedTargets = builtins.mapAttrs resolveTarget (buildJson.mail.targets or {});
+  mailTargets = builtins.listToAttrs (map (n: { name = n; value = resolvedTargets.${n}; })
+    (builtins.filter (n: resolvedTargets.${n} != null) (builtins.attrNames resolvedTargets)));
+  mailTargetsJson = builtins.toJSON mailTargets;
+
   # Profile ▸ Connect (#566) — every value from build.json#profile_connect.
   pc = buildJson.profile_connect;
 in
@@ -71,6 +84,7 @@ in
         # Mail bridge config (replicates http-to-smtp-proxy-api contract).
         SMTP_HOST = primarySvc.ip;
         SMTP_PORT = primaryPort;
+        MAIL_TARGETS_JSON = mailTargetsJson;
         SMTP_HELO_DOMAIN = buildJson.mail.helo_domain;
         # Profile ▸ Connect: bearer + mailed code → the plaintext profile bundle (#589).
         PROFILE_CONNECT_MAIL_TO = pc.mail_to;
