@@ -207,14 +207,14 @@ submission tls://10.0.0.3:465 tls://10.1.0.3:465 tls://127.0.0.1:465 {
 }
 
 # ── Stalwart relay (local JMAP/IMAP store ingest) ─────────────────
-# Co-located Stalwart SMTP ingest port. Plain SMTP over the WG-internal
-# loopback (10.0.0.3); unauthenticated local delivery to local recipients,
+# Stalwart SMTP ingest port (since #1821 on oci-apps, build.json stalwart_relay).
+# Plain SMTP over the WG mesh; unauthenticated local delivery to local recipients,
 # mirroring how http-to-smtp-proxy-api uses this same shadow port. STARTTLS
 # is opportunistic (Stalwart advertises it) but not required on-host.
 target.smtp stalwart_relay {
-    targets tcp://10.0.0.3:2025
-    # Plain SMTP: WG already encrypts on-host loopback transport, and
-    # Stalwart's STARTTLS cert won't validate against the 10.0.0.3 IP.
+    targets tcp://10.0.0.6:2025
+    # Plain SMTP: WG already encrypts the mesh transport, and
+    # Stalwart's STARTTLS cert won't validate against the mesh IP.
     # Matches http-to-smtp-proxy-api's shadow delivery to this same port.
     starttls no
 }

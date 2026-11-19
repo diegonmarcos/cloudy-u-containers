@@ -381,8 +381,8 @@ with tempfile.TemporaryDirectory() as td:
 
 nsw = {}
 exec(between(sw_cmd, "# >>> deliver-stalwart\n", "# <<< deliver-stalwart"), nsw)
-check(nsw["SMTP_PORT"] == 2025 and nsw["SMTP_HOST"] == "10.0.0.3",
-      "Stalwart repair talks to the MX ingest 10.0.0.3:2025, not maddy")
+check(nsw["SMTP_PORT"] == 2025 and nsw["SMTP_HOST"] == "10.0.0.6",
+      "Stalwart repair talks to the MX ingest 10.0.0.6:2025 (oci-apps since #1821), not maddy")
 d2, D2 = nsw["deliver"], nsw["Deferred"]
 lg = []
 class FS(FakeSMTP):

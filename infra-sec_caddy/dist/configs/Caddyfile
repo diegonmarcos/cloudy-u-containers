@@ -104,14 +104,14 @@
           @sni_imap_diegonmarcos_com tls sni imap.diegonmarcos.com
           route @sni_imap_diegonmarcos_com {
             proxy {
-              upstream 10.0.0.3:2993
+              upstream 10.0.0.6:2993
             }
           }
           # SMTPS via SNI on :443 → Stalwart :2465 (Maddy's :465 is legacy) (SNI: smtps.diegonmarcos.com)
           @sni_smtps_diegonmarcos_com tls sni smtps.diegonmarcos.com
           route @sni_smtps_diegonmarcos_com {
             proxy {
-              upstream 10.0.0.3:2465
+              upstream 10.0.0.6:2465
             }
           }
           # Fall-through: TLS that does NOT match any mail SNI → internal HTTPS
@@ -1879,7 +1879,7 @@ reverse_proxy https://10.0.0.3:2443 {
         redir / /.well-known/jmap 308
     }
     handle {
-  reverse_proxy https://10.0.0.3:2443 {
+  reverse_proxy https://10.0.0.6:2443 {
     header_up X-Real-IP {http.request.remote.host}
     transport http {
   tls_insecure_skip_verify
@@ -4852,7 +4852,7 @@ reverse_proxy https://10.0.0.3:2443 {
         redir / /.well-known/jmap 308
     }
     handle {
-  reverse_proxy https://10.0.0.3:2443 {
+  reverse_proxy https://10.0.0.6:2443 {
     header_up X-Real-IP {http.request.remote.host}
     transport http {
   tls_insecure_skip_verify
@@ -4881,7 +4881,7 @@ import request_limits
     # JMAP autoconfig — proxies to Stalwart (preserves per-user session) (well-known — public per spec)
     handle /.well-known/jmap {
         rewrite * /jmap/session
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -4889,7 +4889,7 @@ reverse_proxy https://10.0.0.3:2443 {
     }
     # JMAP API follow-through (matches relative redirect from /.well-known/jmap) (well-known — public per spec)
     handle /jmap/* {
-reverse_proxy https://10.0.0.3:2443 {
+reverse_proxy https://10.0.0.6:2443 {
   transport http {
     tls_insecure_skip_verify
   }
@@ -9996,7 +9996,7 @@ error @not_mesh "Forbidden" 403
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
     # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
-    reverse_proxy 10.0.0.3:2443 {
+    reverse_proxy 10.0.0.6:2443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -13748,7 +13748,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.3:2443 {
+      reverse_proxy 10.0.0.6:2443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -18975,7 +18975,7 @@ error @not_mesh "Forbidden" 403
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
     # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
-    reverse_proxy 10.0.0.3:2443 {
+    reverse_proxy 10.0.0.6:2443 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -19012,7 +19012,7 @@ error @not_mesh "Forbidden" 403
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
     # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
-    reverse_proxy 10.0.0.3:2080 {
+    reverse_proxy 10.0.0.6:2080 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -20102,7 +20102,7 @@ error @not_mesh "Forbidden" 403
         ca mesh
       }
     }
-    respond "DB catalog — container=stalwart engine=rocksdb port= upstream=(embedded) path=/opt/stalwart-mail/data vm=oci-E2-f_0" 200
+    respond "DB catalog — container=stalwart engine=rocksdb port= upstream=(embedded) path=/opt/stalwart-mail/data vm=oci-A1-f_0" 200
   }
 
   calendar-radicale-files-null.db {
