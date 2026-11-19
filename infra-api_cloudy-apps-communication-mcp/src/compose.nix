@@ -51,7 +51,23 @@ let
 in
 {
   services = {
+    # The app runs as 10001:999 (the image's appuser) but ./data is created on
+    # the host by the deploy user (1001), so every ledger write failed with
+    # EACCES and the #1802 delivery-status ledger was never persisted
+    # (2026-11-19, "persist failed: EACCES /data/delivery-ledger.jsonl").
+    # Same one-shot root repair as user-data_cloudy-browser-scrapper-api.
+    # `$$` = compose escape for a literal `$`.
+    "cloudy-apps-communication-mcp-data-owner" = {
+      image          = "busybox:1.37";
+      container_name = "${name}-data-owner";
+      user           = "0:0";
+      restart        = "no";
+      network_mode   = "none";
+      volumes        = [ "./data:/data" ];
+      command        = [ "sh" "-c" "set -eu; chown -R 10001:999 /data; left=$$(find /data ! -user 10001 | wc -l); echo \"[comm-mcp-data-owner] wrong-owner paths left=$$left\"; [ \"$$left\" -eq 0 ]" ];
+    };
     "cloudy-apps-communication-mcp" = {
+      depends_on     = { "cloudy-apps-communication-mcp-data-owner" = { condition = "service_completed_successfully"; }; };
       image          = binariesImage;
       container_name = name;
       network_mode   = "host";
