@@ -2690,7 +2690,7 @@ error @not_wg "Forbidden" 403
 
 
     handle {
-  reverse_proxy 10.0.0.4:8087 {
+  reverse_proxy 10.0.0.6:8087 {
     header_up X-Real-IP {http.request.remote.host}
   }
 }
@@ -4996,15 +4996,15 @@ reverse_proxy https://diegonmarcos.github.io {
 }
 handle /pub/health {
   uri strip_prefix /pub
-        reverse_proxy 10.0.0.4:8087
+        reverse_proxy 10.0.0.6:8087
 }
 handle /pub/ready {
   uri strip_prefix /pub
-        reverse_proxy 10.0.0.4:8087
+        reverse_proxy 10.0.0.6:8087
 }
 handle /pub/analytics/* {
   uri strip_prefix /pub
-        reverse_proxy 10.0.0.4:8087
+        reverse_proxy 10.0.0.6:8087
 }
 handle_path /pub/* {
       @bearer header Authorization Bearer*
@@ -5018,7 +5018,7 @@ handle_path /pub/* {
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
     }
-      reverse_proxy 10.0.0.4:8087 {
+      reverse_proxy 10.0.0.6:8087 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -5057,7 +5057,7 @@ handle_path /pub/* {
       header_up X-Forwarded-Uri {http.request.orig_uri}
       copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
     }
-      reverse_proxy 10.0.0.4:8087 {
+      reverse_proxy 10.0.0.6:8087 {
         header_up X-Real-IP {http.request.remote.host}
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
@@ -6791,7 +6791,7 @@ import request_limits
     uri path_regexp ^/scrappers-api(/|$) /cloudy-browser-scrapper-api$1
     uri path_regexp ^/tokens-api(/|$) /cloudy-ai-tokens-api$1
       handle_path /c3-public-api/* {
-        reverse_proxy 10.0.0.4:8087 {
+        reverse_proxy 10.0.0.6:8087 {
           header_up X-Real-IP {http.request.remote.host}
         }
       }
@@ -7136,7 +7136,7 @@ handle @pubsink__analytics_api_openobserve {
   # One path substitution serves the bare path and the subtree: <base> -> <rewrite_prefix>. strip_prefix + rewrite
   # (#1104) turned the bare path into "/" and the upstream (exact prefix proxy) answered 404 on the trailing slash.
   uri path_regexp ^/analytics-api/openobserve /analytics/openobserve
-  reverse_proxy 10.0.0.4:8087
+  reverse_proxy 10.0.0.6:8087
 }
 @pubsink__c3bot_webhook path /c3bot-webhook
 handle @pubsink__c3bot_webhook {
@@ -7476,7 +7476,7 @@ error @not_mesh "Forbidden" 403
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
     # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
-    reverse_proxy 10.0.0.4:8087 {
+    reverse_proxy 10.0.0.6:8087 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -11116,7 +11116,7 @@ error @not_mesh "Forbidden" 403
     @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
     error @not_mesh "Forbidden" 403
     handle {
-      reverse_proxy 10.0.0.4:8087 {
+      reverse_proxy 10.0.0.6:8087 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
@@ -17532,7 +17532,7 @@ error @not_mesh "Forbidden" 403
 @not_mesh not remote_ip 10.0.0.0/24 fd0c:1d00::/64 172.16.0.0/12 127.0.0.0/8 ::1/128
 error @not_mesh "Forbidden" 403
     # TLS: served from the public *.mesh.diegonmarcos.com wildcard (#1797); no per-name cert.
-    reverse_proxy 10.0.0.4:8087 {
+    reverse_proxy 10.0.0.6:8087 {
         # Empty-body guard: an upstream that answers 200 with Content-Length 0
         # is a FALSE GREEN (blank white page) — treat it as a truthful 502 so
         # handle_errors renders the diagnostic page instead of a silent blank.
