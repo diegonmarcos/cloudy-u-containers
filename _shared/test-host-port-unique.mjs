@@ -53,8 +53,15 @@ export function duplicates(services) {
 // duplicate must be removed (P5), so this list can only shrink.
 const KNOWN = {
   "oci-apps:8086": "infra-obs_dbgate + infra-sec_zap: both are on-demand tools that are normally stopped (zap is started per scan, dbgate was Exited on 2026-11-11); they cannot run at the same time. Found by this guard in #1659, left for a ticket of its own because moving either port also moves its Caddy route.",
-  "oci-apps:3103": "#1450 cutover: infra-api_cloudy-apps-communication-mcp REPLACES infra-api_cloud-mail-mcp on the same port; the ship engine's port eviction stops the old container when the new one deploys, so they never run together. Remove this entry when the old folder is removed (P5 fails until then).",
-  "oci-apps:3109": "#1450 cutover: infra-api_cloudy-apps-drive-mcp REPLACES infra-api_cloud-drive-mcp on the same port (port eviction at deploy, as above). Remove this entry when the old folder is removed (P5 fails until then).",
+  "oci-apps:3103": "#1450 cutover: infra-api_cloudy-apps-communication-mcp REPLACES infra-api_cloud-mail-mcp on the same port. Port eviction alone did NOT keep them apart: on 2026-11-19 08:10 a Ship redeployed the old one, it bound 3103 first and the merged MCP died with EADDRINUSE. So the old folder carries build.ship_hold (P6) and is in cloudy-t-infra ship-reconcile.json absent_redeploy.exclude. Remove this entry when the old folder is removed (P5 fails until then).",
+  "oci-apps:3109": "#1450 cutover: infra-api_cloudy-apps-drive-mcp REPLACES infra-api_cloud-drive-mcp on the same port; same hazard as 3103, so the old folder carries build.ship_hold (P6). Remove this entry when the old folder is removed (P5 fails until then).",
+};
+
+// Cutover entries: the port belongs to the NEW folder; the OLD one must never be shipped again,
+// or it can bind the port first (3103 outage, 2026-11-19). Checked by P6.
+const CUTOVER_OLD = {
+  "oci-apps:3103": "infra-api_cloud-mail-mcp",
+  "oci-apps:3109": "infra-api_cloud-drive-mcp",
 };
 
 const services = load();
@@ -64,6 +71,13 @@ const dup = allDup.filter(d => !(d.split(" <- ")[0] in KNOWN));
 check("P1 no host port is declared by two host-network services on one VM", dup.length === 0, dup.join(" | "));
 const stale = Object.keys(KNOWN).filter(k => !allDup.some(d => d.startsWith(`${k} <- `)));
 check("P5 every KNOWN entry is still a real duplicate (remove it once fixed)", stale.length === 0, stale.join(", "));
+// P6: a cutover's superseded folder is held out of Ship (build.ship_hold), so port eviction is
+// never the only thing standing between the old container and the new one's port.
+const shipHold = (dir) => { try { return JSON.parse(readFileSync(join(ROOT, dir, "build.json"), "utf8")).build?.ship_hold || ""; } catch { return ""; } };
+const unheldWith = (hold) => Object.entries(CUTOVER_OLD).filter(([k, dir]) => allDup.some(d => d.startsWith(`${k} <- `) && d.includes(dir)) && !hold(dir)).map(([k, dir]) => `${k} ${dir}`);
+const unheld = unheldWith(shipHold);
+check("P6 every superseded cutover folder sharing a port carries build.ship_hold", unheld.length === 0, unheld.join(", "));
+check("P7 P6 can fail: with the holds stripped, the 3103 cutover is reported", unheldWith(() => "").includes("oci-apps:3103 infra-api_cloud-mail-mcp"));
 // The guard must be able to fail: re-create the incident.
 const jev = services.find(s => s.dir === "infra-ai_jev-sidecar");
 const sup = services.find(s => s.dir === "infra-api_cloud-superapp-mcp");

@@ -7,7 +7,8 @@
   "category": "app",
   "build": {
     "include_cloud_data": "true",
-    "headers_enforced": true
+    "headers_enforced": true,
+    "ship_hold": "Superseded by cloudy-apps-communication-mcp (#1450), which serves the same port 3103 on oci-apps. Shipping this one again starts it first, takes 3103, and the merged MCP dies with EADDRINUSE (outage 2026-11-19 08:10). Config, dist, routes and DNS aliases stay until the cutover in #1796."
   },
   "ssh": {
     "uid": 0,
