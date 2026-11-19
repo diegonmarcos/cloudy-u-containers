@@ -6,7 +6,7 @@
 # ║ Source:  a_solutions/infra-api_c3-public-api/src/flake.nix
 # ║ Rebuild: a_solutions/infra-api_c3-public-api/build.sh ship
 # ╚══════════════════════════════════════════════════════════════════╝
-# Type A — own code, arch=amd64
+# Type A — own code, arch=arm64
 FROM node:22-bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
