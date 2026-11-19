@@ -1,12 +1,13 @@
 // Unit tests for email-forwarder.js (run: node src/test-email-forwarder.mjs, exit 0 = pass).
-// Mocks global fetch; no network. Proves the leg/acceptance contract:
-//   Google + Maddy run in parallel; accept if either lands; reject only if both
-//   fail; each failed leg retries in the background and logs its own lost-leg line;
-//   live.com fallback is unchanged; there is no worker->Stalwart leg (maddy's
-//   stalwart_queue feeds Stalwart, a second leg would duplicate).
+// Mocks global fetch; no network. Proves the leg/acceptance contract (#1811):
+//   Google + Maddy + Stalwart run in parallel; accept if any lands; reject only if
+//   all three fail; each failed leg retries in the background and logs its own
+//   lost-leg line; live.com fallback is unchanged; each store gets exactly ONE
+//   leg and maddy's is the non-mirroring maddy-direct target (no duplicate in
+//   Stalwart, which used to be fed by maddy's stalwart_queue).
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
-import worker, { _retry } from './email-forwarder.js';
+import worker, { _retry, MAIL_TARGETS } from './email-forwarder.js';
 
 _retry.sleep = async () => {};
 const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -18,10 +19,10 @@ const env = {
   HTTP_TO_SMTP_PROXY_API_KEY: 'k', BACKUP_EMAIL: 'bk@x.test',
 };
 
-// behaviour: { google: n failures before success (Infinity = never), maddy: same, healthy }
-function setup({ google = 0, maddy = 0, healthy = true, googleThrows = false } = {}) {
-  const calls = { google: 0, maddy: 0, other: [] };
-  globalThis.fetch = async (url) => {
+// behaviour: { google: n failures before success (Infinity = never), maddy: same, stalwart: same, healthy }
+function setup({ google = 0, maddy = 0, stalwart = 0, healthy = true, googleThrows = false } = {}) {
+  const calls = { google: 0, maddy: 0, stalwart: 0, targets: [], other: [] };
+  globalThis.fetch = async (url, init = {}) => {
     url = String(url);
     if (url.includes('oauth2.googleapis.com')) return Response.json({ access_token: 'a' });
     if (url.includes('gmail.googleapis.com')) {
@@ -29,7 +30,16 @@ function setup({ google = 0, maddy = 0, healthy = true, googleThrows = false } =
       return ++calls.google > google ? Response.json({ id: '1' }) : new Response('err', { status: 500 });
     }
     if (url === env.HTTP_TO_SMTP_PROXY_API_URL) {
-      return ++calls.maddy > maddy ? Response.json({ status: 'delivered' }) : new Response('err', { status: 502 });
+      const target = (init.headers || {})['X-Mail-Target'];
+      calls.targets.push(target);
+      if (target === MAIL_TARGETS.maddy) {
+        return ++calls.maddy > maddy ? Response.json({ status: 'delivered' }) : new Response('err', { status: 502 });
+      }
+      if (target === MAIL_TARGETS.stalwart) {
+        return ++calls.stalwart > stalwart ? Response.json({ status: 'delivered' }) : new Response('err', { status: 503 });
+      }
+      calls.other.push(`bridge target=${target}`);
+      return new Response('?', { status: 400 });
     }
     if (url === env.C3_HEALTH_URL) return healthy ? Response.json({ status: 'healthy' }) : new Response('x', { status: 500 });
     calls.other.push(url);
@@ -62,12 +72,30 @@ const tests = {
   async 'both ok: accepted, no retries, no loss logs'() {
     const r = await run();
     assert.equal(r.rejected, null);
-    assert.deepEqual([r.calls.google, r.calls.maddy], [1, 1]);
+    assert.deepEqual([r.calls.google, r.calls.maddy, r.calls.stalwart], [1, 1, 1]);
     assert.equal(r.logs.filter((l) => /LEG_LOST/.test(l)).length, 0);
   },
   async 'legs run in parallel: both attempted inline even if one fails'() {
     const r = await run({ google: Infinity });
-    assert.equal(r.inline.google, 1); assert.equal(r.inline.maddy, 1);
+    assert.equal(r.inline.google, 1); assert.equal(r.inline.maddy, 1); assert.equal(r.inline.stalwart, 1);
+  },
+  async 'all three legs are attempted inline even if two fail'() {
+    const r = await run({ google: Infinity, maddy: Infinity });
+    assert.ok(r.inline.google >= 1 && r.inline.maddy >= 1 && r.inline.stalwart >= 1);
+    assert.deepEqual([r.calls.google, r.calls.maddy, r.calls.stalwart], [3, 3, 1]); // failed legs: 1 + 2 retries
+    assert.equal(r.rejected, null);                 // stalwart landed -> accepted
+  },
+  async 'stalwart down, others ok: accepted; stalwart retried then JMAP_LEG_LOST'() {
+    const r = await run({ stalwart: Infinity });
+    assert.equal(r.rejected, null);
+    assert.equal(r.calls.stalwart, 3);
+    assert.ok(r.logs.some((l) => /^JMAP_LEG_LOST target=stalwart message_id=<id1@s.test> from=a@s.test to=me@x.test status=HTTP 503/.test(l)));
+    assert.ok(!r.logs.some((l) => /MESH_LEG_LOST|GOOGLE_LEG_LOST/.test(l)));
+  },
+  async 'stalwart transient: recovered by background retry'() {
+    const r = await run({ stalwart: 1 });
+    assert.equal(r.calls.stalwart, 2);
+    assert.equal(r.logs.filter((l) => /LEG_LOST/.test(l)).length, 0);
   },
   async 'google down, maddy ok: accepted; google retried then GOOGLE_LEG_LOST'() {
     const r = await run({ google: Infinity });
@@ -93,9 +121,13 @@ const tests = {
     assert.equal(r.calls.google, 3);
     assert.equal(r.logs.filter((l) => /LEG_LOST/.test(l)).length, 0);
   },
-  async 'both down: rejected so the sender retries'() {
+  async 'all three down: rejected so the sender retries'() {
+    const r = await run({ google: Infinity, maddy: Infinity, stalwart: Infinity });
+    assert.match(r.rejected, /all failed/);
+  },
+  async 'google + maddy down but stalwart ok: NOT rejected'() {
     const r = await run({ google: Infinity, maddy: Infinity });
-    assert.match(r.rejected, /both failed/);
+    assert.equal(r.rejected, null);
   },
   async 'google leg throwing does not lose the maddy result'() {
     const r = await run({ googleThrows: true });
@@ -108,9 +140,11 @@ const tests = {
   async 'healthy: no live.com forward'() {
     assert.equal((await run()).forwarded, false);
   },
-  async 'no worker->Stalwart leg (would duplicate; maddy queue feeds it)'() {
-    const r = await run({ maddy: Infinity });
+  async 'each store gets exactly one leg; maddy leg is the non-mirroring maddy-direct (no Stalwart duplicate)'() {
+    const r = await run();
     assert.deepEqual(r.calls.other, []);
+    assert.deepEqual([...r.calls.targets].sort(), ['maddy-direct', 'stalwart']);
+    assert.equal(MAIL_TARGETS.maddy, 'maddy-direct');   // never the mirroring maddy:25 next to a stalwart leg
   },
 };
 
