@@ -1,1 +1,1 @@
-../../user-ai_kg-store/scripts/seed_from_config.sh
+../../user-ai_cloud-me-cgc-pvt-graph-api/scripts/seed_from_config.sh
