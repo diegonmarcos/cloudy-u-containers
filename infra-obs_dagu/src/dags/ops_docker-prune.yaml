@@ -49,14 +49,14 @@ steps:
         # Sent to `sh -s` on stdin: the VM login shell is fish (oci-*), which cannot
         # parse POSIX for/do/done or $(...) passed as an ssh command string.
         SUPERSEDED=$($SSH "$USER@$IP" sh -s 2>/dev/null <<'REMOTE' || echo "superseded: FAILED"
-n=0
-for id in $(docker images --filter "reference=ghcr.io/diegonmarcos/*" --format "{{.Tag}} {{.ID}}" | awk '$1=="<none>"{print $2}' | sort -u); do
-  docker ps -a -q --filter ancestor="$id" | grep -q . && continue
-  docker rmi "$id" >/dev/null 2>&1 && n=$((n+1))
-done
-echo "superseded fleet images removed: $n"
-REMOTE
-)
+      n=0
+      for id in $(docker images --filter "reference=ghcr.io/diegonmarcos/*" --format "{{.Tag}} {{.ID}}" | awk '$1=="<none>"{print $2}' | sort -u); do
+        docker ps -a -q --filter ancestor="$id" | grep -q . && continue
+        docker rmi "$id" >/dev/null 2>&1 && n=$((n+1))
+      done
+      echo "superseded fleet images removed: $n"
+      REMOTE
+      )
         RESULT="$RESULT; $SUPERSEDED"
 
         AFTER=$($SSH "$USER@$IP" "df --output=used / | tail -1" 2>/dev/null || echo "?")
