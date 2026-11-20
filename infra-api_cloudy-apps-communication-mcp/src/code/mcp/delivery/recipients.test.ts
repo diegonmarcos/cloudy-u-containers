@@ -192,6 +192,10 @@ test("blocked :25: remote mailbox is unknown at once and no MX is dialled; the l
   assert.ok(Date.now() - t0 < 300);
   assert.equal(r.checks.mailbox.state, "unknown");
   assert.match(r.checks.mailbox.reason, /outbound :25 blocked on probe host/);
+  assert.match(r.checks.mailbox.reason, /port 25 only, so no other port can be tried/, "#1827: the reason says why there is no port fallback");
+  assert.equal(r.checks.mailbox.probe_blocked, true, "#1827: the blocked probe is flagged for the client");
+  assert.deepEqual(r.checks.mailbox.client_probe, { hosts: ["mx1.remote.example", "mx2.remote.example"], helo: "probe.example.org", mail_from: "", port: 25 },
+    "#1827: the client gets the MX hosts (priority order, at most maxMxTried), HELO, reverse-path and port 25");
   assert.equal(r.verdict, "unknown");
   assert.equal(r.checks.domain_mx.state, "ok", "DNS checks still answer");
   assert.ok(!dialled.includes("mx1.remote.example"));

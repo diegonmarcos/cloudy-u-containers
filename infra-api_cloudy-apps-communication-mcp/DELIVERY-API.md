@@ -344,6 +344,23 @@ skipped instantly: the `mailbox` outcome is `unknown`, with reason "outbound :25
 blocked on probe host (...)", and `size_limit` is `unknown`. Syntax, domain/MX,
 null MX, past-bounce and hint checks are unaffected.
 
+**Client-side fallback (#1827).** There is no port to fall back to: a receiving
+MX accepts connections on port 25 only (587 and 465 are authenticated
+submission ports of the sender's own provider and say nothing about a foreign
+mailbox). The fallback is a different vantage point. When the gate is blocked,
+`check_details.mailbox` also carries:
+
+```json
+"probe_blocked": true,
+"client_probe": { "hosts": ["mx1.remote.example", "mx2.remote.example"], "helo": "mail.diegonmarcos.com", "mail_from": "", "port": 25 }
+```
+
+`hosts` are the domain's MX hosts in priority order (at most two). A client may
+run the same read-only probe from its own network (EHLO, MAIL FROM, RCPT TO the
+address, RCPT TO a random address for catch-all, RSET, QUIT; never DATA) and
+replace the `mailbox` and `size_limit` lines with its own answer. Cloud Mail
+does this on the phone and labels those lines "Checked on this phone".
+
 Local domains (`diegonmarcos.com`) are exempt from the gate. They are probed at
 Stalwart's own SMTP over wg0 (`10.0.0.3:2025`), within the same budgets, and get
 real answers.

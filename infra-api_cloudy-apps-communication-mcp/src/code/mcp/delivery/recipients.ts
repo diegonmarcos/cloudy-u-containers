@@ -51,7 +51,14 @@ export interface CheckResult {
   checks: {
     syntax: { state: "ok" | "fail"; reason?: string; normalized?: string };
     domain_mx: { state: "ok" | "fail" | "unknown"; hosts: string[]; implicit?: boolean; null_mx?: boolean; reason?: string };
-    mailbox: { state: "exists" | "does_not_exist" | "accepts_all" | "unknown" | "not_checked"; host?: string; code?: number | null; reason: string };
+    mailbox: {
+      state: "exists" | "does_not_exist" | "accepts_all" | "unknown" | "not_checked"; host?: string; code?: number | null; reason: string;
+      /** #1827 true when this host could not open outbound :25 and so never asked the MX. */
+      probe_blocked?: boolean;
+      /** #1827 what a client needs to run the same read-only RCPT probe itself from its own network
+       *  (MX hosts in priority order, the HELO name and reverse-path this server uses, port 25). */
+      client_probe?: { hosts: string[]; helo: string; mail_from: string; port: number };
+    };
     past_bounce: { state: "none" | "bounced"; at?: string; reason?: string };
     disposable: boolean;
     role: boolean;
@@ -227,7 +234,16 @@ export class RecipientChecker {
     // canary connect decides); the local-domain override goes over wg0 and is exempt.
     const gate = !override && this.gate ? await this.gate.state() : null;
     if (gate?.blocked) {
-      base.checks.mailbox = { state: "unknown", reason: `outbound :25 blocked on probe host (${gate.reason}); mailbox not probed` };
+      // #1827: no other port can stand in. A receiving MX takes mail on port 25 only (587/465
+      // are authenticated submission ports of the SENDER's own provider and answer nothing about
+      // a foreign mailbox), so the fallback is a different vantage point: the client gets what it
+      // needs to run the same read-only probe from its own network.
+      base.checks.mailbox = {
+        state: "unknown",
+        reason: `outbound :25 blocked on probe host (${gate.reason}); mailbox not probed. Receiving mail servers accept connections on port 25 only, so no other port can be tried from this server`,
+        probe_blocked: true,
+        client_probe: { hosts: hosts.slice(0, this.cfg.maxMxTried), helo: this.cfg.helo, mail_from: this.cfg.mailFrom, port: 25 },
+      };
       base.checks.size_limit = { bytes: null, reason: "outbound :25 blocked on probe host" };
     } else {
       for (const t of targets) {
