@@ -9,7 +9,7 @@ import { type Deps, callPeer, findPeer, fleetBearer, health, parsePeers, peerToo
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
 const errText = (t: string) => ({ content: [{ type: "text" as const, text: `Error: ${t}` }], isError: true as const });
 
-export const meshPeers = () => parsePeers(JSON.parse(readFileSync(new URL("../../shared/mesh-peers.json", import.meta.url), "utf8")));
+export const meshPeers = () => parsePeers(JSON.parse(readFileSync(new URL("../peers/mesh-peers.json", import.meta.url), "utf8")));
 
 function sshRun(host: string, script: string): Promise<string> {
   return new Promise((resolve, reject) => {

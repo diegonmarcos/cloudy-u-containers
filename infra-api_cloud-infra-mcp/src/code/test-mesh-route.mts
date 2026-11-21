@@ -12,7 +12,7 @@ import { phoneBase as coreBase } from "./mcp/tools/phone-api-core.ts";
 let n = 0;
 const t = async (name: string, fn: () => Promise<void> | void) => { await fn(); n++; console.log(`ok - ${name}`); };
 const here = (p: string) => new URL(p, import.meta.url);
-const peers = parsePeers(JSON.parse(readFileSync(here("shared/mesh-peers.json"), "utf8")));
+const peers = parsePeers(JSON.parse(readFileSync(here("mcp/peers/mesh-peers.json"), "utf8")));
 const build = JSON.parse(readFileSync(here("../../build.json"), "utf8"));
 const TOKEN = "tok-SECRET-xyz";
 

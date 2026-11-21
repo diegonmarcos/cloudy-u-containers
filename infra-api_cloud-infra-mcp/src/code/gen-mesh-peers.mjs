@@ -1,4 +1,4 @@
-// #1835 Derives shared/mesh-peers.json: the mesh membership cloud-infra-mcp holds two routes to, from the DECLARED mesh
+// #1835 Derives mcp/peers/mesh-peers.json: the mesh membership cloud-infra-mcp holds two routes to, from the DECLARED mesh
 // (cloudy-t-infra config.json native.wireguard: `peers` = the VMs, `clients` = phones, desktop, runners), never a hand list.
 // Usage: node gen-mesh-peers.mjs <consolidated-or-config.json> [out]   (the consolidated dist file carries the same native block)
 // sshd route : VMs ssh alias = the peer name; phones = the doors of build.json ssh.extra_hosts for that wg_client; others = the wg address.
@@ -26,6 +26,6 @@ export function derive(config, build) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const here = new URL(".", import.meta.url);
   const build = JSON.parse(readFileSync(new URL("../../build.json", here), "utf8"));
-  const out = process.argv[3] ?? fileURLToPath(new URL("shared/mesh-peers.json", here));
+  const out = process.argv[3] ?? fileURLToPath(new URL("mcp/peers/mesh-peers.json", here));
   writeFileSync(out, JSON.stringify(derive(JSON.parse(readFileSync(process.argv[2], "utf8")), build), null, 1) + "\n");
 }

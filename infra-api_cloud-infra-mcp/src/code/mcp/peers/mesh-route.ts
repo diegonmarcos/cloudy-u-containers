@@ -1,6 +1,6 @@
 // #1835 the two first-class routes to every mesh peer: (a) its sshd, (b) its MCP/API over the mesh (Cloud C3 Webserver mesh listener :8004).
 // Pure and injectable (no SDK, no network of its own), so the dependency-free tester runs it.
-//   * Peers come from shared/mesh-peers.json, GENERATED from the declared WireGuard membership (gen-mesh-peers.mjs), never a hand list.
+//   * Peers come from mcp/peers/mesh-peers.json, GENERATED from the declared WireGuard membership (gen-mesh-peers.mjs), never a hand list.
 //   * A call tries MCP, then the plain API, then sshd (curl from inside), and reports which route served it.
 //   * The bearer is the fleet bearer the mesh API already uses (SUPERAPP_FLEET_TOKEN, as device.ts; PHONE_FLEET_TOKEN as phone-api-core.ts).
 //     It is only ever sent in an Authorization header (or on an ssh stdin script), never as an argument, and redacted from every output.
