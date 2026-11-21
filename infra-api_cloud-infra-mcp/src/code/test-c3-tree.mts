@@ -87,7 +87,7 @@ t("tree method ids are unique per section and round-trip the legacy name", () =>
 
 t("peers-control: the merged cloudy-android-mcp tools are all in the registry and in Infra > Personal > Control", () => {
   const peers = names.filter((x) => x.startsWith("peers.")).map((x) => x.slice(6)).sort();
-  assert.deepEqual(peers, ["adb_autoconnect", "adb_pair", "adb_status", "apps", "call", "crashes", "docs", "force_stop", "grant", "input", "logcat", "logcat_full", "screencap", "shell", "wake"]);
+  assert.deepEqual(peers, ["adb_autoconnect", "adb_pair", "adb_status", "apps", "call", "crashes", "docs", "force_stop", "grant", "input", "logcat", "logcat_full", "mesh_call", "mesh_health", "mesh_tools", "screencap", "shell", "wake"]);
   for (const p of peers) assert.equal(ownerOfTool(h, `peers.${p}`), "infra/personal/control");
   for (const p of ["phone_public", "phone_mesh", "phone_logs"]) assert.equal(ownerOfTool(h, `obs.debug.${p}`), "infra/personal/control");
 });
