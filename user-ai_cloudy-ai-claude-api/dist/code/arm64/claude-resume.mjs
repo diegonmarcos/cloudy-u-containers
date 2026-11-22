@@ -204,3 +204,12 @@ export const assertTaskStoreReachable = ({ claudeHome, session }) => {
   }
   return null;
 };
+
+// #1855 F2: the resume cwd is only an ADDRESS (claude keys transcripts by the cwd path under
+// ~/.claude/projects). When the mounted checkout is absent (the git_gh volume without
+// _work/<repo>), spawning into a missing cwd fails as "spawn claude ENOENT" and every chat answers
+// 502. Create the directory instead: an empty one is enough for --resume to find the transcript.
+export const ensureResumeCwd = (dir) => {
+  try { fs.mkdirSync(dir, { recursive: true }); } catch (e) { console.error(`[superset] resume cwd ${dir} cannot be created (${e.code || e.message})`); }
+  return dir;
+};
