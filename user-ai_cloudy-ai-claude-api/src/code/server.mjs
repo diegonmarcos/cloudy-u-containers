@@ -48,6 +48,7 @@ import {
   countTaskFiles,
   deriveResumeSession,
   RESUME_ERROR_WORDS,
+  ensureResumeCwd,
 } from "./claude-resume.mjs";
 
 const PORT          = parseInt(process.env.BRIDGE_PORT || "3107", 10);
@@ -332,7 +333,7 @@ const callClaude = ({ system, prompt, model, resumeId = null }) =>
     // #548: the child must run in the session's project cwd so --resume finds
     // the transcript under the matching <cwd-slug> (keyed by cwd AND uuid). A
     // resolved uuid with the wrong cwd finds nothing — same 0-tasks defect.
-    const spawnOpts = { cwd: resumeId && RESUME_SESSION_CWD ? RESUME_SESSION_CWD : undefined };
+    const spawnOpts = { cwd: resumeId && RESUME_SESSION_CWD ? ensureResumeCwd(RESUME_SESSION_CWD) : undefined };
     const child = spawn(CLAUDE_BIN, args, {
       env: { ...claudeEnv(), CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1" },
       stdio: ["pipe", "pipe", "pipe"],
