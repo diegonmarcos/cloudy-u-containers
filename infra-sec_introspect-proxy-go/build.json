@@ -1,0 +1,81 @@
+{
+  "name": "introspect-proxy-go",
+  "taxonomy": {"group": "Infra Apps", "category": "Net-Routing & Security"},
+  "description": "Go port of introspect-proxy (Caddy forward_auth Bearer check), shadow stage: runs next to the Python container on its own port, outside the request path, and logs a periodic decision comparison against it (ticket #1872)",
+  "dns": "introspect-proxy-go.mesh.diegonmarcos.com",
+  "ports": {
+    "app": 4186
+  },
+  "bind_host": "10.0.0.1",
+  "category": "sec",
+  "deploy": {
+    "host": "gcp-proxy",
+    "remote_path": "/opt/containers/introspect-proxy-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "introspect-proxy-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "amd64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o introspect-proxy ./cmd/introspect-proxy",
+      "binary": "introspect-proxy",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Multi-stage: compiled in golang:1.24-bookworm on the arch-matched runner, shipped as one static binary on distroless static (no shell, no libc, non-root 65532). No apt/apk line: the base has neither."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "introspect-proxy-go",
+      "image": "ghcr.io/diegonmarcos/introspect-proxy-go:latest",
+      "port": 4186,
+      "port_env": null,
+      "dns": "introspect-proxy-go.mesh.diegonmarcos.com",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "64M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 2,
+    "display_name": "JWT Introspection Proxy (Go, shadow)",
+    "description": "Same contract as introspect-proxy: validates bearer JWTs against the Authelia JWKS, ft_ tokens against tokens-api, mcpat_ tokens against mcp-oauth, for Caddy forward_auth.",
+    "auth": "bearer"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "shadow-compare": {
+      "cmd": "python3 -m venv /tmp/ip-shadow-venv && /tmp/ip-shadow-venv/bin/pip install -q -r ../../../infra-sec_introspect-proxy/src/code/requirements.txt && PY_BIN=/tmp/ip-shadow-venv/bin/python PY_APP_DIR=../../../infra-sec_introspect-proxy/src/code go test -count=1 -tags shadow -v -run TestShadowCompare ./shadow/",
+      "cwd": "src/code"
+    }
+  }
+}
