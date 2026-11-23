@@ -127,11 +127,6 @@
           "value": "10.0.0.1"
         },
         {
-          "name": "introspect-proxy-go",
-          "type": "A",
-          "value": "10.0.0.1"
-        },
-        {
           "name": "c3bot-relay",
           "type": "A",
           "value": "10.0.0.6"
