@@ -240,6 +240,9 @@
   "infra-sec_introspect-proxy": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-sec_introspect-proxy-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "licenses": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
@@ -659,6 +662,24 @@
   },
   "webpronl/reveal-md": {
    "licence": "MIT"
+  },
+  "gcr.io/distroless/static-debian12": {
+   "licence": "Apache-2.0 AND LicenseRef-OS-Distribution",
+   "note": "distroless build tooling Apache-2.0; contents are Debian packages (base-files, tzdata, ca-certificates, netbase) under their own licences."
+  }
+ },
+ "go_licences": {
+  "github.com/golang-jwt/jwt/v5": {
+   "licence": "MIT",
+   "note": "LICENSE in the module (v5.2.2)."
+  },
+  "github.com/hashicorp/golang-lru/v2": {
+   "licence": "MPL-2.0",
+   "note": "LICENSE in the module (v2.0.7); used unmodified as a library."
+  },
+  "golang.org/x/sync": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v0.10.0)."
   }
  },
  "pypi_licences": {

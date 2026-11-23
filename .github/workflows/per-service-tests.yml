@@ -42,6 +42,14 @@ jobs:
         with:
           node-version: '24'
 
+      # Go testers (introspect-proxy-go, #1872: `go test` plus the shadow-compare harness
+      # that runs the Python reference under gunicorn beside the Go port). Pinned to the
+      # builder image's toolchain (golang:1.24) so CI tests what Ship compiles.
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+
       # Some testers EVALUATE the declarative source instead of grepping it —
       # _shared/test-kg-store-memory-ceiling.mjs renders each compose.nix (a
       # pure function of { buildJson, container }, so no nixpkgs is fetched)

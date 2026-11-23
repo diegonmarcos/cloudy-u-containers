@@ -18,17 +18,17 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 114,
+   "LicenseRef-NoLicenseGranted": 115,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 60,
+   "LicenseRef-NoLicenseGranted": 61,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
    "GPL-3.0-only": 4,
    "LicenseRef-OS-Distribution": 4,
-   "Apache-2.0 AND LicenseRef-OS-Distribution": 2,
+   "Apache-2.0 AND LicenseRef-OS-Distribution": 3,
    "BSD-3-Clause": 2,
    "GPL-2.0-only": 2,
    "GPL-3.0-only AND MIT": 2,
@@ -50,6 +50,11 @@
   },
   "flake": {
    "MIT": 1
+  },
+  "go": {
+   "BSD-3-Clause": 1,
+   "MIT": 1,
+   "MPL-2.0": 1
   },
   "npm": {
    "MIT": 85,
@@ -240,7 +245,7 @@
     "user-news_capital-stack-news-gdelt-api/src/Dockerfile.native"
    ],
    "ca-certificates": [
-    "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
+    "infra-api_c3-public-api/dist/code/arm64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
@@ -253,6 +258,7 @@
     "infra-api_cloudy-all-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-all-api/src/Dockerfile.native",
     "infra-api_cloudy-all-api/src/code/Dockerfile",
+    "infra-api_cloudy-all-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/src/Dockerfile.native",
     "infra-api_cloudy-c3-api/src/code/Dockerfile",
@@ -292,7 +298,7 @@
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "curl": [
-    "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
+    "infra-api_c3-public-api/dist/code/arm64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/code/Dockerfile",
     "infra-api_cloud-infra-mcp/dist/code/arm64/Dockerfile",
@@ -304,6 +310,7 @@
     "infra-api_cloudy-all-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-all-api/src/Dockerfile.native",
     "infra-api_cloudy-all-api/src/code/Dockerfile",
+    "infra-api_cloudy-all-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/src/Dockerfile.native",
     "infra-api_cloudy-c3-api/src/code/Dockerfile",
@@ -340,6 +347,7 @@
     "infra-api_cloud-mail-mcp/src/Dockerfile.native",
     "infra-api_cloud-mail-mcp/src/code/Dockerfile",
     "infra-api_cloud-mail-mcp/src/code/Dockerfile.native",
+    "infra-api_cloudy-apps-communication-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
@@ -358,6 +366,7 @@
    ],
    "ffmpeg": [
     "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-drive-mcp/dist/code/arm64/Dockerfile",
     "user-data_cloudy-browser-scrapper-api/src/Dockerfile.cloudrun"
    ],
    "file": [
@@ -422,7 +431,8 @@
     "infra-obs_reports/src/recon/Dockerfile"
    ],
    "imagemagick": [
-    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile"
+    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-drive-mcp/dist/code/arm64/Dockerfile"
    ],
    "iproute2": [
     "infra-obs_reports/src/Dockerfile",
@@ -557,6 +567,7 @@
     "infra-api_cloud-mail-mcp/src/code/Dockerfile.native",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
     "infra-api_cloud-superapp-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
@@ -577,7 +588,8 @@
     "infra-obs_reports/src/Dockerfile"
    ],
    "pandoc": [
-    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile"
+    "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-drive-mcp/dist/code/arm64/Dockerfile"
    ],
    "patch": [
     "user-ai_cloudy-ai-agents-api/dist/code/arm64/Dockerfile",
@@ -1002,7 +1014,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.0.104",
+   "licence_source": "crates.io 1.0.105",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:argmin": {
@@ -1050,7 +1062,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.13.2",
+   "licence_source": "crates.io 1.13.3",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:aws-credential-types": {
@@ -1074,7 +1086,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.6.5",
+   "licence_source": "crates.io 1.6.6",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:aws-smithy-runtime-api": {
@@ -1086,7 +1098,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.21.0",
+   "licence_source": "crates.io 1.22.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:axum": {
@@ -1136,7 +1148,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 1.12.1",
+   "licence_source": "crates.io 1.12.2",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:bytesize": {
@@ -1160,7 +1172,7 @@
    "version": "1",
    "scope": "build",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.11.1",
+   "licence_source": "crates.io 1.11.3",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:chrono": {
@@ -1190,7 +1202,7 @@
    "version": "4",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 4.6.7",
+   "licence_source": "crates.io 4.6.9",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:crc32fast": {
@@ -1283,7 +1295,7 @@
    "version": "0.15",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.21.1",
+   "licence_source": "crates.io 0.22.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:egui_extras": {
@@ -1317,7 +1329,7 @@
    "version": "5",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 7.7.0",
+   "licence_source": "crates.io 7.8.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:flate2": {
@@ -1325,7 +1337,8 @@
    "declared_in": [
     "infra-obs_reports/src/src/cloud-sec-data-report/Cargo.toml",
     "user-ai_cloudy-ai-agents-api/dist/code/arm64/vendor/headroom/crates/headroom-core/Cargo.toml",
-    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml"
+    "user-ai_cloudy-ai-agents-api/src/code/vendor/headroom/crates/headroom-core/Cargo.toml",
+    "user-fin_capital-stack-finterm-api/src/code/Cargo.toml"
    ],
    "version": "1",
    "scope": "shipped",
@@ -1385,7 +1398,7 @@
    "version": "0.12",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.12.7",
+   "licence_source": "crates.io 0.13.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:governor": {
@@ -1480,7 +1493,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 1.12.0",
+   "licence_source": "crates.io 1.13.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:hyper-util": {
@@ -1516,7 +1529,7 @@
    "version": "0.11",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.11.23",
+   "licence_source": "crates.io 0.11.24",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:lru": {
@@ -1528,7 +1541,7 @@
    "version": "0.12",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.19.0",
+   "licence_source": "crates.io 0.19.2",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:magika": {
@@ -1622,7 +1635,7 @@
    "version": "0.2",
    "scope": "shipped",
    "licence": "Apache-2.0 OR MIT",
-   "licence_source": "crates.io 0.2.17",
+   "licence_source": "crates.io 0.2.18",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:polars": {
@@ -1695,7 +1708,7 @@
    "version": "0.27",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "crates.io 1.8.1",
+   "licence_source": "crates.io 1.8.3",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:regex": {
@@ -1709,7 +1722,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.13.1",
+   "licence_source": "crates.io 1.13.2",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:reqwest": {
@@ -1747,7 +1760,7 @@
    "version": "0.32",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "crates.io 0.42.0",
+   "licence_source": "crates.io 0.43.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:russh": {
@@ -1758,7 +1771,7 @@
    "version": "0.46",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 0.65.1",
+   "licence_source": "crates.io 0.65.4",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:russh-keys": {
@@ -1888,7 +1901,7 @@
    "version": "0.8",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 0.9.0",
+   "licence_source": "crates.io 0.9.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:statrs": {
@@ -2057,7 +2070,7 @@
    "version": "0.8",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.2.1+spec-1.1.0",
+   "licence_source": "crates.io 1.2.2+spec-1.1.0",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:tower": {
@@ -2156,7 +2169,7 @@
    "version": "2",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 2.5.8",
+   "licence_source": "crates.io 2.5.9",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:uuid": {
@@ -2169,7 +2182,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0 OR MIT",
-   "licence_source": "crates.io 1.29.2",
+   "licence_source": "crates.io 1.29.3",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:walkdir": {
@@ -2180,7 +2193,7 @@
    "version": "2",
    "scope": "shipped",
    "licence": "Unlicense OR MIT",
-   "licence_source": "crates.io 2.5.0",
+   "licence_source": "crates.io 2.5.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:webpki-roots": {
@@ -2354,14 +2367,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-ops_c3bot-relay": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:infra-api_cloud-drive-mcp": {
    "kind": "dir",
    "declared_in": [
@@ -2482,22 +2487,6 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
-  "dir:infra-cloud_google-apps-script-personal": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
-  "dir:infra-cloud_google-apps-script-workspace": {
-   "kind": "dir",
-   "declared_in": [
-    "(tree)"
-   ],
-   "licence": "LicenseRef-NoLicenseGranted",
-   "licence_source": "licenses/curated.json::directories"
-  },
   "dir:infra-api_google-personal-mcp": {
    "kind": "dir",
    "declared_in": [
@@ -2539,6 +2528,22 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-cloud_gcloud": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-cloud_google-apps-script-personal": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-cloud_google-apps-script-workspace": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2714,6 +2719,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-ops_c3bot-relay": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-ops_disk-janitor": {
    "kind": "dir",
    "declared_in": [
@@ -2779,6 +2792,14 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-sec_introspect-proxy": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-sec_introspect-proxy-go": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -3316,6 +3337,7 @@
    "declared_in": [
     "infra-ai_languagetool/build.json",
     "infra-ai_languagetool/dist/code/amd64/Dockerfile",
+    "infra-ai_languagetool/src/Dockerfile.cloudrun",
     "infra-ai_languagetool/src/build.json"
    ],
    "version": "erikvl87/languagetool:latest",
@@ -3383,6 +3405,18 @@
    "licence": "Apache-2.0 AND LicenseRef-OS-Distribution",
    "licence_source": "licenses/curated.json::docker_licences[gcr.io/distroless/base-debian12]",
    "note": "distroless build tooling Apache-2.0; contents are Debian packages under their own licences."
+  },
+  "docker:gcr.io/distroless/static-debian12": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_introspect-proxy-go/build.json",
+    "infra-sec_introspect-proxy-go/src/build.json"
+   ],
+   "version": "gcr.io/distroless/static-debian12:nonroot",
+   "scope": "base",
+   "licence": "Apache-2.0 AND LicenseRef-OS-Distribution",
+   "licence_source": "licenses/curated.json::docker_licences[gcr.io/distroless/static-debian12]",
+   "note": "distroless build tooling Apache-2.0; contents are Debian packages (base-files, tzdata, ca-certificates, netbase) under their own licences."
   },
   "docker:ghcr.io/astral-sh/uv": {
    "kind": "docker",
@@ -3781,7 +3815,8 @@
   "docker:ghcr.io/diegonmarcos/cloudy-all-mcp": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_cloudy-all-mcp/build.json"
+    "infra-api_cloudy-all-mcp/build.json",
+    "infra-api_cloudy-all-mcp/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloudy-all-mcp:latest",
    "scope": "runtime",
@@ -3792,7 +3827,8 @@
   "docker:ghcr.io/diegonmarcos/cloudy-apps-communication-mcp": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_cloudy-apps-communication-mcp/build.json"
+    "infra-api_cloudy-apps-communication-mcp/build.json",
+    "infra-api_cloudy-apps-communication-mcp/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloudy-apps-communication-mcp:latest",
    "scope": "runtime",
@@ -3803,7 +3839,8 @@
   "docker:ghcr.io/diegonmarcos/cloudy-apps-drive-mcp": {
    "kind": "docker",
    "declared_in": [
-    "infra-api_cloudy-apps-drive-mcp/build.json"
+    "infra-api_cloudy-apps-drive-mcp/build.json",
+    "infra-api_cloudy-apps-drive-mcp/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloudy-apps-drive-mcp:latest",
    "scope": "runtime",
@@ -3947,6 +3984,18 @@
     "infra-sec_introspect-proxy/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/introspect-proxy:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/introspect-proxy-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_introspect-proxy-go/build.json",
+    "infra-sec_introspect-proxy-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/introspect-proxy-go:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -4188,7 +4237,9 @@
    "kind": "docker",
    "declared_in": [
     "infra-db_postlite/dist/Dockerfile",
-    "infra-db_postlite/src/Dockerfile"
+    "infra-db_postlite/src/Dockerfile",
+    "infra-sec_introspect-proxy-go/build.json",
+    "infra-sec_introspect-proxy-go/src/build.json"
    ],
    "version": "golang:1.21-bookworm",
    "scope": "base",
@@ -4288,6 +4339,7 @@
    "declared_in": [
     "user-data_cloudy-browser-headless/build.json",
     "user-data_cloudy-browser-headless/dist/code/arm64/Dockerfile",
+    "user-data_cloudy-browser-headless/src/Dockerfile.cloudrun",
     "user-data_cloudy-browser-headless/src/build.json"
    ],
    "version": "mcr.microsoft.com/playwright:v1.55.0-noble",
@@ -4328,12 +4380,10 @@
    "declared_in": [
     "infra-ai_cloudy-ai-api/build.json",
     "infra-api_c3-public-api/build.json",
-    "infra-api_c3-public-api/dist/code/amd64/Dockerfile",
+    "infra-api_c3-public-api/dist/code/arm64/Dockerfile",
     "infra-api_c3-public-api/src/Dockerfile.native",
     "infra-api_c3-public-api/src/build.json",
     "infra-api_c3-public-api/src/code/Dockerfile",
-    "infra-ops_c3bot-relay/build.json",
-    "infra-ops_c3bot-relay/src/build.json",
     "infra-api_cloud-drive-mcp/build.json",
     "infra-api_cloud-drive-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-drive-mcp/src/build.json",
@@ -4373,10 +4423,16 @@
     "infra-api_cloudy-all-api/src/build.json",
     "infra-api_cloudy-all-api/src/code/Dockerfile",
     "infra-api_cloudy-all-mcp/build.json",
+    "infra-api_cloudy-all-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-all-mcp/src/build.json",
     "infra-api_cloudy-apps-communication-mcp/build.json",
+    "infra-api_cloudy-apps-communication-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-communication-mcp/src/build.json",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile.native",
     "infra-api_cloudy-apps-drive-mcp/build.json",
+    "infra-api_cloudy-apps-drive-mcp/dist/code/arm64/Dockerfile",
+    "infra-api_cloudy-apps-drive-mcp/src/build.json",
     "infra-api_cloudy-c3-api/build.json",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/src/Dockerfile.native",
@@ -4392,6 +4448,9 @@
     "infra-api_google-personal-mcp/src/code/Dockerfile",
     "infra-net_wireguard-mesh/dist/code/arm64/Dockerfile",
     "infra-net_wireguard-mesh/src/code/Dockerfile",
+    "infra-ops_c3bot-relay/build.json",
+    "infra-ops_c3bot-relay/dist/code/arm64/Dockerfile",
+    "infra-ops_c3bot-relay/src/build.json",
     "user-comm_cloud-webmail/build.json",
     "user-comm_cloud-webmail/src/code/arm64/Dockerfile",
     "user-news_capital-stack-news-gdelt-api/build.json",
@@ -4454,6 +4513,7 @@
     "bc-obs_alerts-api/src/Dockerfile",
     "infra-ai_cloudy-ai-embeddings-api/build.json",
     "infra-ai_cloudy-ai-embeddings-api/dist/code/arm64/Dockerfile",
+    "infra-ai_cloudy-ai-embeddings-api/src/Dockerfile.cloudrun",
     "infra-ai_cloudy-ai-embeddings-api/src/build.json",
     "infra-ai_jev-sidecar/build.json",
     "infra-ai_jev-sidecar/dist/code/arm64/Dockerfile",
@@ -4573,7 +4633,7 @@
    "kind": "docker",
    "declared_in": [
     "user-comm_tools-stalwart/build.json",
-    "user-comm_tools-stalwart/dist/code/amd64/Dockerfile",
+    "user-comm_tools-stalwart/dist/code/arm64/Dockerfile",
     "user-comm_tools-stalwart/src/build.json"
    ],
    "version": "stalwartlabs/stalwart:v0.16.5",
@@ -4589,6 +4649,7 @@
     "user-ai_cloud-me-cgc-pvt-graph-api/dist/code/arm64/Dockerfile",
     "user-ai_cloud-me-cgc-pvt-graph-api/src/build.json",
     "user-ai_cloudy-cgc-pub-graph-api/build.json",
+    "user-ai_cloudy-cgc-pub-graph-api/dist/code/arm64/Dockerfile",
     "user-ai_cloudy-cgc-pub-graph-api/src/build.json"
    ],
    "version": "surrealdb/surrealdb:v2",
@@ -4676,7 +4737,6 @@
     "infra-ai_jev-sidecar/src/flake.nix",
     "infra-ai_languagetool/src/flake.nix",
     "infra-api_c3-public-api/src/flake.nix",
-    "infra-ops_c3bot-relay/src/flake.nix",
     "infra-api_cloud-drive-mcp/src/flake.nix",
     "infra-api_cloud-infra-mcp/src/flake.nix",
     "infra-api_cloud-mail-mcp/src/flake.nix",
@@ -4686,6 +4746,9 @@
     "infra-api_cloud-superapp-mcp/src/flake.nix",
     "infra-api_cloud-vault-mcp/src/flake.nix",
     "infra-api_cloudy-all-api/src/flake.nix",
+    "infra-api_cloudy-all-mcp/src/flake.nix",
+    "infra-api_cloudy-apps-communication-mcp/src/flake.nix",
+    "infra-api_cloudy-apps-drive-mcp/src/flake.nix",
     "infra-api_cloudy-c3-api/src/flake.nix",
     "infra-api_cloudy-drive-git-proxy-api/src/flake.nix",
     "infra-api_cloudy-mail-http-to-smtp-api/src/flake.nix",
@@ -4712,6 +4775,7 @@
     "infra-obs_openobserve/src/flake.nix",
     "infra-obs_umami/src/flake.nix",
     "infra-ops_agents-tmp-reaper/src/flake.nix",
+    "infra-ops_c3bot-relay/src/flake.nix",
     "infra-ops_disk-janitor/src/flake.nix",
     "infra-sec_auth-broker/src/flake.nix",
     "infra-sec_authelia/src/flake.nix",
@@ -4720,6 +4784,7 @@
     "infra-sec_caddy/src/flake.nix",
     "infra-sec_cloudy-ai-tokens-api/src/flake.nix",
     "infra-sec_crowdsec/src/flake.nix",
+    "infra-sec_introspect-proxy-go/src/flake.nix",
     "infra-sec_introspect-proxy/src/flake.nix",
     "infra-sec_mcp-oauth/src/flake.nix",
     "infra-sec_steel-browser/src/flake.nix",
@@ -4764,6 +4829,42 @@
    "licence": "MIT",
    "licence_source": "licenses/curated.json::flake_licences[github:nixos/nixpkgs]",
    "note": "The Nix expressions; every package built from it keeps its own licence (meta.license)."
+  },
+  "go:github.com/golang-jwt/jwt/v5": {
+   "kind": "go",
+   "declared_in": [
+    "infra-sec_introspect-proxy-go/src/code/go.mod"
+   ],
+   "version": "v5.2.2",
+   "scope": "shipped",
+   "licence": "MIT",
+   "licence_source": "licenses/curated.json::go_licences[github.com/golang-jwt/jwt/v5]",
+   "note": "LICENSE in the module (v5.2.2).",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:github.com/hashicorp/golang-lru/v2": {
+   "kind": "go",
+   "declared_in": [
+    "infra-sec_introspect-proxy-go/src/code/go.mod"
+   ],
+   "version": "v2.0.7",
+   "scope": "shipped",
+   "licence": "MPL-2.0",
+   "licence_source": "licenses/curated.json::go_licences[github.com/hashicorp/golang-lru/v2]",
+   "note": "LICENSE in the module (v2.0.7); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:golang.org/x/sync": {
+   "kind": "go",
+   "declared_in": [
+    "infra-sec_introspect-proxy-go/src/code/go.mod"
+   ],
+   "version": "v0.10.0",
+   "scope": "shipped",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[golang.org/x/sync]",
+   "note": "LICENSE in the module (v0.10.0).",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@dnd-kit/core": {
    "kind": "npm",
@@ -4825,7 +4926,7 @@
    "version": "^10.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.4.1)",
+   "licence_source": "registry.npmjs.org latest (11.4.3)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/http-proxy": {
@@ -4836,7 +4937,7 @@
    "version": "^11.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.6.6)",
+   "licence_source": "registry.npmjs.org latest (11.6.10)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/rate-limit": {
@@ -4847,7 +4948,7 @@
    "version": "^10.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (11.2.2)",
+   "licence_source": "registry.npmjs.org latest (11.3.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/static": {
@@ -4859,7 +4960,7 @@
    "version": "^8.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (10.1.10)",
+   "licence_source": "registry.npmjs.org latest (10.1.12)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/swagger": {
@@ -4873,7 +4974,7 @@
    "version": "^9.4.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (9.9.3)",
+   "licence_source": "registry.npmjs.org latest (9.9.5)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@fastify/swagger-ui": {
@@ -4887,7 +4988,7 @@
    "version": "^5.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (6.1.3)",
+   "licence_source": "registry.npmjs.org latest (6.1.5)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@modelcontextprotocol/sdk": {
@@ -4935,7 +5036,7 @@
    "version": "^1.59.1",
    "scope": "dev",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (1.65.0)",
+   "licence_source": "registry.npmjs.org latest (1.65.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -4959,7 +5060,7 @@
    "version": "^3.13.24",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.14.26)",
+   "licence_source": "registry.npmjs.org latest (3.14.28)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5049,7 +5150,7 @@
    "version": "^6.9.1",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (7.0.1)",
+   "licence_source": "registry.npmjs.org latest (8.0.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5073,7 +5174,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5085,7 +5186,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5097,7 +5198,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5109,7 +5210,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5121,7 +5222,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5133,7 +5234,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5145,7 +5246,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5157,7 +5258,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5169,7 +5270,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5181,7 +5282,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5193,7 +5294,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5205,7 +5306,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5217,7 +5318,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5229,7 +5330,7 @@
    "version": "^3.22.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.33.1)",
+   "licence_source": "registry.npmjs.org latest (3.35.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5355,7 +5456,7 @@
    "version": "^8.59.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.72.2)",
+   "licence_source": "registry.npmjs.org latest (8.74.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5367,7 +5468,7 @@
    "version": "^8.59.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.72.2)",
+   "licence_source": "registry.npmjs.org latest (8.74.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5391,7 +5492,7 @@
    "version": "^4.1.5",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.1.0)",
+   "licence_source": "registry.npmjs.org latest (5.1.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5403,7 +5504,7 @@
    "version": "^3.0.10",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "registry.npmjs.org latest (4.0.0)",
+   "licence_source": "registry.npmjs.org latest (4.1.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5418,7 +5519,7 @@
    "version": "^11.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (13.1.1)",
+   "licence_source": "registry.npmjs.org latest (13.2.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:clsx": {
@@ -5453,7 +5554,7 @@
    "version": "^3.4.12",
    "scope": "shipped",
    "licence": "(MPL-2.0 OR Apache-2.0)",
-   "licence_source": "registry.npmjs.org latest (3.4.17)",
+   "licence_source": "registry.npmjs.org latest (3.5.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5478,7 +5579,7 @@
    "version": "^9.39.4",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (10.14.0)",
+   "licence_source": "registry.npmjs.org latest (10.15.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5527,7 +5628,7 @@
    "version": "^4.5.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.12.0)",
+   "licence_source": "registry.npmjs.org latest (5.12.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:fastify": {
@@ -5595,7 +5696,7 @@
    "version": "^1.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (2.11.0)",
+   "licence_source": "registry.npmjs.org latest (2.12.2)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:jalaali-js": {
@@ -5619,7 +5720,7 @@
    "version": "^28.1.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (31.0.0)",
+   "licence_source": "registry.npmjs.org latest (31.0.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5643,7 +5744,7 @@
    "version": "^1.8.0",
    "scope": "shipped",
    "licence": "ISC",
-   "licence_source": "registry.npmjs.org latest (1.72.0)",
+   "licence_source": "registry.npmjs.org latest (1.78.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5657,7 +5758,7 @@
    "version": "^3.7.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.14.3)",
+   "licence_source": "registry.npmjs.org latest (3.15.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:next": {
@@ -5680,7 +5781,7 @@
    "version": "^4.13.3",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (4.15.1)",
+   "licence_source": "registry.npmjs.org latest (4.16.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5695,7 +5796,7 @@
    "version": "^6.9.16",
    "scope": "shipped",
    "licence": "MIT-0",
-   "licence_source": "registry.npmjs.org latest (10.5.0)",
+   "licence_source": "registry.npmjs.org latest (10.6.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:nunjucks": {
@@ -5765,7 +5866,7 @@
    "version": "1.55.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (1.65.0)",
+   "licence_source": "registry.npmjs.org latest (1.65.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:postal-mime": {
@@ -5860,7 +5961,7 @@
    "version": "^3.4.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (3.7.0)",
+   "licence_source": "registry.npmjs.org latest (3.7.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5984,7 +6085,7 @@
    "version": "^7.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (8.12.4)",
+   "licence_source": "registry.npmjs.org latest (8.13.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:vitest": {
@@ -5995,7 +6096,7 @@
    "version": "^4.1.5",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (5.1.0)",
+   "licence_source": "registry.npmjs.org latest (5.1.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -6019,7 +6120,7 @@
    "version": "4.144.0",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (4.160.1)",
+   "licence_source": "registry.npmjs.org latest (4.167.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:yaml": {
@@ -6100,7 +6201,7 @@
    "version": "accelerate>=0.20.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.15.0 license",
+   "licence_source": "pypi.org 1.16.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:agno": {
@@ -6112,7 +6213,7 @@
    "version": "agno>=1.0.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 3.1.12 classifiers",
+   "licence_source": "pypi.org 3.2.1 classifiers",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:anthropic": {
@@ -6124,7 +6225,7 @@
    "version": "anthropic>=0.18.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.8.0 license",
+   "licence_source": "pypi.org 2.13.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:any-llm-sdk": {
@@ -6136,7 +6237,7 @@
    "version": "any-llm-sdk>=1.0.0; python_version >= '3.11'",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.50.0 license",
+   "licence_source": "pypi.org 1.53.1 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:ast-grep-cli": {
@@ -6148,7 +6249,7 @@
    "version": "ast-grep-cli>=0.30.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.51.2 classifiers",
+   "licence_source": "pypi.org 0.51.3 classifiers",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:boto3": {
@@ -6160,7 +6261,7 @@
    "version": "boto3>=1.28.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.44.1 license",
+   "licence_source": "pypi.org 1.44.10 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:click": {
@@ -6225,7 +6326,7 @@
    "version": "fastapi==0.115.6",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.162.5 license_expression",
+   "licence_source": "pypi.org 0.165.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:fastembed": {
@@ -6248,7 +6349,7 @@
    "version": "fastmcp>=3.1.1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 4.1.8 license_expression",
+   "licence_source": "pypi.org 4.2.5 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6287,7 +6388,7 @@
    "version": "gallery-dl==1.28.5",
    "scope": "shipped",
    "licence": "GPL-2.0-only",
-   "licence_source": "pypi.org 1.32.19 license",
+   "licence_source": "pypi.org 1.32.21 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:google-api-python-client": {
@@ -6340,7 +6441,7 @@
    "version": "gunicorn==21.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 27.0.0 license_expression",
+   "licence_source": "pypi.org 27.0.1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:hnswlib": {
@@ -6426,7 +6527,7 @@
    "version": "langchain-core>=1.3.3,<4.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.8.0 license",
+   "licence_source": "pypi.org 1.8.4 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:langchain-ollama": {
@@ -6438,7 +6539,7 @@
    "version": "langchain-ollama>=0.2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.1.0 license",
+   "licence_source": "pypi.org 1.2.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:langchain-openai": {
@@ -6450,7 +6551,7 @@
    "version": "langchain-openai>=1.1.14,<2.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.7.4 license",
+   "licence_source": "pypi.org 1.8.5 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:litellm": {
@@ -6462,7 +6563,7 @@
    "version": "litellm>=1.86.2,<2.0; python_version < '3.14'",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.109.1 license_expression",
+   "licence_source": "pypi.org 1.110.2 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:lm-eval": {
@@ -6547,7 +6648,7 @@
    "version": "numpy>=1.24.0",
    "scope": "shipped",
    "licence": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
-   "licence_source": "pypi.org 2.5.4 license_expression",
+   "licence_source": "pypi.org 2.5.5 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:ollama": {
@@ -6571,7 +6672,7 @@
    "version": "onnxruntime>=1.16.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.31.1 license",
+   "licence_source": "pypi.org 1.32.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:openai": {
@@ -6583,7 +6684,7 @@
    "version": "openai>=2.14.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 3.49.0 license_expression",
+   "licence_source": "pypi.org 3.58.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:opentelemetry-api": {
@@ -6679,7 +6780,7 @@
    "version": "py-key-value-aio>=0.3.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 0.4.6 license_expression",
+   "licence_source": "pypi.org 0.5.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6692,7 +6793,7 @@
    "version": "pydantic>=2.0.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 2.14.3 license_expression",
+   "licence_source": "pypi.org 2.14.4 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pyjwt": {
@@ -6716,7 +6817,7 @@
    "version": "pypdf==5.1.0",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
-   "licence_source": "pypi.org 7.0.1 license_expression",
+   "licence_source": "pypi.org 7.1.1 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pytest": {
@@ -6743,7 +6844,7 @@
    "version": "pytest-asyncio>=0.23.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.4.1.post1 license_expression",
+   "licence_source": "pypi.org 1.5.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6779,7 +6880,7 @@
    "version": "python-multipart==0.0.20",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 0.0.33 license_expression",
+   "licence_source": "pypi.org 0.0.34 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:pyyaml": {
@@ -6790,7 +6891,7 @@
    "version": "pyyaml>=6.0.2",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 6.0.3 license",
+   "licence_source": "pypi.org 6.0.4 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6867,7 +6968,7 @@
    "version": "ruff>=0.12.4",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.17.4 license_expression",
+   "licence_source": "pypi.org 0.17.6 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -6941,7 +7042,7 @@
    "version": "strands-agents>=0.1.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.64.0 license",
+   "licence_source": "pypi.org 1.66.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:tiktoken": {
@@ -7004,7 +7105,7 @@
    "version": "trafilatura>=1.6.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.3.1 license_expression",
+   "licence_source": "pypi.org 2.4.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:transformers": {
@@ -7017,7 +7118,7 @@
    "version": "transformers==4.49.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 5.22.2 license",
+   "licence_source": "pypi.org 5.24.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:tree-sitter-language-pack": {
@@ -7029,7 +7130,7 @@
    "version": "tree-sitter-language-pack>=0.10.0",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.25.0 license_expression",
+   "licence_source": "pypi.org 1.25.2 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:twine": {
@@ -7067,7 +7168,7 @@
    "version": "watchdog>=4.0.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 7.1.0 license",
+   "licence_source": "pypi.org 7.1.1 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:websocket-client": {
