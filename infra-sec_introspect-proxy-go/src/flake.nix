@@ -8,11 +8,10 @@
 
     # ── Data sources (declarative JSON) ────────────────────────────
     buildJson = builtins.fromJSON (builtins.readFile ../build.json);
-    # The derived build-<svc>.json appears once cloud-infra's gen-configs has seen this new
-    # service; nothing here reads it, so its absence on the first render is not an error.
-    container = if builtins.pathExists ./build-introspect-proxy-go.json
-      then builtins.fromJSON (builtins.readFile ./build-introspect-proxy-go.json)
-      else {};
+    # No derived build-<svc>.json: compose.nix does not read it and engine.nix falls back
+    # (`container.container.image or null`). A dangling link to cloud-infra's not-yet-derived
+    # file breaks the pure render (the store copy points outside the source).
+    container = {};
 
     engine = import ../../_shared/engine.nix;
     nb = buildJson.docker.native_build;
