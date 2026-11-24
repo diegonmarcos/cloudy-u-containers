@@ -240,6 +240,16 @@ func TestShadowCompare(t *testing.T) {
 	waitUp(t, pyBase)
 	waitUp(t, goSrv.URL)
 
+	// Production runs python:3.11-slim. A 2000-deep JSON document is a RecursionError (500)
+	// on CPython 3.11 and parses on 3.12+ (C recursion limit), so that one case is only
+	// compared against a 3.11 reference; the port follows 3.11.
+	verOut, _ := exec.Command(py, "-c", "import sys; print('%d.%d' % sys.version_info[:2])").Output()
+	pyVer := strings.TrimSpace(string(verOut))
+	versionBound := map[string]bool{"payload-deep": pyVer != "3.11"}
+	if versionBound["payload-deep"] {
+		t.Logf("reference is CPython %s, not the deployed 3.11: payload-deep not compared", pyVer)
+	}
+
 	exp := time.Now().Add(time.Hour).Unix()
 	past := time.Now().Add(-time.Hour).Unix()
 	fut := time.Now().Add(time.Hour).Unix()
@@ -529,6 +539,9 @@ func TestShadowCompare(t *testing.T) {
 			s.setup()
 		}
 		for _, c := range s.cases {
+			if versionBound[c.Name] {
+				continue
+			}
 			total++
 			allCases = append(allCases, c)
 			a := Do(ctx, cl, pyBase, c)
