@@ -91,7 +91,7 @@ jobs:
         env:
           GEO_DB_FILE: ${{ runner.temp }}/country.mmdb
         run: |
-          set -u
+          set -u +e
           git fetch -q --depth 1 origin ab0d1a9514b2de7026b0cdbd8c696650d1c21574 9004ff89710b3f634db3a7b0f11d3f16be05e01f
           git show ab0d1a9514b2de7026b0cdbd8c696650d1c21574:infra-sec_caddy/dist/configs/Caddyfile > "$RUNNER_TEMP/hub-incident.caddy"
           git show 9004ff89710b3f634db3a7b0f11d3f16be05e01f:infra-sec_caddy-public/dist/configs/Caddyfile > "$RUNNER_TEMP/edge-incident.caddy"
