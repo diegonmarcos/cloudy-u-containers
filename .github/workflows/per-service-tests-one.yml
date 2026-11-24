@@ -1,0 +1,35 @@
+name: Per-service tests (selected services only)
+
+# The full per-service-tests workflow runs EVERY declared tester serially and shares one concurrency group on
+# main, so with many pushes a pending run is replaced by the next push before it ever starts (run after run
+# ends "cancelled"). This workflow runs the testers of the services named in the `services` input
+# (space-separated directory names) with the same runner script (TESTER_ONLY), in its own concurrency group,
+# so one service's parity harness can be verified on its own. It does not replace the full run.
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: "space-separated service directory names, e.g. infra-api_cloudy-all-go-mcp"
+        required: true
+        type: string
+
+concurrency:
+  group: per-service-tests-one-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  run-selected:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: Run the selected services' testers
+        env:
+          TESTER_ONLY: ${{ inputs.services }}
+        run: bash .github/scripts/run-service-tests.sh

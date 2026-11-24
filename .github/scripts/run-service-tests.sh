@@ -58,6 +58,15 @@ for bj in "${BUILD_JSONS[@]}"; do
     fi
 
     svc="$(dirname "$bj")"
+    # TESTER_ONLY (space-separated service directory names): run just those services' testers. Unset = all.
+    # Used by the per-service-tests-one workflow so one service's tester run is not queued behind every
+    # other service's testers.
+    if [ -n "${TESTER_ONLY:-}" ]; then
+        case " ${TESTER_ONLY} " in
+            *" $(basename "$svc") "*) ;;
+            *) continue ;;
+        esac
+    fi
     svcname="$(jq -r '.name // "(unnamed)"' "$bj")"
 
     # Read each declared tester as key<TAB>cmd<TAB>cwd (in jq -r string form).
