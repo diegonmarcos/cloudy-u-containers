@@ -32,8 +32,14 @@ let
   # ── Critical fail-closed target: gcp-proxy over wg-public ──
   privateUpstream = caddyPublic.private_forward_upstream;
 
+  # #1897: every L7 hop to the hub states the real client in X-Forwarded-For, OVERWRITING whatever
+  # the client sent ({http.request.remote.host} = this edge's own peer, the real client, unwrapped
+  # from the local layer4 PROXY hop; this edge trusts no proxy). The hub believes the header only
+  # from this edge's wg-public address (infra-sec_caddy build.json global.front_edge).
+  xffHub = "header_up X-Forwarded-For {http.request.remote.host}";
+
   # Forward helper — every non-allowlisted host/path lands here.
-  fwd = "reverse_proxy ${privateUpstream}";
+  fwd = "reverse_proxy ${privateUpstream} {\n    ${xffHub}\n  }";
 
   # Real-client IP carry-over for any reverse_proxy that serves a real
   # upstream at the edge (mirrors caddyfile.nix's header_up usage).
@@ -199,6 +205,9 @@ ${lib.concatMapStringsSep "\n" mkMailL4Route mailL4}
           }
           route @rest {
             proxy {
+              # #1897: the real client address for the hub (which unwraps it only from this
+              # edge's wg-public address), instead of every passthrough client being 10.1.0.1.
+              proxy_protocol v2
               upstream ${privateUpstream}
             }
           }
@@ -474,6 +483,7 @@ ${denyBlock}'';
         # client's Host, as the oidc-public handle already does.
         header_up Host {host}
         ${xreal}
+        ${xffHub}
         transport http {
           tls_server_name ${e.host}
         }
@@ -516,6 +526,7 @@ ${denyBlock}'';
         reverse_proxy ${oidcUpstream} {
           header_up Host ${hostRef}
           ${xreal}
+          ${xffHub}
           transport http {
             tls
             tls_server_name ${hostRef}
@@ -535,6 +546,7 @@ ${denyBlock}'';
         reverse_proxy ${oidcUpstream} {
           header_up Host ${h}
           ${xreal}
+          ${xffHub}
           transport http {
             tls
             tls_server_name ${h}

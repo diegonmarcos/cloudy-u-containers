@@ -33,7 +33,7 @@ ok "CADDY $("$CADDY" version | cut -d' ' -f1) has rate_limit, layer4 and the Clo
 # 2. validate dist and the render of src + build.json
 NIX="nix --extra-experimental-features nix-command --extra-experimental-features flakes"
 LIBX="(builtins.getFlake \"github:NixOS/nixpkgs/nixos-24.11\").lib"; [ -z "${NIXPKGS_SRC:-}" ] || LIBX="import $NIXPKGS_SRC/lib"
-jq --argjson s "$(jq -c '.caddy_config.security_snippets' "$BJ")" '.security_snippets=$s' "$JDIR/build-caddy.json" > "$W/hub.json"
+jq --argjson s "$(jq -c '.caddy_config.security_snippets' "$BJ")" --argjson g "$(jq -c '.caddy_config.global' "$BJ")" '.security_snippets=$s|.global=$g' "$JDIR/build-caddy.json" > "$W/hub.json"
 $NIX eval --impure --raw --expr "let lib=($LIBX); caddyRoutes=builtins.fromJSON (builtins.readFile $W/hub.json); in import $SVC/infra-sec_caddy/src/caddyfile.nix { inherit lib caddyRoutes; }" > "$W/render.caddy"
 mkdir -p "$W/secrets" "$W/log" "$W/xdg"
 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 30 -subj /CN=guard \
@@ -50,9 +50,9 @@ ok "Caddyfile rendered from src + build.json validates"
 # 4. mutation: a broken zone must be refused
 python3 -I - "$W/render.caddy" "$W/mut.caddy" <<'PY'
 import sys
-t = open(sys.argv[1]).read(); a = "zone global {\n        key    {remote_host}\n        events 100"
+t = open(sys.argv[1]).read(); a = "zone global {\n        key    {client_ip}\n        events 100"
 assert a in t, "mutation anchor missing"
-open(sys.argv[2], "w").write(t.replace(a, "zone global {\n        key    {remote_host}\n        events many", 1))
+open(sys.argv[2], "w").write(t.replace(a, "zone global {\n        key    {client_ip}\n        events many", 1))
 PY
 if validate "$W/mut.caddy"; then fail "a broken rate_limit zone validates: the guard verifies nothing"; fi
 ok "mutation (broken rate_limit zone) is refused by validate"

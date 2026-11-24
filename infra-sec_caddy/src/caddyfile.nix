@@ -41,6 +41,11 @@ let
   # neither @wg nor @bearer and got a bare 403 on every mesh-only route.
   wgCidrs = caddyRoutes.global.wg_cidrs or "10.0.0.0/24 fd0c:1d00::/64";
 
+  # #1897: the public front edge's wg-public address(es) (build.json global.front_edge). The ONLY
+  # source whose PROXY v2 header (layer4 :443, raw-TLS passthrough tier) or X-Forwarded-For
+  # (servers trusted_proxies, re-proxied tier) is believed. Absent -> neither is rendered.
+  frontEdge = lib.concatStringsSep " " (caddyRoutes.global.front_edge or []);
+
   # ── Security snippets (data-driven from caddyRoutes.security_snippets) ──
   ss = caddyRoutes.security_snippets or {};
 
@@ -396,6 +401,29 @@ ${fbMapLines}
   #      of bare `@any_tls tls` — bare `tls` matches on first 5 bytes (TLS
   #      record header) before SNI parse and would always win the race.
   # Source: https://github.com/mholt/caddy-l4/issues/294
+  # #1897: the front edge's raw-TLS passthrough tier prefixes a PROXY v2 header carrying the real
+  # client. Unwrapped here ONLY for a connection from the front edge that starts with one; the
+  # connection then goes to the local HTTP server with the client's address (not 10.1.0.1). A
+  # PROXY header from any other source never matches and dies at the TLS handshake; a connection
+  # from the front edge without one (its re-proxied L7 tier) takes the normal mux below.
+  # Lines built explicitly: a '' string would have its common indentation stripped.
+  frontEdgePp = if frontEdge == "" then "" else lib.concatMapStrings (l: "\n" + (if l == "" then "" else "          " + l)) [
+    "# ── #1897 front edge PROXY v2 (real client address, front edge only) ──"
+    "@front_edge_pp {"
+    "  remote_ip ${frontEdge}"
+    "  proxy_protocol"
+    "}"
+    "route @front_edge_pp {"
+    "  proxy_protocol {"
+    "    allow ${frontEdge}"
+    "  }"
+    "  proxy {"
+    "    proxy_protocol v2"
+    "    upstream 127.0.0.1:8443"
+    "  }"
+    "}"
+  ];
+
   mkL4ListenerBlock = listenSpec: routes:
     let
       sniRoutes    = lib.filter (r: (r ? sni) && r.sni != null) routes;
@@ -411,6 +439,7 @@ ${fbMapLines}
       # (parser treats `@name` as handler-directive). #294 pattern works flat.
       sniMuxBlock = if !hasSni then "" else ''
 
+${frontEdgePp}
           # ── SNI mux (issue #294 pattern, flat) ─────────────────────────
 ${lib.concatMapStringsSep "\n" mkSniInnerRoute sniRoutes}
           # Fall-through: TLS that does NOT match any mail SNI → internal HTTPS
@@ -1593,6 +1622,10 @@ ${handleErrors}
     "@AUTO_HTTPS@"  = global.auto_https;
     "@ODT_ASK_URL@" = odt.ask_url;
     "@L4_SECTION@"  = mkL4Section;
+    # #1897: client_ip (rate-limit keys, access log) comes from X-Forwarded-For ONLY when the
+    # connection is the front edge; remote_ip gates keep reading the connection address.
+    "@TRUSTED_PROXIES@" = if frontEdge == "" then "" else
+      "\n    trusted_proxies static ${frontEdge}\n    client_ip_headers X-Forwarded-For\n    trusted_proxies_strict";
   } (readTpl "00-globals.caddy.tpl");
 
   # ── On-demand TLS ask endpoint ──

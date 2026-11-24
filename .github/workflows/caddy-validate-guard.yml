@@ -4,10 +4,14 @@ name: caddy validate guard (plugin build)
 # xcaddy + caddy-l4 + caddy-ratelimit + caddy-dns/cloudflare), nothing stripped, plus a runtime check of the
 # authenticated rate limit. Runs on source pushes, after every render-dist run (its GITHUB_TOKEN push does
 # not trigger push workflows), and on demand -- run it and see it green before an infra-sec_caddy Ship.
+# #1897: the same binary also carries the edge image's geolocation module (union of both Dockerfiles'
+# plugins), so the public-edge Caddyfile (infra-sec_caddy-public dist + render) is validated here too, and
+# test-real-client-ip.sh proves at runtime that the hub believes a PROXY header / X-Forwarded-For only from
+# the front edge -- run it green before an infra-sec_caddy or infra-sec_caddy-public Ship.
 on:
   push:
     branches: [main]
-    paths: ['infra-sec_caddy/**', '_shared/edge-auth.*', '.github/workflows/caddy-validate-guard.yml']
+    paths: ['infra-sec_caddy/**', 'infra-sec_caddy-public/**', '_shared/edge-auth.*', '.github/workflows/caddy-validate-guard.yml']
   workflow_run:
     workflows: ["render-dist (re-render one service's committed dist/ in CI and push it)"]
     types: [completed]
@@ -34,11 +38,11 @@ jobs:
           go-version: stable
           cache: false
       - uses: cachix/install-nix-action@v27
-      - name: Build Caddy like the image (xcaddy, same plugins as src/code/Dockerfile)
+      - name: Build Caddy like the images (xcaddy, union of the hub and edge src/code/Dockerfile plugins)
         run: |
           set -eu
           go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-          plugins=$(grep -o 'with github.com/[^ ]*' infra-sec_caddy/src/code/Dockerfile | sed 's/^with /--with /' | tr '\n' ' ')
+          plugins=$(grep -ho 'with github.com/[^ ]*' infra-sec_caddy/src/code/Dockerfile infra-sec_caddy-public/src/code/Dockerfile | sort -u | sed 's/^with /--with /' | tr '\n' ' ')
           echo "plugins: $plugins"
           "$(go env GOPATH)/bin/xcaddy" build $plugins --output "$RUNNER_TEMP/caddy"
           "$RUNNER_TEMP/caddy" version
@@ -51,3 +55,15 @@ jobs:
           MULTI_SSO_JSON_DIR: ${{ github.workspace }}/_cloud-infra/1_cloud-configs/dist
           ALLOW_STALE_DIST: ${{ github.event_name == 'push' && '1' || '0' }}
         run: bash infra-sec_caddy/src/test/test-authed-rate-limit.sh
+      - name: Fetch the edge's pinned country database (checksum verified, _shared/geo-fence.json)
+        run: |
+          set -eu
+          J=_shared/geo-fence.json
+          curl -fsSL "$(jq -r .db.url "$J")" -o "$RUNNER_TEMP/country.mmdb.gz"
+          echo "$(jq -r .db.sha256 "$J")  $RUNNER_TEMP/country.mmdb.gz" | sha256sum -c -
+          gunzip -c "$RUNNER_TEMP/country.mmdb.gz" > "$RUNNER_TEMP/country.mmdb"
+      - name: Real client IP guard (#1897) - rendered text, both validates, runtime
+        env:
+          MULTI_SSO_JSON_DIR: ${{ github.workspace }}/_cloud-infra/1_cloud-configs/dist
+          ALLOW_STALE_DIST: ${{ github.event_name == 'push' && '1' || '0' }}
+        run: CADDY="$RUNNER_TEMP/caddy" GEO_DB_FILE="$RUNNER_TEMP/country.mmdb" bash infra-sec_caddy/src/test/test-real-client-ip.sh

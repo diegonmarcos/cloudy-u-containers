@@ -37,11 +37,11 @@ render(){ # render <hub|edge> <json>
     $NIX eval --impure --raw --expr "let lib=($LIBX); caddyPublic=builtins.fromJSON (builtins.readFile $2); in import $PUB_SRC/caddyfile-public.nix { inherit lib caddyPublic; }"
   fi
 }
-# build.json is the source: its security_snippets override whatever the derived json carries.
-SS="$(jq -c '.caddy_config.security_snippets' "$BJ")"
+# build.json is the source: its security_snippets (and, #1897, global) override whatever the derived json carries.
+SS="$(jq -c '.caddy_config.security_snippets' "$BJ")"; GL="$(jq -c '.caddy_config.global' "$BJ")"
 [ "$(echo "$SS" | jq -r '.auth_rate_limit.events // empty')" != "" ] || { echo "FAIL: build.json security_snippets.auth_rate_limit missing (this guard pins the shipped ON state)"; exit 1; }
-jq --argjson s "$SS" '.security_snippets=$s' "$HUB_JSON" > "$W/hub-on.json"
-jq --argjson s "$SS" '.security_snippets=($s|del(.auth_rate_limit,.auth_mcp_rate_limit,.denied_rate_limit,.backstop_rate_limit,._doc_auth_rate_limit))' "$HUB_JSON" > "$W/hub-off.json"
+jq --argjson s "$SS" --argjson g "$GL" '.security_snippets=$s|.global=$g' "$HUB_JSON" > "$W/hub-on.json"
+jq --argjson s "$SS" --argjson g "$GL" '.global=$g|.security_snippets=($s|del(.auth_rate_limit,.auth_mcp_rate_limit,.denied_rate_limit,.backstop_rate_limit,._doc_auth_rate_limit))' "$HUB_JSON" > "$W/hub-off.json"
 jq --argjson s "$SS" '.security_snippets=$s' "$EDGE_JSON" > "$W/edge-on.json"
 render hub "$W/hub-on.json" > "$W/on.txt"
 render hub "$W/hub-off.json" > "$W/off.txt"
@@ -90,13 +90,13 @@ def check(t):
     for snip, key in (("rate_limiting", "rate_limit"), ("rate_limiting_mcp", "mcp_rate_limit"), ("rate_limiting_jmap", "jmap_rate_limit")):
         s = snippet(t, snip); z = zones(s); r = ss[key]
         want(z.get(r["zone"]), r, snip)
-        assert z[r["zone"]]["key"] == "{remote_host}", f"{snip}: anonymous zone must stay per IP"
+        assert z[r["zone"]]["key"] == "{client_ip}", f"{snip}: anonymous zone must stay per client IP (#1897)"
         assert re.search(r"match \{\s*not vars ea_cred 1\s*\}", z[r["zone"]]["body"]), f"{snip}: anonymous zone does not skip credentialed requests"
         b = ss["backstop_rate_limit"]; want(z.get(b["zone"]), b, f"{snip} backstop")
         assert "match" not in z[b["zone"]]["body"], f"{snip}: the backstop must apply to every request"
     # 3: refused credentials counted per IP; the no-credential branch untouched
     d = ss["denied_rate_limit"]
-    assert d["key"] == "{remote_host}", "denied zone must be per IP"
+    assert d["key"] == "{client_ip}", "denied zone must be per client IP (#1897)"
     for g in GATES:
         s = snippet(t, g); fb = fwd_blocks(s); names = [n for n, _ in fb]
         for n in ("ea_fleet", "ea_bearer", "ea_session", "ea_session_ck"):
@@ -183,7 +183,7 @@ muts = {
     "authed key = raw Authorization": on.replace("key    " + ss["auth_rate_limit"]["key"], "key    {http.request.header.Authorization}", 1),
     "bearer refusal not counted": on.replace(fb, fb_cut, 1),
     "authed zone before forward_auth": nth(on, "    invoke @ea_authed edge_rl_authed\n", "    rate_limit {\n      zone authed2 {\n        key    {remote_host}\n        events 1000\n        window 1m\n      }\n    }\n    invoke @ea_authed edge_rl_authed\n"),
-    "anonymous limit raised": nth(on, "zone global {\n        key    {remote_host}\n        events 100", "zone global {\n        key    {remote_host}\n        events 1000"),
+    "anonymous limit raised": nth(on, "zone global {\n        key    {client_ip}\n        events 100", "zone global {\n        key    {client_ip}\n        events 1000"),
     "anonymous branch touched": on.replace(sess, sess[:-1] + "  @ea_denied status 4xx\n      handle_response @ea_denied {\n        copy_response\n      }\n    }", 1),
     "authed events not from build.json": nth(on, "events " + str(ss["auth_rate_limit"]["events"]) + "\n", "events 999\n"),
     "anonymous zone counts credentialed": nth(on, "\n        match {\n          not vars ea_cred 1\n        }", ""),
