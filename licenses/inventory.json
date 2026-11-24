@@ -18,11 +18,11 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 116,
+   "LicenseRef-NoLicenseGranted": 117,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 62,
+   "LicenseRef-NoLicenseGranted": 63,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -52,9 +52,10 @@
    "MIT": 1
   },
   "go": {
-   "BSD-3-Clause": 1,
+   "BSD-3-Clause": 5,
+   "MIT": 4,
+   "Apache-2.0 AND MIT": 1,
    "ISC": 1,
-   "MIT": 1,
    "MPL-2.0": 1
   },
   "npm": {
@@ -2448,6 +2449,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-api_cloudy-all-mcp-go": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-api_cloudy-apps-communication-mcp": {
    "kind": "dir",
    "declared_in": [
@@ -3418,7 +3427,10 @@
   "docker:gcr.io/distroless/static-debian12": {
    "kind": "docker",
    "declared_in": [
+    "infra-api_cloudy-all-mcp-go/build.json",
+    "infra-api_cloudy-all-mcp-go/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
+    "infra-ops_c3bot-relay-go/dist/code/arm64/Dockerfile",
     "infra-ops_c3bot-relay-go/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
     "infra-sec_introspect-proxy-go/dist/code/amd64/Dockerfile",
@@ -3848,6 +3860,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/cloudy-all-mcp-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/build.json",
+    "infra-api_cloudy-all-mcp-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-all-mcp-go:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/cloudy-apps-communication-mcp": {
    "kind": "docker",
    "declared_in": [
@@ -4260,6 +4284,8 @@
   "docker:golang": {
    "kind": "docker",
    "declared_in": [
+    "infra-api_cloudy-all-mcp-go/build.json",
+    "infra-api_cloudy-all-mcp-go/src/build.json",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
     "infra-ops_c3bot-relay-go/build.json",
@@ -4267,8 +4293,8 @@
     "infra-sec_introspect-proxy-go/build.json",
     "infra-sec_introspect-proxy-go/src/build.json"
    ],
-   "version": "golang:1.21-bookworm",
-   "scope": "base",
+   "version": "golang:1.25-bookworm",
+   "scope": "build",
    "licence": "BSD-3-Clause AND LicenseRef-OS-Distribution",
    "licence_source": "licenses/curated.json::docker_licences[golang]",
    "note": "Go toolchain BSD-3-Clause; build stage only where used as builder."
@@ -4772,6 +4798,7 @@
     "infra-api_cloud-superapp-mcp/src/flake.nix",
     "infra-api_cloud-vault-mcp/src/flake.nix",
     "infra-api_cloudy-all-api/src/flake.nix",
+    "infra-api_cloudy-all-mcp-go/src/flake.nix",
     "infra-api_cloudy-all-mcp/src/flake.nix",
     "infra-api_cloudy-apps-communication-mcp/src/flake.nix",
     "infra-api_cloudy-apps-drive-mcp/src/flake.nix",
@@ -4881,6 +4908,18 @@
    "note": "LICENSE in the module (v5.2.2).",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
+  "go:github.com/google/jsonschema-go": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v0.4.3",
+   "scope": "indirect",
+   "licence": "MIT",
+   "licence_source": "licenses/curated.json::go_licences[github.com/google/jsonschema-go]",
+   "note": "LICENSE in the module (v0.4.3); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "go:github.com/hashicorp/golang-lru/v2": {
    "kind": "go",
    "declared_in": [
@@ -4893,16 +4932,101 @@
    "note": "LICENSE in the module (v2.0.7); used unmodified as a library.",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
+  "go:github.com/modelcontextprotocol/go-sdk": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v1.8.0",
+   "scope": "shipped",
+   "licence": "Apache-2.0 AND MIT",
+   "licence_source": "licenses/curated.json::go_licences[github.com/modelcontextprotocol/go-sdk]",
+   "note": "LICENSE in the module (v1.8.0): Apache-2.0 for new code, MIT for contributions not yet relicensed; used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:github.com/segmentio/asm": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v1.1.3",
+   "scope": "indirect",
+   "licence": "MIT",
+   "licence_source": "licenses/curated.json::go_licences[github.com/segmentio/asm]",
+   "note": "LICENSE in the module (v1.1.3); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:github.com/segmentio/encoding": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v0.5.4",
+   "scope": "indirect",
+   "licence": "MIT",
+   "licence_source": "licenses/curated.json::go_licences[github.com/segmentio/encoding]",
+   "note": "LICENSE in the module (v0.5.4); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:github.com/yosida95/uritemplate/v3": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v3.0.2",
+   "scope": "indirect",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[github.com/yosida95/uritemplate/v3]",
+   "note": "LICENSE in the module (v3.0.2); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:golang.org/x/oauth2": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v0.35.0",
+   "scope": "indirect",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[golang.org/x/oauth2]",
+   "note": "LICENSE in the module (v0.35.0); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "go:golang.org/x/sync": {
    "kind": "go",
    "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod",
     "infra-sec_introspect-proxy-go/src/code/go.mod"
    ],
-   "version": "v0.10.0",
-   "scope": "shipped",
+   "version": "v0.20.0",
+   "scope": "indirect",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[golang.org/x/sync]",
    "note": "LICENSE in the module (v0.10.0).",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:golang.org/x/sys": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v0.41.0",
+   "scope": "indirect",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[golang.org/x/sys]",
+   "note": "LICENSE in the module (v0.41.0); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
+  "go:golang.org/x/time": {
+   "kind": "go",
+   "declared_in": [
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+   ],
+   "version": "v0.15.0",
+   "scope": "indirect",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[golang.org/x/time]",
+   "note": "LICENSE in the module (v0.15.0); used unmodified as a library.",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@dnd-kit/core": {

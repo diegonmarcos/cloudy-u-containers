@@ -1,0 +1,100 @@
+{
+  "name": "cloudy-all-mcp-go",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Go port of cloudy-all-mcp (fleet MCP router: list_servers, list_tools, call over stateless Streamable HTTP, mesh-first with public bearer fallback, 60 s tool cache), shadow stage: runs next to the TypeScript container on its own port and container, outside every request path (ticket #1874)",
+  "ports": {
+    "app": 3140
+  },
+  "bind_host": "10.0.0.6",
+  "category": "obs",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/cloudy-all-mcp-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "cloudy-all-mcp-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.25-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o cloudy-all-mcp ./cmd/cloudy-all-mcp",
+      "binary": "cloudy-all-mcp",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Same multi-stage template as c3bot-relay-go (#1873): compiled in golang on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static nonroot (CA bundle for the public https route). golang:1.25 because modelcontextprotocol/go-sdk requires go 1.25."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloudy-all-mcp-go",
+      "image": "ghcr.io/diegonmarcos/cloudy-all-mcp-go:latest",
+      "port": 3140,
+      "port_env": "PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "64M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 2,
+    "display_name": "Cloudy All MCP (Go, shadow)",
+    "description": "Same contract as cloudy-all-mcp: stateless Streamable HTTP POST /mcp with tools list_servers, list_tools, call; GET /health.",
+    "auth": "none"
+  },
+  "mcp": {
+    "transport": "streamable-http",
+    "endpoint_path": "/mcp",
+    "tools_count": 3,
+    "resources_count": 0,
+    "prompts_count": 0,
+    "display_name": "Cloudy All MCP (Go, shadow)",
+    "description": "Fleet MCP router (3 tools), Go port.",
+    "auth": "none",
+    "sdk": "github.com/modelcontextprotocol/go-sdk@v1.8.0"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the TypeScript router (infra-api_cloudy-all-mcp/src/code, node type stripping) run next to the Go router in front of one fake child MCP; the same 40 requests go to both and the normalised responses must be identical. See parity/parity_test.go."
+    },
+    "parity-mutation": {
+      "cmd": "o=$(mktemp); PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -tags parity -run TestParity ./parity/ >\"$o\" 2>&1; grep -q 'steps differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the Go router is made to change one tool description; the parity harness must go red (the grep passes only if it reported differing steps, not on a build error)."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1874). The live TypeScript router (container cloudy-all-mcp, port 3112) is untouched. This container has no env_file and no secret, so it reaches the child MCPs over their mesh endpoints only; nothing outside the host dials it. Switch-over (the real secret, mesh name cloudy-all-mcp, Caddy route) is a separate step after the live comparison; the TypeScript image stays declared for one release as the rollback."
+}

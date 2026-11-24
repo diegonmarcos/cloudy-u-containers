@@ -165,6 +165,15 @@
       "bearer": true
     },
     {
+      "slug": "cloudy-all-mcp-go",
+      "dir": "infra-api_cloudy-all-mcp-go",
+      "description": "Go port of cloudy-all-mcp (fleet MCP router: list_servers, list_tools, call over stateless Streamable HTTP, mesh-first with public bearer fallback, 60 s tool cache), shadow stage: runs next to the TypeScript container on its own port and co",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "cloudy-apps-communication-mcp",
       "dir": "infra-api_cloudy-apps-communication-mcp",
       "description": "Mail MCP server — IMAP/SMTP/Admin via Stalwart REST API",
