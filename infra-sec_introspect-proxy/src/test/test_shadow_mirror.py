@@ -14,7 +14,7 @@ os.environ.setdefault("TOKENS_VERIFY_URL", "http://engine.invalid/v1/verify")
 os.environ.setdefault("TOKENS_VERIFY_SECRET", "s")
 import main  # noqa: E402
 
-SECRET_TOKEN = "Bearer ft_supersecretvalue123"
+SECRET_TOKEN = "Bearer notajwt_supersecretvalue123"
 
 
 class FakeGo:
