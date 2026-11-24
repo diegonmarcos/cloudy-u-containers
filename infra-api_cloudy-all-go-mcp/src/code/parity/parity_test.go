@@ -229,12 +229,13 @@ func normalise(resp string) string {
 func get(base, path, method string) string {
 	req, _ := http.NewRequest(method, base+path, nil)
 	req.Header.Set("Accept", "application/json, text/event-stream")
-	resp, err := http.DefaultClient.Do(req)
+	// a GET /mcp may open an event stream that never ends: only the status line matters, so stop reading early
+	resp, err := (&http.Client{Timeout: 3 * time.Second}).Do(req)
 	if err != nil {
-		return err.Error()
+		return "no response: " + strings.ReplaceAll(err.Error(), req.URL.String(), "<url>")
 	}
 	defer resp.Body.Close()
-	b, _ := io.ReadAll(resp.Body)
+	b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 	return fmt.Sprintf("%d|%s", resp.StatusCode, strings.TrimSpace(string(b)))
 }
 

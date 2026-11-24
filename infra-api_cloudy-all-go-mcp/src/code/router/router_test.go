@@ -73,8 +73,12 @@ func TestListServersNamesEveryServerOnceSortedWithoutURLsAndHidesItself(t *testi
 	if strings.Contains(JSON(l), "http://") {
 		t.Fatal("urls leaked into list_servers")
 	}
-	if !strings.Contains(JSON(l), `"aliases": []`) {
-		t.Fatalf("empty aliases must render as []: %s", JSON(l))
+	plain, err := New([]ServerEntry{{Name: "plain-mcp", Description: "p", URLs: []string{"http://p/mcp"}}}, &fakeBackend{}, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(JSON(plain.ListServers()), `"aliases": []`) {
+		t.Fatalf("empty aliases must render as []: %s", JSON(plain.ListServers()))
 	}
 }
 

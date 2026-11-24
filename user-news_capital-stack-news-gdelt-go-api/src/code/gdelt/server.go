@@ -51,14 +51,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case p == "/health":
 			n, total, last := s.Store.Health()
-			writeJSON(w, 200, map[string]any{"status": "ok", "cachedTopics": n, "totalArticles": total, "lastFetch": last, "uptime": int(time.Since(s.Started).Seconds())})
+			writeJSON(w, 200, ordered{{"status", "ok"}, {"cachedTopics", n}, {"totalArticles", total}, {"lastFetch", last}, {"uptime", int(time.Since(s.Started).Seconds())}})
 			return
 		case strings.HasPrefix(p, s.BasePath+"/") && p != s.BasePath+"/":
 			s.base(w, r, strings.TrimPrefix(p, s.BasePath))
 			return
 		}
 	}
-	writeJSON(w, 404, map[string]any{"message": fmt.Sprintf("Route %s:%s not found", r.Method, r.URL.RequestURI()), "error": "Not Found", "statusCode": 404})
+	writeJSON(w, 404, notFound(r))
 }
 
 type ordered []kv
@@ -121,6 +121,10 @@ func (s *Server) base(w http.ResponseWriter, r *http.Request, sub string) {
 	case "/topics":
 		writeJSON(w, 200, map[string]any{"topics": s.Store.Topics()})
 	default:
-		writeJSON(w, 404, map[string]any{"message": fmt.Sprintf("Route %s:%s not found", r.Method, r.URL.RequestURI()), "error": "Not Found", "statusCode": 404})
+		writeJSON(w, 404, notFound(r))
 	}
+}
+
+func notFound(r *http.Request) ordered {
+	return ordered{{"message", fmt.Sprintf("Route %s:%s not found", r.Method, r.URL.RequestURI())}, {"error", "Not Found"}, {"statusCode", 404}}
 }

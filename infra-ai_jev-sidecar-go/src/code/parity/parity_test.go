@@ -188,8 +188,20 @@ type scn struct {
 
 func j(kv ...any) string { return pyjson.DumpsDefault(pyjson.Obj(kv...)) }
 
-func mkdirs(t *testing.T) *dirs {
-	root := t.TempDir()
+var (
+	rootOnce sync.Once
+	rootBase string
+)
+
+// mkdirs gives each scenario a fixed directory (the same path for the Python and the Go run: paths end up
+// in the state sent to Decisions, in its hash and in cache keys), wiped before every run.
+func mkdirs(t *testing.T, name string) *dirs {
+	rootOnce.Do(func() { rootBase = t.TempDir() })
+	root := filepath.Join(rootBase, strings.NewReplacer("/", "_", " ", "_").Replace(name))
+	if name == "" || root == rootBase {
+		t.Fatal("scenario without a name")
+	}
+	os.RemoveAll(root)
 	d := &dirs{root: root, home: filepath.Join(root, "home"), project: filepath.Join(root, "work", "cloud-infra", "sub"), repo: filepath.Join(root, "work", "cloud-infra")}
 	d.cfgPath, d.log, d.budget, d.moim = filepath.Join(root, "cfg.json"), filepath.Join(root, "log.jsonl"), filepath.Join(root, "budget.json"), filepath.Join(root, "moim.txt")
 	for _, p := range []string{d.home, d.project, filepath.Join(d.repo, ".git")} {
@@ -213,7 +225,7 @@ func baseConfig(t *testing.T) *pyjson.OMap {
 }
 
 func prepare(t *testing.T, s scn, impl string, dec *decisions, m *mcp) (*dirs, []string) {
-	d := mkdirs(t)
+	d := mkdirs(t, s.name)
 	cfg := baseConfig(t)
 	cfg.Set("endpoint", dec.srv.URL+"/decisions")
 	cfg.Set("timeout_s", int64(1))
@@ -454,7 +466,7 @@ func TestParityServe(t *testing.T) {
 		m := &mcp{}
 		m.srv = httptest.NewServer(m)
 		defer m.srv.Close()
-		d, env := prepare(t, scn{mode: "serve"}, impl, dec, m)
+		d, env := prepare(t, scn{mode: "serve", name: "serve"}, impl, dec, m)
 		var base string
 		if impl == "py" {
 			l, _ := net.Listen("tcp", "127.0.0.1:0")
