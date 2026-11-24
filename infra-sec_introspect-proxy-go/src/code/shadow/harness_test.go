@@ -361,6 +361,10 @@ func TestShadowCompare(t *testing.T) {
 			get("kid-ec-key-es256", auth("Bearer "+k1.sign(`{"alg":"ES256","kid":"kec"}`, claims("")))),
 			get("kid-oct-key", auth("Bearer "+k1.sign(`{"alg":"RS256","kid":"koct"}`, claims("")))),
 			get("kid-skipped-key", auth("Bearer "+k1.sign(`{"alg":"RS256","kid":"kalg"}`, claims("")))),
+			// #1872: a kid absent from a JWKS that was fetched fine is 401 (not 503), and a miss
+			// inside the 60 s forced-refetch window answers 401 without a fetch (both sides).
+			get("unknown-kid-in-window-1", auth("Bearer "+k1.sign(`{"alg":"RS256","kid":"rand-1"}`, claims("")))),
+			get("unknown-kid-in-window-2", auth("Bearer "+k1.sign(`{"alg":"RS256","kid":"rand-2"}`, claims("")))),
 		}},
 		{name: "claims", cases: []Case{
 			get("expired", auth("Bearer "+raw(fmt.Sprintf(`{"iss":%q,"exp":%d,%s}`, iss, past, scp)))),

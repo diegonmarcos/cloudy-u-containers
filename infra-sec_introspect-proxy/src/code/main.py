@@ -49,7 +49,41 @@ app = Flask(__name__)
 # (that used to force a full refetch, with the default 30s timeout, on every
 # single request while Authelia was unreachable — the outage on 2026-08-22).
 JWKS_CACHE_TTL = int(os.environ.get("JWKS_CACHE_TTL", "600"))  # 10 min
-_jwks_client = PyJWKClient(
+# A kid that is absent from a JWKS that WAS fetched fine is an invalid token (401),
+# not an outage (503); only a real fetch failure (PyJWKClientError from the fetch
+# itself) is 503. A kid miss may force a JWKS refetch at most once per
+# JWKS_REFETCH_MIN_INTERVAL seconds, process-wide, so random-kid tokens cannot
+# make this service hammer Authelia (#1872). The Go port
+# (infra-sec_introspect-proxy-go, fleetauth/jwks.go) behaves identically.
+JWKS_REFETCH_MIN_INTERVAL = float(os.environ.get("JWKS_REFETCH_MIN_INTERVAL", "60"))
+
+
+class UnknownKidError(jwt.InvalidTokenError):
+    """kid not in the fetched JWKS: falls to the generic 401 "Invalid token"."""
+
+
+class _BoundedRefetchJWKClient(PyJWKClient):
+    _forced_at = None  # monotonic time of the last forced refetch
+
+    def get_signing_key(self, kid):
+        # Same as PyJWKClient.get_signing_key, except the forced refetch is
+        # rate-limited and a miss after a good fetch is not a PyJWKClientError.
+        # (PyJWKClient wraps this in its per-kid lru_cache; exceptions are not cached.)
+        keys = self.get_signing_keys()  # PyJWKClientError here = real fetch failure
+        key = self.match_kid(keys, kid)
+        if key:
+            return key
+        now = time.monotonic()
+        if self._forced_at is not None and now - self._forced_at < JWKS_REFETCH_MIN_INTERVAL:
+            raise UnknownKidError("kid not in JWKS (refetch rate-limited)")
+        self._forced_at = now  # spent even if the refetch fails: no per-request hammering
+        key = self.match_kid(self.get_signing_keys(refresh=True), kid)
+        if not key:
+            raise UnknownKidError("kid not in JWKS")
+        return key
+
+
+_jwks_client = _BoundedRefetchJWKClient(
     JWKS_URL,
     cache_keys=True,
     cache_jwk_set=True,

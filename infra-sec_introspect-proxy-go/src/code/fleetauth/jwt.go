@@ -100,6 +100,8 @@ func (v *Verifier) Verify(ctx context.Context, token string, now float64) (*Obje
 	switch ke {
 	case KeyClient:
 		return nil, JWTKeyServer
+	case KeyUnknownKid:
+		return nil, JWTInvalid
 	case KeyInternal:
 		return nil, JWTInternal
 	}

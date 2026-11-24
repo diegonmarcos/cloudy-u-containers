@@ -38,6 +38,7 @@ func FromEnv(lookup func(string) (string, bool), log *slog.Logger) (*Config, err
 	secs := func(f float64) time.Duration { return time.Duration(f * float64(time.Second)) }
 
 	jwksTimeout := num("JWKS_FETCH_TIMEOUT", "3")
+	refetchEvery := num("JWKS_REFETCH_MIN_INTERVAL", "60")
 	jwksTTL := integer("JWKS_CACHE_TTL", "600")
 	mcpTimeout := num("MCP_OAUTH_TIMEOUT", "3")
 	mcpTTL := integer("MCP_OAUTH_CACHE_TTL", "30")
@@ -51,6 +52,7 @@ func FromEnv(lookup func(string) (string, bool), log *slog.Logger) (*Config, err
 		return nil, errors.Join(errs...)
 	}
 	jwks := fleetauth.NewJWKS(get("JWKS_URL", "https://auth.diegonmarcos.com/jwks.json"), time.Duration(jwksTTL)*time.Second, secs(jwksTimeout))
+	jwks.RefetchEvery = secs(refetchEvery)
 	c := &Config{
 		RequiredScope: get("REQUIRED_SCOPE", "authelia.bearer.authz"),
 		Verifier:      &fleetauth.Verifier{JWKS: jwks, Issuer: get("ISSUER", "https://auth.diegonmarcos.com")},

@@ -20,9 +20,10 @@ import (
 type KeyErr int
 
 const (
-	KeyOK       KeyErr = iota
-	KeyClient          // PyJWKClientError: the edge answers 503 "Auth key server unavailable"
-	KeyInternal        // any other exception: Flask answers 500
+	KeyOK         KeyErr = iota
+	KeyClient            // PyJWKClientError: the edge answers 503 "Auth key server unavailable"
+	KeyInternal          // any other exception: Flask answers 500
+	KeyUnknownKid        // the JWKS was fetched fine but holds no such kid: 401 "Invalid token", not 503
 )
 
 // SigningKey is a usable key from the JWKS. Only an RSA public key can verify RS256; any
@@ -44,7 +45,11 @@ type parsedSet struct {
 //   - the raw JWK Set document is cached for L seconds; a failed fetch clears it;
 //   - a kid resolved once is kept in a 16-entry LRU that never expires, so a known key keeps
 //     working while the JWKS URL is unreachable;
-//   - an unknown kid forces one refetch before it is refused.
+//   - an unknown kid forces one refetch before it is refused, but at most one forced refetch
+//     per RefetchEvery process-wide (#1872): a kid miss inside the window is refused without
+//     a fetch, so random-kid tokens cannot make this service hammer Authelia. A kid absent
+//     from a JWKS that was fetched successfully is KeyUnknownKid (401), never KeyClient (503):
+//     503 is reserved for a real fetch failure.
 //
 // Concurrent lookups of the same kid and concurrent fetches are coalesced with singleflight
 // (the Python service ran single-threaded, so this only removes duplicate dials).
@@ -53,6 +58,8 @@ type JWKS struct {
 	Lifespan time.Duration
 	HTTP     *http.Client
 	Now      func() time.Time // monotonic clock; time.Now by default
+	// RefetchEvery bounds forced refetches on a kid miss (JWKS_REFETCH_MIN_INTERVAL, default 60 s).
+	RefetchEvery time.Duration
 
 	mu      sync.Mutex
 	set     *Value // cached document, nil when empty
@@ -61,12 +68,14 @@ type JWKS struct {
 	keys    *lru.Cache[string, *SigningKey]
 	sfKid   singleflight.Group
 	sfFetch singleflight.Group
+
+	forcedAt time.Time // last forced refetch; zero = none yet (guarded by mu)
 }
 
 // NewJWKS builds a client; timeout bounds one fetch.
 func NewJWKS(url string, lifespan, timeout time.Duration) *JWKS {
 	c, _ := lru.New[string, *SigningKey](16)
-	return &JWKS{URL: url, Lifespan: lifespan, HTTP: NewUpstreamClient(timeout), keys: c, Now: time.Now}
+	return &JWKS{URL: url, Lifespan: lifespan, HTTP: NewUpstreamClient(timeout), keys: c, Now: time.Now, RefetchEvery: 60 * time.Second}
 }
 
 // NewUpstreamClient is the HTTP client used for every upstream: a total deadline per call,
@@ -130,12 +139,15 @@ func (j *JWKS) SigningKey(ctx context.Context, kid Value) (*SigningKey, KeyErr) 
 		}
 		k := matchKid(keys, kid)
 		if k == nil {
+			if !j.allowForcedRefetch() {
+				return res{nil, KeyUnknownKid}, nil
+			}
 			keys, e = j.signingKeys(ctx, true)
 			if e != KeyOK {
 				return res{nil, e}, nil
 			}
 			if k = matchKid(keys, kid); k == nil {
-				return res{nil, KeyClient}, nil
+				return res{nil, KeyUnknownKid}, nil
 			}
 		}
 		j.keys.Add(ck, k)
@@ -143,6 +155,19 @@ func (j *JWKS) SigningKey(ctx context.Context, kid Value) (*SigningKey, KeyErr) 
 	})
 	r := v.(res)
 	return r.k, r.e
+}
+
+// allowForcedRefetch claims the process-wide forced-refetch slot; false inside the window.
+// The slot is spent even if the fetch then fails, so a down Authelia is not hit per request.
+func (j *JWKS) allowForcedRefetch() bool {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	now := j.Now()
+	if !j.forcedAt.IsZero() && now.Sub(j.forcedAt) < j.RefetchEvery {
+		return false
+	}
+	j.forcedAt = now
+	return true
 }
 
 func matchKid(keys []*SigningKey, kid Value) *SigningKey {
