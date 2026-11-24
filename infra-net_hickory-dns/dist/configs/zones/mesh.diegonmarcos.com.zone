@@ -42,5 +42,7 @@ cloudy-c3-api  IN A  10.0.0.6
 cloudy-drive-git-proxy-api  IN A  10.0.0.4
 cloudy-ai-agents-api  IN A  10.0.0.6
 cloudy-browser-headless  IN A  10.0.0.6
+cloudy-ai-tokens-api  IN A  10.0.0.6
+tokens-api  IN A  10.0.0.6
 *    IN A    10.0.0.1
 *    IN AAAA fd0c:1d00::1
