@@ -109,25 +109,34 @@ func isMeshIP(ip string) bool {
 
 // ---- CORS (@fastify/cors, origin: true, credentials: true) ----
 
-// cors sets the response headers; it reports whether the request was a preflight that is now fully answered.
+// cors sets the response headers; it reports whether the request was an OPTIONS request that is now fully answered
+// (a valid preflight -> 204; an OPTIONS without Access-Control-Request-Method -> 400 text, like @fastify/cors).
 func (s *Server) cors(w http.ResponseWriter, r *http.Request) bool {
 	h := w.Header()
 	if origin := r.Header.Get("Origin"); origin != "" {
 		h.Set("Access-Control-Allow-Origin", origin)
 	}
-	h.Add("Vary", "Origin")
 	h.Set("Access-Control-Allow-Credentials", "true")
-	if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
-		h.Set("Access-Control-Allow-Methods", "GET, HEAD, PUT, PATCH, POST, DELETE")
-		if reqH := r.Header.Get("Access-Control-Request-Headers"); reqH != "" {
-			h.Set("Access-Control-Allow-Headers", reqH)
-			h.Add("Vary", "Access-Control-Request-Headers")
-		}
-		h.Set("Content-Length", "0")
-		w.WriteHeader(204)
+	if r.Method != http.MethodOptions {
+		h.Set("Vary", "Origin")
+		return false
+	}
+	if r.Header.Get("Access-Control-Request-Method") == "" {
+		h.Set("Vary", "Origin")
+		h.Set("Content-Type", "text/plain")
+		h.Set("Content-Length", "25")
+		w.WriteHeader(400)
+		_, _ = io.WriteString(w, "Invalid Preflight Request")
 		return true
 	}
-	return false
+	h.Set("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE")
+	if reqH := r.Header.Get("Access-Control-Request-Headers"); reqH != "" {
+		h.Set("Access-Control-Allow-Headers", reqH)
+	}
+	h.Set("Vary", "Origin, Access-Control-Request-Headers")
+	h.Set("Content-Length", "0")
+	w.WriteHeader(204)
+	return true
 }
 
 // ---- rate limit (@fastify/rate-limit): fixed window per client address ----
@@ -218,7 +227,7 @@ func (s *Server) readBody(r *http.Request) (parsedBody, int, string) {
 		}
 		v, perr := ojson.Parse(data)
 		if perr != nil {
-			return pb, 400, perr.Error()
+			return pb, 500, perr.Error()
 		}
 		pb.val = v
 		return pb, 0, ""
@@ -233,43 +242,52 @@ var analyticsPath = regexp.MustCompile(`^/analytics/([^/]+)(/.*)?$`)
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.EscapedPath()
-	// onRequest hooks, in registration order: CORS, then rate limit (both also run for the 404 handler).
+	// onRequest hook 1: CORS (also answers OPTIONS; runs for the 404 handler too).
 	if s.cors(w, r) {
-		return
-	}
-	if !s.rateLimit(w, r) {
 		return
 	}
 	method := r.Method
 	get := method == http.MethodGet || method == http.MethodHead
+	// Route lookup first: the rate-limit hook is attached to registered routes only, Fastify's 404 handler is not counted.
+	var handler func()
 	switch {
 	case path == "/health" && get:
-		s.sendJSON(w, r, 200, obj("status", "ok"))
+		handler = func() { s.sendJSON(w, r, 200, obj("status", "ok")) }
 	case path == "/ready" && get:
-		s.sendJSON(w, r, 200, obj("status", "ready"))
-	case strings.HasPrefix(path, "/superapp/config/") && get && !strings.Contains(path[len("/superapp/config/"):], "/"):
-		s.superapp(w, r, path[len("/superapp/config/"):])
+		handler = func() { s.sendJSON(w, r, 200, obj("status", "ready")) }
+	case strings.HasPrefix(path, "/superapp/config/") && get && !strings.Contains(path[len("/superapp/config/"):], "/") && len(path) > len("/superapp/config/"):
+		handler = func() { s.superapp(w, r, path[len("/superapp/config/"):]) }
 	case path == "/profile/connect/start" && method == http.MethodPost:
-		s.profileStart(w, r)
+		handler = func() { s.profileStart(w, r) }
 	case path == "/profile/connect/fetch" && method == http.MethodPost:
-		s.profileFetch(w, r)
+		handler = func() { s.profileFetch(w, r) }
 	case path == "/mail/http-to-smtp" && method == http.MethodPost:
-		// Bearer gate scoped to /mail/* only.
+		handler = func() { s.mail(w, r) }
+	default:
+		if m := analyticsPath.FindStringSubmatch(path); m != nil {
+			if _, ok := s.cfg.Backends[m[1]]; ok {
+				slug := m[1]
+				handler = func() { s.analytics(w, r, slug, strings.TrimPrefix(r.URL.RequestURI(), "/analytics/"+slug)) }
+			}
+		}
+	}
+	if handler == nil {
+		s.notFound(w, r)
+		return
+	}
+	// onRequest hook 2: rate limit.
+	if !s.rateLimit(w, r) {
+		return
+	}
+	// onRequest hook 3 (scoped to /mail/*): the Bearer gate.
+	if path == "/mail/http-to-smtp" {
 		ip := clientIP(r)
 		if !isMeshIP(ip) && r.Header.Get("X-Auth-User") == "" && r.Header.Get("Remote-User") == "" {
 			s.sendJSON(w, r, 401, obj("error", "Unauthorized — Bearer token required (verified by Caddy/introspect-proxy)"))
 			return
 		}
-		s.mail(w, r)
-	default:
-		if m := analyticsPath.FindStringSubmatch(path); m != nil {
-			if _, ok := s.cfg.Backends[m[1]]; ok {
-				s.analytics(w, r, m[1], strings.TrimPrefix(r.URL.RequestURI(), "/analytics/"+m[1]))
-				return
-			}
-		}
-		s.notFound(w, r)
 	}
+	handler()
 }
 
 // ---- superapp ----
@@ -288,7 +306,7 @@ func (s *Server) superapp(w http.ResponseWriter, r *http.Request, user string) {
 	for _, d := range s.cfg.SuperappDirs {
 		p := filepath.Join(d, file)
 		if b, err := os.ReadFile(p); err == nil {
-			s.send(w, r, 200, "application/json", []byte(ojson.ReplaceInvalidUTF8(b)))
+			s.send(w, r, 200, "application/json; charset=utf-8", []byte(ojson.ReplaceInvalidUTF8(b)))
 			return
 		}
 	}
@@ -334,7 +352,7 @@ func (s *Server) profileStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	timeout := time.Duration(s.cfg.Limits.RequestTimeoutMS) * time.Millisecond
-	err := SendRaw(s.cfg.Primary.Host, int(s.cfg.Primary.Port), s.cfg.Helo, pc.MailFrom, []string{pc.MailTo}, []byte(CodeMail(pc, issued.Code, user, time.Now())), timeout)
+	err := SendRaw(s.cfg.Primary.Host, int(s.cfg.Primary.Port), s.cfg.Helo, pc.MailFrom, ParseAddresses(pc.MailTo), []byte(CodeMail(pc, issued.Code, user, time.Now())), timeout)
 	if err != nil {
 		// A code nobody received must not stay live and block a retry behind the cooldown.
 		s.codes.Revoke(user)

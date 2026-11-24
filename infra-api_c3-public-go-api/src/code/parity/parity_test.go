@@ -116,7 +116,7 @@ func (f *fakeSMTP) serve(c net.Conn) {
 			}
 			rec.Data = data.String()
 			if len(rec.To) > 0 && strings.Contains(rec.To[0], "slow") {
-				time.Sleep(900 * time.Millisecond)
+				time.Sleep(1500 * time.Millisecond)
 			}
 			f.mu.Lock()
 			f.Msgs = append(f.Msgs, rec)
@@ -234,6 +234,7 @@ type spec struct {
 	Path    string
 	Headers map[string]string
 	Body    string
+	Loose   bool   // compare the status only (the body quotes the V8 JSON parser message, which varies by Node version)
 	XFF     string // client address (default: a fresh one per request so the rate limit never interferes)
 }
 
@@ -283,6 +284,9 @@ func do(t *testing.T, base string, s spec) rec {
 	r := rec{Status: res.StatusCode, Headers: map[string]string{}, Body: string(b)}
 	for _, h := range cmpHeaders {
 		if v := res.Header.Get(h); v != "" {
+			if h == "Content-Length" && res.StatusCode == 204 {
+				continue // net/http drops Content-Length on 204 (Node sends 0): semantically equal
+			}
 			if strings.HasPrefix(h, "X-Ratelimit-Reset") || h == "Retry-After" {
 				v = "<N>"
 			}
@@ -300,7 +304,7 @@ func requests() []spec {
 	b64 := func(s string) string { return strings.TrimRight(encodeB64([]byte(s)), "\n") }
 	rs := []spec{
 		{Path: "/health"}, {Method: "HEAD", Path: "/health"}, {Path: "/ready"}, {Method: "HEAD", Path: "/ready"}, {Path: "/health/"}, {Path: "/health?x=1"},
-		{Method: "POST", Path: "/health"}, {Method: "DELETE", Path: "/ready"}, {Path: "/nope"}, {Path: "/"}, {Path: "/c3-public-api/health"},
+		{Method: "POST", Path: "/health"}, {Method: "DELETE", Path: "/ready"}, {Method: "POST", Path: "/superapp/config/diego"}, {Method: "GET", Path: "/profile/connect/start"}, {Method: "GET", Path: "/analytics/matomo/x/y"}, {Path: "/nope"}, {Path: "/"}, {Path: "/c3-public-api/health"},
 		{Method: "OPTIONS", Path: "/health"},
 		{Method: "OPTIONS", Path: "/health", Headers: map[string]string{"Origin": "https://c3.diegonmarcos.com", "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "authorization,content-type"}},
 		{Method: "OPTIONS", Path: "/nope", Headers: map[string]string{"Origin": "https://c3.diegonmarcos.com", "Access-Control-Request-Method": "GET"}},
@@ -315,7 +319,7 @@ func requests() []spec {
 		{Method: "POST", Path: "/analytics/umami", Headers: j, Body: `{"type":"event","payload":{"url":"/"}}`},
 		{Method: "POST", Path: "/analytics/openobserve", Headers: j, Body: `[{"a":1}]`},
 		{Method: "POST", Path: "/analytics/openobserve", Headers: map[string]string{"Content-Type": "application/json", "Authorization": "Bearer caller"}, Body: `[{"a":2}]`},
-		{Method: "POST", Path: "/analytics/matomo", Headers: j, Body: `{bad json`},
+		{Method: "POST", Path: "/analytics/matomo", Headers: j, Body: `{bad json`, Loose: true},
 		{Method: "POST", Path: "/analytics/matomo", Headers: j, Body: strings.Repeat("x", 5000)},
 		{Method: "PUT", Path: "/analytics/umami", Headers: j, Body: `{"a":1}`},
 		{Method: "DELETE", Path: "/analytics/matomo"}, {Method: "HEAD", Path: "/analytics/matomo"},
@@ -340,7 +344,7 @@ func requests() []spec {
 		{Method: "POST", Path: "/mail/http-to-smtp", Headers: j, Body: `5`, XFF: mesh},
 		{Method: "POST", Path: "/mail/http-to-smtp", Headers: j, Body: `"` + strings.ReplaceAll(msg("j2"), "\r\n", `\r\n`) + `"`, XFF: mesh},
 		{Method: "POST", Path: "/mail/http-to-smtp", Headers: j, Body: ``, XFF: mesh},
-		{Method: "POST", Path: "/mail/http-to-smtp", Headers: j, Body: `{bad`, XFF: mesh},
+		{Method: "POST", Path: "/mail/http-to-smtp", Headers: j, Body: `{bad`, XFF: mesh, Loose: true},
 		{Method: "POST", Path: "/mail/http-to-smtp", XFF: mesh},
 		{Method: "POST", Path: "/mail/http-to-smtp", Headers: map[string]string{"Content-Type": "text/plain"}, Body: strings.Repeat("x", 5000), XFF: mesh},
 		{Method: "POST", Path: "/mail/http-to-smtp", Headers: map[string]string{"Content-Type": "message/rfc822"}, Body: strings.ReplaceAll(msg("m7"), "\r\n", "\n"), XFF: mesh},
@@ -445,7 +449,16 @@ func profileFlow(t *testing.T, label string, n, g *inst, diffs *int) {
 	check("fetch bad json", post(n, "/profile/connect/fetch", `{bad`, auth2).withoutBody(), post(g, "/profile/connect/fetch", `{bad`, auth2).withoutBody())
 }
 
-func (r rec) withoutBody() rec { r.Body = "<omitted>"; return r }
+func (r rec) withoutBody() rec {
+	r.Body = "<omitted>"
+	h := map[string]string{}
+	for k, v := range r.Headers {
+		h[k] = v
+	}
+	h["Content-Length"] = ""
+	r.Headers = h
+	return r
+}
 
 // normalise what legitimately differs between two runs of the same service: the one-time code, Date and the
 // timestamp-derived Message-ID of the profile mail.
@@ -540,6 +553,10 @@ func TestParity(t *testing.T) {
 		a := do(t, node.url, rs)
 		b := do(t, goI.url, rs)
 		total++
+		if rs.Loose {
+			a.Body, b.Body = "", ""
+			a.Headers["Content-Length"], b.Headers["Content-Length"] = "", ""
+		}
 		if !reflect.DeepEqual(a, b) {
 			diffs++
 			t.Errorf("request %d %s %s differs\n  node: %d %v %q\n  go:   %d %v %q", i, rs.Method, rs.Path, a.Status, a.Headers, trunc(a.Body), b.Status, b.Headers, trunc(b.Body))
@@ -547,7 +564,7 @@ func TestParity(t *testing.T) {
 	}
 	// rate limit: one client address, 62 requests to a rate-limited route; the 61st and 62nd are refused
 	for i := 0; i < 62; i++ {
-		rs := spec{Path: "/nope", XFF: "192.0.2.77"}
+		rs := spec{Path: "/superapp/config/nobody", XFF: "192.0.2.77"}
 		a := do(t, node.url, rs)
 		b := do(t, goI.url, rs)
 		total++
@@ -567,7 +584,7 @@ func TestParity(t *testing.T) {
 			t.Errorf("allow-listed %s from an exhausted client differs\n  node: %+v\n  go:   %+v", p, a, b)
 		}
 	}
-	time.Sleep(1200 * time.Millisecond) // let the slow SMTP session of the pending case finish on both sides
+	time.Sleep(2500 * time.Millisecond) // let the slow SMTP session of the pending case finish on both sides
 	rs := spec{Method: "POST", Path: "/mail/http-to-smtp", Headers: map[string]string{"Content-Type": "text/plain", "X-Original-To": "slow@diegonmarcos.com"}, Body: fmt.Sprintf("From: Sender <sender@example.org>\r\nTo: Rcpt <rcpt@diegonmarcos.com>\r\nMessage-ID: <s1@example.org>\r\n\r\nbody line\r\n.dot line\r\n"), XFF: "10.0.0.7"}
 	a, b := do(t, node.url, rs), do(t, goI.url, rs)
 	total++

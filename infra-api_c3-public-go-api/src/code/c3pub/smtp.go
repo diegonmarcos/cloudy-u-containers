@@ -48,7 +48,7 @@ func SendRaw(host string, port int, helo, from string, to []string, raw []byte, 
 				return resp, nil
 			}
 		}
-		return resp, fmt.Errorf("%s: %s", strings.SplitN(line+" ", " ", 2)[0], resp)
+		return resp, fmt.Errorf("%s", resp)
 	}
 	if _, err := cmd("", 220); err != nil {
 		return fmt.Errorf("greeting: %v", err)
@@ -105,4 +105,42 @@ func dotStuff(raw []byte) []byte {
 	}
 	out.WriteString(".\r\n")
 	return out.Bytes()
+}
+
+// ParseAddresses mirrors nodemailer's envelope handling: each entry may hold several comma-separated addresses, each either
+// bare or "Name <addr>"; empty parts are dropped.
+func ParseAddresses(entries ...string) []string {
+	var out []string
+	for _, e := range entries {
+		depth, quoted, start := 0, false, 0
+		parts := []string{}
+		for i := 0; i < len(e); i++ {
+			switch c := e[i]; {
+			case c == '"':
+				quoted = !quoted
+			case quoted:
+			case c == '<':
+				depth++
+			case c == '>' && depth > 0:
+				depth--
+			case c == ',' && depth == 0:
+				parts = append(parts, e[start:i])
+				start = i + 1
+			}
+		}
+		parts = append(parts, e[start:])
+		for _, p := range parts {
+			p = jsTrim(p)
+			if p == "" {
+				continue
+			}
+			if lt, gt := strings.LastIndex(p, "<"), strings.LastIndex(p, ">"); lt >= 0 && gt > lt {
+				p = jsTrim(p[lt+1 : gt])
+			}
+			if p != "" {
+				out = append(out, p)
+			}
+		}
+	}
+	return out
 }

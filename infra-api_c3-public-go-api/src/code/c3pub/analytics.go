@@ -30,15 +30,13 @@ func (s *Server) analytics(w http.ResponseWriter, r *http.Request, slug, rest st
 		s.errorHandler(w, r, 500, err.Error())
 		return
 	}
-	if rest == "" {
-		rest = ""
-	}
-	ref, err := url.Parse(rest)
+	// rewritePrefix "": the part of the request after the prefix is appended to the backend URL (which already carries
+	// the rewrite path), not resolved against it.
+	dest, err := url.Parse(strings.TrimRight(b.URL, "/") + rest)
 	if err != nil {
 		s.errorHandler(w, r, 500, err.Error())
 		return
 	}
-	dest := base.ResolveReference(ref)
 	var body io.Reader
 	ctype := r.Header.Get("Content-Type")
 	switch {
@@ -74,7 +72,7 @@ func (s *Server) analytics(w http.ResponseWriter, r *http.Request, slug, rest st
 	defer res.Body.Close()
 	h := w.Header()
 	for k, vs := range res.Header {
-		if hopByHop[k] || strings.EqualFold(k, "Content-Length") {
+		if hopByHop[k] && !(k == "Content-Length" && r.Method == http.MethodHead) {
 			continue
 		}
 		for _, v := range vs {

@@ -152,7 +152,7 @@ func (s *Server) mail(w http.ResponseWriter, r *http.Request) {
 	}
 	smtpTimeout := time.Duration(*s.cfg.Limits.SMTPTimeoutMS) * time.Millisecond
 	send := func() error {
-		return SendRaw(pick.Host, pick.Port, s.cfg.Helo, mailFrom, []string{mailTo}, raw, smtpTimeout)
+		return SendRaw(pick.Host, pick.Port, s.cfg.Helo, mailFrom, ParseAddresses(mailTo), raw, smtpTimeout)
 	}
 	res := s.ledger.Deliver(LedgerKey(pick.Name, msgID, mailTo), send, time.Duration(s.cfg.Limits.RequestTimeoutMS)*time.Millisecond)
 	switch res.State {

@@ -159,8 +159,8 @@ func TestMailHelpers(t *testing.T) {
 	if v, _ := extractAddress(msg, "From"); v != "a@x.org" {
 		t.Errorf("address: %q", v)
 	}
-	if v, ok := extractHeader(msg, "Message-ID"); !ok || v != "<f@x>" {
-		t.Errorf("empty first line then continuation: %q %v", v, ok)
+	if v, ok := extractHeader(msg, "Message-ID"); !ok || v != " <f@x>" {
+		t.Errorf("empty first line then continuation keeps the leading space (as the Node scan does): %q %v", v, ok)
 	}
 	if _, ok := extractHeader(msg, "Subject"); ok {
 		t.Error("an absent header is absent")
@@ -208,5 +208,19 @@ func TestIdentityAndConfig(t *testing.T) {
 	}
 	if _, err := LoadConfig(func(k string) string { return map[string]string{"BACKENDS_JSON": "{"}[k] }); err == nil {
 		t.Error("an invalid JSON env var is an error")
+	}
+}
+
+func TestParseAddresses(t *testing.T) {
+	for in, want := range map[string][]string{
+		"a@b.c":                     {"a@b.c"},
+		"x@y.org, z@y.org":          {"x@y.org", "z@y.org"},
+		`"Q, R" <q@r.org>, z@y.org`: {"q@r.org", "z@y.org"},
+		"Name <n@m.org>":            {"n@m.org"},
+		" , ":                       nil,
+	} {
+		if got := ParseAddresses(in); !reflect.DeepEqual(got, want) {
+			t.Errorf("ParseAddresses(%q) = %v, want %v", in, got, want)
+		}
 	}
 }
