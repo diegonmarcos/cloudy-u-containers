@@ -214,7 +214,7 @@ func mainRequests() []reqSpec {
 		reqSpec{Path: "/repos/..%2F..%2Fetc/cloud-infra/tarball", Tok: "good"},
 		reqSpec{Path: "/repos/diegonmarcos/..%2Fsecrets/tarball", Tok: "good"},
 		reqSpec{Path: "/repos/a%2Fb/cloud-infra/tarball", Tok: "good"},
-		reqSpec{Path: "/repos/%E0%A4%A/cloud-infra/tarball", Tok: "good"},
+		reqSpec{Path: "/repos/%FF/cloud-infra/tarball", Tok: "good"},
 		reqSpec{Path: "/repos/a/./b/tarball", Tok: "good"},
 		// feeds + cache behaviour
 		reqSpec{Path: "/repos/diegonmarcos/cloudy-t-infra/commits?per_page=2", Tok: "good"},

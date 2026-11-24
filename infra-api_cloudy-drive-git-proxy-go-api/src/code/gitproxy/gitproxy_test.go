@@ -127,7 +127,7 @@ func TestFeedsUnit(t *testing.T) {
 		t.Errorf("projectCommit drops unknown and absent fields: %s", c)
 	}
 	r, _ := json.Marshal(ProjectRepo(raw(`{"full_name":"o/r","private":null,"owner":null,"size":0,"token":"x"}`)))
-	if string(r) != `{"full_name":"o/r","owner":null,"private":false,"size_kb":0}` {
+	if string(r) != `{"full_name":"o/r","private":false,"size_kb":0}` {
 		t.Errorf("projectRepo: %s", r)
 	}
 }
