@@ -4,7 +4,7 @@
 # Shadow stage of ticket #1873: the Go port runs beside the Node c3bot-relay on the same host, on its own port, with its
 # own container name and its own (tmpfs) state. It is NOT in Caddy's path and no client dials it. SHADOW_EPHEMERAL=1:
 # random per-process bearer and webhook secret, bot token ignored, so it never reads the live relay's queue, never talks
-# to Telegram and never claims a lease on the live relay. No env_file, no secret mount.
+# to Telegram and never claims a lease on the live relay. No env_file, no secret mount. Port 3129 on the oci-apps WG IP.
 { buildJson, container }:
 
 let
