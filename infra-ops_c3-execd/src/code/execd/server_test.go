@@ -60,7 +60,7 @@ func TestServerPolicyAuthAudit(t *testing.T) {
 		t.Fatalf("bad json: %d", c)
 	}
 	a := log.String()
-	for _, want := range []string{"[c3-execd] [AUDIT]", "exec sh argc=2", "exec rm DENIED", "docker POST /containers/x/kill DENIED"} {
+	for _, want := range []string{"[c3-execd] [AUDIT]", "exec sh argc=2", "exec rm → DENIED", "docker POST /containers/x/kill → DENIED"} {
 		if !strings.Contains(a, want) {
 			t.Errorf("audit lacks %q:\n%s", want, a)
 		}
