@@ -36,5 +36,6 @@ sum_before="$(sha256sum "$T/broken/imapsql.db" | cut -d' ' -f1)"
 IMAPSQL_DB="$T/broken/imapsql.db" BLOB_DIR="$T/broken/blobs" "$BIN" integrity-check >/dev/null 2>&1
 [ "$sum_before" = "$(sha256sum "$T/broken/imapsql.db" | cut -d' ' -f1)" ] || { echo "DIFF: integrity-check modified the database"; fail=1; }
 # missing inputs
-IMAPSQL_DB="$T/none.db" BLOB_DIR="$T/broken/blobs" "$BIN" integrity-check 2>&1 | grep -q "imapsql DB not found" || { echo "DIFF: missing DB message"; fail=1; }
+missing_out="$(IMAPSQL_DB="$T/none.db" BLOB_DIR="$T/broken/blobs" "$BIN" integrity-check 2>&1 || true)"
+case "$missing_out" in *"imapsql DB not found"*) ;; *) echo "DIFF: missing DB message: $missing_out"; fail=1 ;; esac
 exit "$fail"
