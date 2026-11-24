@@ -51,6 +51,9 @@
   # networks that block 51820/udp). Phase 4 of collapse plan.
   servers {
     protocols h1 h2
+    trusted_proxies static 10.1.0.1/32 fd0c:1d01::1/128
+    client_ip_headers X-Forwarded-For
+    trusted_proxies_strict
     # PROXY protocol unwrap for the local caddy-l4 → :8443 hop. caddy-l4
     # owns :443 and pipes TLS to 127.0.0.1:8443 with `proxy_protocol v2`
     # prepended (caddyfile.nix @notmail fall-through). Without this wrapper
@@ -99,6 +102,21 @@
         }
         :443 {
 
+
+          # ── #1897 front edge PROXY v2 (real client address, front edge only) ──
+          @front_edge_pp {
+            remote_ip 10.1.0.1/32 fd0c:1d01::1/128
+            proxy_protocol
+          }
+          route @front_edge_pp {
+            proxy_protocol {
+              allow 10.1.0.1/32 fd0c:1d01::1/128
+            }
+            proxy {
+              proxy_protocol v2
+              upstream 127.0.0.1:8443
+            }
+          }
           # ── SNI mux (issue #294 pattern, flat) ─────────────────────────
           # IMAPS via SNI on :443 -> STALWART :2993 (2026-09-02). Maddy :993 (go-imap v1) advertises no CONDSTORE/QRESYNC/UIDPLUS, which forces clients into a full flag rescan of every synced folder each poll -- measured on-device: 9355 UID FLAGS fetches per 15-min pass, all night, phone dead at 04:49. Stalwart :2993 advertises CONDSTORE+QRESYNC+UIDPLUS+IMAP4rev2. The earlier objection to :2993 (IMAP clients see Stalwart's ENTIRE 1*-9* + A*-F* tree because JMAP and IMAP share one store) is mitigated by the subscription policy in mail-rules-profile-diego.json folder_options: only INBOX + the F* sender folders are subscribed, and clients honouring LSUB/subscriptions see the intended menu. Maddy keeps :25 inbound and its store stays intact for rollback: revert this upstream to oci-mail:993. (SNI: imap.diegonmarcos.com)
           @sni_imap_diegonmarcos_com tls sni imap.diegonmarcos.com
@@ -375,7 +393,7 @@
     (rate_limiting) {
     rate_limit {
       zone global {
-        key    {remote_host}
+        key    {client_ip}
         events 100
         window 1m
         match {
@@ -383,7 +401,7 @@
         }
       }
       zone backstop {
-        key    {remote_host}
+        key    {client_ip}
         events 6000
         window 1m
       }
@@ -393,7 +411,7 @@
     (rate_limiting_mcp) {
     rate_limit {
       zone mcp {
-        key    {remote_host}
+        key    {client_ip}
         events 600
         window 1m
         match {
@@ -401,7 +419,7 @@
         }
       }
       zone backstop {
-        key    {remote_host}
+        key    {client_ip}
         events 6000
         window 1m
       }
@@ -411,7 +429,7 @@
     (rate_limiting_jmap) {
     rate_limit {
       zone jmap {
-        key    {remote_host}
+        key    {client_ip}
         events 600
         window 1m
         match {
@@ -419,7 +437,7 @@
         }
       }
       zone backstop {
-        key    {remote_host}
+        key    {client_ip}
         events 6000
         window 1m
       }
@@ -612,7 +630,7 @@
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -637,7 +655,7 @@
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -678,7 +696,7 @@ forward_auth @ea_broker 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -712,7 +730,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -747,7 +765,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -830,7 +848,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -855,7 +873,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -897,7 +915,7 @@ forward_auth @ea_broker 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -932,7 +950,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -968,7 +986,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -1051,7 +1069,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -1076,7 +1094,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -1118,7 +1136,7 @@ forward_auth @ea_broker 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -1153,7 +1171,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
@@ -1189,7 +1207,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       handle_response @ea_denied {
         rate_limit {
           zone denied {
-            key    {remote_host}
+            key    {client_ip}
             events 100
             window 1m
           }
