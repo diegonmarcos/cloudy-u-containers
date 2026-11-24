@@ -126,7 +126,7 @@ route @m_smtps_diegonmarcos_com {
         match {
           path_regexp `(?i)\.(svg|png|jpe?g|gif|webp|avif|ico|css|js|mjs|map|woff2?|ttf|otf|json|webmanifest|mp4|webm)$`
         }
-        key    {remote_host}
+        key    {client_ip}
         events 3000
         window 1m
       }
@@ -134,7 +134,7 @@ route @m_smtps_diegonmarcos_com {
         match {
           not path_regexp `(?i)\.(svg|png|jpe?g|gif|webp|avif|ico|css|js|mjs|map|woff2?|ttf|otf|json|webmanifest|mp4|webm)$`
         }
-        key    {remote_host}
+        key    {client_ip}
         events 100
         window 1m
       }
