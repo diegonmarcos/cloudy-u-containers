@@ -1,4 +1,4 @@
-# compose.nix — pure attrset describing docker-compose.yml for cloudy-all-mcp-go.
+# compose.nix — pure attrset describing docker-compose.yml for cloudy-all-go-mcp.
 # engine.nix serialises it via lib.generators.toYAML, merging compose-defaults.json.
 #
 # Shadow stage of ticket #1874: the Go port of the fleet MCP router runs beside the TypeScript cloudy-all-mcp on the
@@ -15,7 +15,7 @@ let
 in
 {
   services = {
-    cloudy-all-mcp-go = {
+    cloudy-all-go-mcp = {
       image = "ghcr.io/diegonmarcos/${buildJson.name}-binaries:latest";
       container_name = app.container_name;
       network_mode = "host";

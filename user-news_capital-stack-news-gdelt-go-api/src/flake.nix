@@ -1,5 +1,5 @@
 {
-  description = "cloudy-all-mcp-go — Go port of the cloudy-all-mcp fleet MCP router, shadow stage (dist layout v2, Type A own code, #1874)";
+  description = "capital-stack-news-gdelt-go-api — Go port of the GDELT news aggregator, shadow stage (dist layout v2, Type A own code, #1882)";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
 
@@ -31,7 +31,7 @@
           baseImage = nb.base_image;
           apt       = nb.apt or "";
         };
-        title = "cloudy-all-mcp-go (shadow, v2)";
+        title = "capital-stack-news-gdelt-go-api (shadow, v2)";
       };
     });
   };

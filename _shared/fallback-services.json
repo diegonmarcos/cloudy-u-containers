@@ -156,6 +156,15 @@
       "bearer": true
     },
     {
+      "slug": "cloudy-all-go-mcp",
+      "dir": "infra-api_cloudy-all-go-mcp",
+      "description": "Go port of cloudy-all-mcp (fleet MCP router: list_servers, list_tools, call over stateless Streamable HTTP, mesh-first with public bearer fallback, 60 s tool cache), shadow stage: runs next to the TypeScript container on its own port and co",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
       "slug": "cloudy-all-mcp",
       "dir": "infra-api_cloudy-all-mcp",
       "description": "Fleet MCP router: list_servers, list_tools(server), call(server, tool, args)",
@@ -163,15 +172,6 @@
       "hosts": [],
       "signin": false,
       "bearer": true
-    },
-    {
-      "slug": "cloudy-all-mcp-go",
-      "dir": "infra-api_cloudy-all-mcp-go",
-      "description": "Go port of cloudy-all-mcp (fleet MCP router: list_servers, list_tools, call over stateless Streamable HTTP, mesh-first with public bearer fallback, 60 s tool cache), shadow stage: runs next to the TypeScript container on its own port and co",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
     },
     {
       "slug": "cloudy-apps-communication-mcp",
@@ -878,6 +878,15 @@
       "slug": "capital-stack-news-gdelt-api",
       "dir": "user-news_capital-stack-news-gdelt-api",
       "description": "GDELT News Aggregator — Fastify API with SQLite cache",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "capital-stack-news-gdelt-go-api",
+      "dir": "user-news_capital-stack-news-gdelt-go-api",
+      "description": "Go port of capital-stack-news-gdelt-api (GDELT news aggregator: fetch worker + SQLite cache + read API /news/articles /timeline /tone /topics), shadow stage: runs next to the Node container on its own port and its own cache, outside every r",
       "mesh": null,
       "hosts": [],
       "signin": false,

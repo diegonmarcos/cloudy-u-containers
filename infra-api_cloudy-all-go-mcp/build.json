@@ -1,5 +1,5 @@
 {
-  "name": "cloudy-all-mcp-go",
+  "name": "cloudy-all-go-mcp",
   "taxonomy": {
     "group": "Infra Apps",
     "category": "Ops-API-MCP"
@@ -12,14 +12,14 @@
   "category": "obs",
   "deploy": {
     "host": "oci-apps",
-    "remote_path": "/opt/containers/cloudy-all-mcp-go",
+    "remote_path": "/opt/containers/cloudy-all-go-mcp",
     "compose_flags": "--build"
   },
   "compose": {
     "custom": true
   },
   "docker": {
-    "image": "cloudy-all-mcp-go",
+    "image": "cloudy-all-go-mcp",
     "dockerfile": "Dockerfile",
     "registry": "ghcr.io/diegonmarcos",
     "arch": "arm64",
@@ -38,8 +38,8 @@
   },
   "containers": {
     "app": {
-      "container_name": "cloudy-all-mcp-go",
-      "image": "ghcr.io/diegonmarcos/cloudy-all-mcp-go:latest",
+      "container_name": "cloudy-all-go-mcp",
+      "image": "ghcr.io/diegonmarcos/cloudy-all-go-mcp:latest",
       "port": 3140,
       "port_env": "PORT",
       "public": false,

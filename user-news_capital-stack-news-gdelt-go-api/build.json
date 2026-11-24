@@ -1,0 +1,89 @@
+{
+  "name": "capital-stack-news-gdelt-go-api",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "Inboxes"
+  },
+  "description": "Go port of capital-stack-news-gdelt-api (GDELT news aggregator: fetch worker + SQLite cache + read API /news/articles /timeline /tone /topics), shadow stage: runs next to the Node container on its own port and its own cache, outside every request path (ticket #1882)",
+  "ports": {
+    "app": 3142
+  },
+  "bind_host": "10.0.0.6",
+  "category": "tools",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/capital-stack-news-gdelt-go-api",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "capital-stack-news-gdelt-go-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o gdelt-api ./cmd/gdelt-api",
+      "binary": "gdelt-api",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Same multi-stage template as c3bot-relay-go (#1873): compiled in golang on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static nonroot."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "capital-stack-news-gdelt-go-api",
+      "image": "ghcr.io/diegonmarcos/capital-stack-news-gdelt-go-api:latest",
+      "port": 3142,
+      "port_env": "PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "128M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/news",
+    "endpoint_count": 5,
+    "display_name": "GDELT News Aggregator (Go, shadow)",
+    "description": "Same contract as capital-stack-news-gdelt-api: GET /health, /news/articles, /news/timeline, /news/tone, /news/topics.",
+    "auth": "none"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -timeout 8m -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the Node service (user-news_capital-stack-news-gdelt-api/src/code/server.ts under node 22 with better-sqlite3) and the Go port, both fed by one fake GDELT upstream; 26 requests (limit clamps, on-demand fetch, total and partial upstream failure, 404 envelope, OPTIONS, POST) must give identical status, CORS headers and raw bodies."
+    },
+    "parity-mutation": {
+      "cmd": "o=$(mktemp); PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 8m -tags parity -run TestParity ./parity/ >\"$o\" 2>&1; grep -q 'requests differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the Go port is fed a skewed upstream; the harness must report differing requests (the grep passes only then, not on a build error)."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1882). The live Node news-gdelt (container capital-stack-news-gdelt-api, port 3019, volume news-gdelt_news_gdelt_cache) is untouched. This container has no env_file and no secret, caches on its own tmpfs and binds the oci-apps WG IP only. Two quirks of the Node service are reproduced on purpose for parity and listed for a follow-up: the freshness check reads row.fetchedAt (the column is fetched_at) so every on-demand request refetches upstream, and /news/topics therefore omits lastFetch for cached topics. Switch-over (Caddy route, mesh name) is a separate step after the live comparison."
+}

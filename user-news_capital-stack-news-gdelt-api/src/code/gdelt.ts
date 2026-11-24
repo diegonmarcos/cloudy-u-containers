@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { join } from "node:path";
-const GDELT_BASE = "https://api.gdeltproject.org/api/v2/doc/doc";
+// GDELT_BASE: test hook (the Go port parity harness points it at a fake upstream); unset = the real API.
+const GDELT_BASE = process.env.GDELT_BASE || "https://api.gdeltproject.org/api/v2/doc/doc";
 const DEFAULT_TOPICS = [
     { topic: "economy", label: "Economy" },
     { topic: "technology", label: "Technology" },

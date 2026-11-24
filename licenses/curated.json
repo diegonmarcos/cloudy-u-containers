@@ -397,7 +397,10 @@
   "user-ai_antigravity": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
-  "infra-api_cloudy-all-mcp-go": {
+  "user-news_capital-stack-news-gdelt-go-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloudy-all-go-mcp": {
    "licence": "LicenseRef-NoLicenseGranted"
   }
  },
@@ -700,7 +703,7 @@
   },
   "golang.org/x/sys": {
    "licence": "BSD-3-Clause",
-   "note": "LICENSE in the module (v0.28.0); used unmodified as a library."
+   "note": "LICENSE in the module (v0.41.0); used unmodified as a library."
   },
   "github.com/modelcontextprotocol/go-sdk": {
    "licence": "Apache-2.0 AND MIT",
@@ -726,13 +729,49 @@
    "licence": "BSD-3-Clause",
    "note": "LICENSE in the module (v0.35.0); used unmodified as a library."
   },
-  "golang.org/x/sys": {
-   "licence": "BSD-3-Clause",
-   "note": "LICENSE in the module (v0.41.0); used unmodified as a library."
-  },
   "golang.org/x/time": {
    "licence": "BSD-3-Clause",
    "note": "LICENSE in the module (v0.15.0); used unmodified as a library."
+  },
+  "github.com/dustin/go-humanize": {
+   "licence": "MIT",
+   "note": "LICENSE in the module (v1.0.1); used unmodified as a library."
+  },
+  "github.com/google/uuid": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v1.6.0); used unmodified as a library."
+  },
+  "github.com/mattn/go-isatty": {
+   "licence": "MIT",
+   "note": "LICENSE in the module (v0.0.20); used unmodified as a library."
+  },
+  "github.com/ncruces/go-strftime": {
+   "licence": "MIT",
+   "note": "LICENSE in the module (v0.1.9); used unmodified as a library."
+  },
+  "github.com/remyoudompheng/bigfft": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v0.0.0-20230129092748); used unmodified as a library."
+  },
+  "golang.org/x/exp": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v0.0.0-20250620); used unmodified as a library."
+  },
+  "modernc.org/libc": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v1.66.10); used unmodified as a library."
+  },
+  "modernc.org/mathutil": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v1.7.1); used unmodified as a library."
+  },
+  "modernc.org/memory": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v1.11.0); used unmodified as a library."
+  },
+  "modernc.org/sqlite": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v1.40.1); used unmodified as a library."
   }
  },
  "pypi_licences": {
