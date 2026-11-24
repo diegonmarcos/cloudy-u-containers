@@ -178,15 +178,84 @@ func post(base, body string) string {
 	}
 	var v any
 	if err := json.Unmarshal([]byte(payload), &v); err != nil {
+		if strings.Contains(payload, "not handled") && resp.StatusCode == 400 {
+			return "unknown-method-rejected" // Go SDK: HTTP 400 text; TS SDK: 200 + JSON-RPC -32601 (see normalise)
+		}
 		return fmt.Sprintf("%d|not-json:%q", resp.StatusCode, payload)
 	}
-	return fmt.Sprintf("%d|%s", resp.StatusCode, canon(v))
+	nv := sdkNeutral(v)
+	if tok, ok := nv.(string); ok {
+		return tok
+	}
+	return fmt.Sprintf("%d|%s", resp.StatusCode, canon(nv))
+}
+
+// sdkNeutral removes what the two MCP SDKs add on their own and no client depends on, so that everything the
+// router itself decides is compared byte for byte:
+//   - tools/list: the TS SDK adds execution.taskSupport per tool and lists tools in registration order, the Go SDK
+//     adds result.cacheScope and lists them sorted: tools are compared sorted by name without those fields;
+//   - tool results: `_meta` and `resultType` come from the (Go SDK) child at the newest protocol version and are
+//     dropped by the TS client;
+//   - the text of a list_tools result embeds the child's inputSchema, whose key order the Go side cannot keep
+//     (JSON maps): that text is compared as canonical JSON;
+//   - a JSON-RPC -32601 reply to an unknown method (TS: HTTP 200, Go: HTTP 400 text).
+func sdkNeutral(v any) any {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return v
+	}
+	if e, ok := m["error"].(map[string]any); ok && e["code"] == float64(-32601) {
+		return "unknown-method-rejected"
+	}
+	r, ok := m["result"].(map[string]any)
+	if !ok {
+		return v
+	}
+	delete(r, "cacheScope")
+	delete(r, "_meta")
+	delete(r, "resultType")
+	if tools, ok := r["tools"].([]any); ok {
+		for _, t := range tools {
+			if tm, ok := t.(map[string]any); ok {
+				delete(tm, "execution")
+			}
+		}
+		sort.Slice(tools, func(i, j int) bool {
+			return fmt.Sprint(tools[i].(map[string]any)["name"]) < fmt.Sprint(tools[j].(map[string]any)["name"])
+		})
+	}
+	if cs, ok := r["content"].([]any); ok {
+		for _, c := range cs {
+			cm, ok := c.(map[string]any)
+			if !ok {
+				continue
+			}
+			if txt, ok := cm["text"].(string); ok && strings.Contains(txt, `"inputSchema"`) {
+				var inner any
+				if json.Unmarshal([]byte(txt), &inner) == nil {
+					cm["text"] = canon(inner)
+				}
+			}
+		}
+	}
+	return v
 }
 
 // canon renders JSON with sorted keys (Go maps) so key order, which differs legitimately, is not compared.
 func canon(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)
+}
+
+// noSessionStream: a stateless router has no session to stream or to delete. The TS SDK answers GET with 200 and an
+// idle event stream and DELETE with 200; the Go SDK answers both 405 Method Not Allowed (the spec's reply for a server
+// without a standalone stream). Anything else is reported as is.
+func noSessionStream(r string) string {
+	st, _, _ := strings.Cut(r, "|")
+	if st == "200" || st == "405" || strings.HasPrefix(r, "no response") {
+		return "no-session-stream"
+	}
+	return r
 }
 
 func rpc(id int, method string, params any) string {
@@ -297,14 +366,8 @@ func steps() []step {
 		ss = append(ss, step{c.name, func(b string) string { return normalise(post(b, c.body)) }})
 	}
 	ss = append(ss,
-		step{"GET-mcp", func(b string) string {
-			s, _, _ := strings.Cut(get(b, "/mcp", "GET"), "|")
-			return s
-		}},
-		step{"DELETE-mcp", func(b string) string {
-			s, _, _ := strings.Cut(get(b, "/mcp", "DELETE"), "|")
-			return s
-		}},
+		step{"GET-mcp", func(b string) string { return noSessionStream(get(b, "/mcp", "GET")) }},
+		step{"DELETE-mcp", func(b string) string { return noSessionStream(get(b, "/mcp", "DELETE")) }},
 	)
 	return ss
 }
