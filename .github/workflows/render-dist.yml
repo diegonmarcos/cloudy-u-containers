@@ -38,6 +38,10 @@ on:
         description: "Set by the courier: the pushed commit it did not ship"
         required: false
         default: ""
+      courier:
+        description: "false = render and commit only; do NOT dispatch the courier (no Ship). For a change held for an explicit, approved Ship (#1886: auth-plane hardening). Ignored on courier-chained runs."
+        required: false
+        default: "true"
 
 permissions:
   contents: write
@@ -186,7 +190,8 @@ jobs:
       # could not finish the render, hand back the source commit anyway, exactly what the courier would
       # have shipped before 2026-11-18: the change is announced and Ship's drift guard decides.
       - name: Dispatch the courier (dispatch-cloud-infra) at the commit whose dist matches src
-        if: ${{ !cancelled() && steps.validate.outcome == 'success' && (success() || env.COURIER_BEFORE != '') }}
+        # courier=false (manual runs only) stops here: the render is committed, nothing ships (#1886).
+        if: ${{ !cancelled() && steps.validate.outcome == 'success' && (inputs.courier != 'false' || env.COURIER_BEFORE != '') && (success() || env.COURIER_BEFORE != '') }}
         working-directory: infra/a_solutions
         env:
           GH_TOKEN: ${{ github.token }}
