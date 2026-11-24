@@ -65,9 +65,36 @@ admin_curl() {
     "$(printf '%s' "$GITEA_ADMIN_PASSWORD" | sed 's/[\\"]/\\&/g')" | curl -K - "$@"
 }
 admin_auth_code() { admin_curl -s -o /dev/null -w '%{http_code}' "$API/user"; }
+# The gate (gitea-gate, host network, :@PORT_HTTP@) starts as soon as the gitea
+# container has STARTED, but gitea only creates its unix socket after its
+# migrations finish. Until then the gate answers 502 (dial unix ... no such
+# file), which the post-hook read as "admin password rejected" and then, after
+# a successful change-password, as "still rejected (HTTP 502)". Wait for the
+# gate to proxy a 200 from gitea's own health route before any API call.
+wait_ready() {
+  local tries=0 max="${INIT_MIRRORS_READY_TRIES:-80}" step="${INIT_MIRRORS_READY_STEP:-3}" code=000
+  while :; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:@PORT_HTTP@/api/healthz" 2>/dev/null) || code=000
+    [ "$code" = 200 ] && return 0
+    tries=$((tries + 1))
+    if [ "$tries" -ge "$max" ]; then
+      echo "[init-mirrors] FAILED: gitea not ready via the gate after $max polls, ${step}s apart (last HTTP $code on /api/healthz)" >&2
+      return 1
+    fi
+    sleep "$step"
+  done
+}
 # gitea refuses to run its CLI as root (mustNotRunAsRoot), which is what a bare
 # `docker exec` is, so every CLI call runs as the image's `git` user.
 gitea_user() { docker exec -u git "$CONTAINER" gitea admin user "$@"; }
+# The password never rides on argv: `docker exec -e NAME` (no value) forwards it
+# from this script's environment, and the shell INSIDE the container expands it
+# (same pattern as the OIDC secret below).
+gitea_user_pw() {
+  local sub="$1"; shift
+  docker exec -u git -e GITEA_ADMIN_PASSWORD "$CONTAINER" sh -c \
+    'sub="$1"; shift; exec gitea admin user "$sub" --password="$GITEA_ADMIN_PASSWORD" "$@"' sh "$sub" "$@"
+}
 
 # Step 1: Converge the admin user to the declared credential (idempotent)
 # The create used to run as root and pipe through `grep -v "already exists" ||
@@ -78,9 +105,10 @@ gitea_user() { docker exec -u git "$CONTAINER" gitea admin user "$@"; }
 # rotation is a sops edit plus a ship, and a ship cannot go green while
 # declared != live.
 echo "-- Converging admin user --"
-if ! out=$(gitea_user create \
+wait_ready || exit 1
+export GITEA_ADMIN_PASSWORD
+if ! out=$(gitea_user_pw create \
     --username "${GITEA_ADMIN_USER}" \
-    --password "${GITEA_ADMIN_PASSWORD}" \
     --email "${GITEA_ADMIN_EMAIL}" \
     --admin \
     --must-change-password=false 2>&1); then
@@ -93,9 +121,8 @@ if [ "$(admin_auth_code)" = 200 ]; then
   echo "  admin password matches the declared value"
 else
   echo "  admin password differs from the declared value -- applying it"
-  if ! gitea_user change-password \
+  if ! gitea_user_pw change-password \
       --username "${GITEA_ADMIN_USER}" \
-      --password "${GITEA_ADMIN_PASSWORD}" \
       --must-change-password=false >/dev/null 2>&1; then
     echo "[init-mirrors] FAILED: gitea admin user change-password exited non-zero" >&2
     exit 1
