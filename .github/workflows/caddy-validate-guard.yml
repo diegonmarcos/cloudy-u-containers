@@ -8,6 +8,9 @@ name: caddy validate guard (plugin build)
 # plugins), so the public-edge Caddyfile (infra-sec_caddy-public dist + render) is validated here too, and
 # test-real-client-ip.sh proves at runtime that the hub believes a PROXY header / X-Forwarded-For only from
 # the front edge -- run it green before an infra-sec_caddy or infra-sec_caddy-public Ship.
+# #1897 incident: test-two-caddy-chain.sh runs BOTH committed Caddyfiles as the real chain (front edge layer4 passthrough
+# -> hub layer4 :443 -> hub :8443) in network namespaces, with the built binary and the live image binaries; it must be
+# red on the incident pair (hub ab0d1a95 + edge 9004ff89) and green on main.
 on:
   push:
     branches: [main]
@@ -19,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   validate:
@@ -67,3 +71,42 @@ jobs:
           MULTI_SSO_JSON_DIR: ${{ github.workspace }}/_cloud-infra/1_cloud-configs/dist
           ALLOW_STALE_DIST: ${{ github.event_name == 'push' && '1' || '0' }}
         run: CADDY="$RUNNER_TEMP/caddy" GEO_DB_FILE="$RUNNER_TEMP/country.mmdb" bash infra-sec_caddy/src/test/test-real-client-ip.sh
+      - name: Live image binaries (the hub's pinned image, the edge's image) for the chain test
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for s in hub:infra-sec_caddy edge:infra-sec_caddy-public; do
+            who="${s%%:*}"; img="$(grep '^{' "${s#*:}/dist/compose/docker-compose.yml" | jq -r '.services[].image')"
+            docker pull -q "$img"; docker create --name "c2c-$who" "$img" >/dev/null
+            docker cp "c2c-$who:/usr/bin/caddy" "$RUNNER_TEMP/caddy-$who-live"; docker rm "c2c-$who" >/dev/null
+            echo "$who image $img = $(docker image inspect --format '{{index .RepoDigests 0}} created {{.Created}}' "$img")"
+            "$RUNNER_TEMP/caddy-$who-live" build-info | grep -E '^(go|path|mod|dep\s+github.com/(mholt/caddy-l4|caddyserver/caddy/v2|pires/go-proxyproto|mastercactapus))'
+          done
+      - name: Two-Caddy chain (#1897 incident) - red on the incident pair (hub ab0d1a95 + edge 9004ff89), green on main
+        if: ${{ !cancelled() }}
+        env:
+          GEO_DB_FILE: ${{ runner.temp }}/country.mmdb
+        run: |
+          set -u
+          git fetch -q --depth 1 origin ab0d1a9514b2de7026b0cdbd8c696650d1c21574 9004ff89710b3f634db3a7b0f11d3f16be05e01f
+          git show ab0d1a9514b2de7026b0cdbd8c696650d1c21574:infra-sec_caddy/dist/configs/Caddyfile > "$RUNNER_TEMP/hub-incident.caddy"
+          git show 9004ff89710b3f634db3a7b0f11d3f16be05e01f:infra-sec_caddy-public/dist/configs/Caddyfile > "$RUNNER_TEMP/edge-incident.caddy"
+          T=infra-sec_caddy/src/test/test-two-caddy-chain.sh; rc=0
+          sets="built:$RUNNER_TEMP/caddy:$RUNNER_TEMP/caddy"
+          [ -x "$RUNNER_TEMP/caddy-hub-live" ] && [ -x "$RUNNER_TEMP/caddy-edge-live" ] && sets="$sets live:$RUNNER_TEMP/caddy-hub-live:$RUNNER_TEMP/caddy-edge-live"
+          for s in $sets; do
+            IFS=: read -r name hb eb <<< "$s"
+            echo "::group::[$name] incident pair (must be red: passthrough TLS fails)"
+            CADDY_HUB="$hb" CADDY_EDGE="$eb" HUB_CADDYFILE="$RUNNER_TEMP/hub-incident.caddy" EDGE_CADDYFILE="$RUNNER_TEMP/edge-incident.caddy" bash "$T" > "$RUNNER_TEMP/inc.log" 2>&1; irc=$?
+            cat "$RUNNER_TEMP/inc.log"; echo "::endgroup::"
+            if [ "$irc" -ne 0 ] && grep -q '^RESULT: passthrough-tls-failed' "$RUNNER_TEMP/inc.log"; then echo "ok: [$name] the incident pair is red (passthrough TLS fails), as live on 2026-11-24"
+            else echo "FAIL: [$name] the incident pair did not reproduce the passthrough TLS failure (rc $irc)"; rc=1; fi
+            echo "::group::[$name] committed dists (must be green)"
+            CADDY_HUB="$hb" CADDY_EDGE="$eb" bash "$T"; mrc=$?; echo "::endgroup::"
+            if [ "$mrc" -eq 0 ]; then echo "ok: [$name] committed dists pass the chain"; else echo "FAIL: [$name] committed dists fail the chain"; rc=1; fi
+          done
+          exit $rc
