@@ -193,7 +193,7 @@ func post(base, body string) string {
 // sdkNeutral removes what the two MCP SDKs add on their own and no client depends on, so that everything the
 // router itself decides is compared byte for byte:
 //   - tools/list: the TS SDK adds execution.taskSupport per tool and lists tools in registration order, the Go SDK
-//     adds result.cacheScope and lists them sorted: tools are compared sorted by name without those fields;
+//     adds result.cacheScope/ttlMs and lists them sorted: tools are compared sorted by name without those fields;
 //   - tool results: `_meta` and `resultType` come from the (Go SDK) child at the newest protocol version and are
 //     dropped by the TS client;
 //   - the text of a list_tools result embeds the child's inputSchema, whose key order the Go side cannot keep
@@ -212,6 +212,7 @@ func sdkNeutral(v any) any {
 		return v
 	}
 	delete(r, "cacheScope")
+	delete(r, "ttlMs")
 	delete(r, "_meta")
 	delete(r, "resultType")
 	if tools, ok := r["tools"].([]any); ok {
