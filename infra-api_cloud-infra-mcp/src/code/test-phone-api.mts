@@ -1,7 +1,7 @@
 // Tests the phone mesh-endpoint client (#1490): mesh-only base URL, bearer handling, request paths, error mapping.
 // Run: npx tsx test-phone-api.mts   (no network, no SDK: the fetch is a stub)
 import assert from "node:assert/strict";
-import { phoneBase, appName, logsPath, phoneGet, phoneToken, defaultPhoneUrl, type FetchLike, type PhoneEnv } from "./mcp/tools/phone-api-core.ts";
+import { phoneBase, appName, logsPath, legacyLogsPath, phoneLogsGet, phoneGet, phoneToken, defaultPhoneUrl, type FetchLike, type PhoneEnv } from "./mcp/tools/phone-api-core.ts";
 
 let n = 0;
 const t = async (name: string, fn: () => Promise<void> | void) => { await fn(); n++; console.log(`ok - ${name}`); };
@@ -85,6 +85,26 @@ await t("with no PHONE_MESH_URL the phone origin comes from the peer registry, p
   assert.equal(defaultPhoneUrl(peers, "termux"), "http://10.0.0.9:8004");
   assert.equal(defaultPhoneUrl([peers[0]]), undefined);
   assert.equal(phoneBase({ PHONE_MESH_URL: defaultPhoneUrl(peers) }).ok, true);
+});
+
+await t("phone logs (#1580): /ipc/<app>/logs is tried first; the legacy /logs/<app> only after a 404", async () => {
+  const calls: string[] = [];
+  const f = (codes: number[]): FetchLike => async (url) => { calls.push(new URL(url).pathname + new URL(url).search); const c = codes[calls.length - 1] ?? 200; return { status: c, ok: c < 300, text: async () => `body${c}` }; };
+  const e = env();
+  assert.deepEqual(legacyLogsPath({ app: "calc", n: 5, errors: true }), { ok: true, value: "/logs/calc?n=5&errors=1" });
+  // 200 on the first call: exactly one request, to /ipc
+  let r = await phoneLogsGet({ app: "calc" }, e, f([200]));
+  assert.deepEqual(calls, ["/ipc/calc/logs"]); assert.deepEqual(r, { ok: true, value: "body200" });
+  // 404 then 200: /ipc first, then /logs, the answer of the fallback
+  calls.length = 0; r = await phoneLogsGet({ app: "calc", n: 7 }, e, f([404, 200]));
+  assert.deepEqual(calls, ["/ipc/calc/logs?n=7", "/logs/calc?n=7"]); assert.deepEqual(r, { ok: true, value: "body200" });
+  // 404 on both: the fallback's error is returned
+  calls.length = 0; r = await phoneLogsGet({ app: "calc" }, e, f([404, 404]));
+  assert.equal(calls.length, 2); assert.equal(r.ok, false);
+  // other failures never fall back
+  for (const code of [401, 502, 503, 500]) { calls.length = 0; r = await phoneLogsGet({ app: "calc" }, e, f([code])); assert.deepEqual(calls, ["/ipc/calc/logs"], String(code)); assert.equal(r.ok, false); }
+  // invalid app: no request at all
+  calls.length = 0; r = await phoneLogsGet({ app: "../x" }, e, f([200])); assert.equal(calls.length, 0); assert.equal(r.ok, false);
 });
 
 console.log(`${n} tests passed`);

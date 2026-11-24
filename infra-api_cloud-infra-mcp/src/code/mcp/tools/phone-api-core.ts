@@ -75,6 +75,12 @@ export function logsPath(p: LogsParams): Result<string> {
   return { ok: true, value: `/ipc/${encodeURIComponent(a.value)}/logs${qs ? `?${qs}` : ""}` };
 }
 
+/** The legacy `/logs/<app>` route (same query as logsPath). Kept as the fallback while the phone still serves it; never removed (#1580). */
+export function legacyLogsPath(p: LogsParams): Result<string> {
+  const r = logsPath(p);
+  return r.ok ? { ok: true, value: r.value.replace(/^\/ipc\/(.+?)\/logs/, "/logs/$1") } : r;
+}
+
 export type FetchLike = (url: string, init: { headers: Record<string, string>; signal: AbortSignal }) => Promise<{ status: number; ok: boolean; text(): Promise<string> }>;
 
 /** GET one path of the phone's mesh endpoint with the fleet bearer. Returns the body text, or an error that never contains the token. */
@@ -93,4 +99,15 @@ export async function phoneGet(path: string, env: PhoneEnv, fetchImpl: FetchLike
   } catch (e) {
     return { ok: false, error: `the phone's mesh endpoint did not answer: ${redact(String((e as Error)?.message ?? e))}` };
   }
+}
+
+/** Phone app logs (#1580): `/ipc/<app>/logs` first; only on HTTP 404 (the phone build has no /ipc gateway yet) fall back to the legacy `/logs/<app>`. Any other failure is returned as is, so a 502/401 never triggers a second call. */
+export async function phoneLogsGet(p: LogsParams, env: PhoneEnv, fetchImpl: FetchLike = fetch as unknown as FetchLike, timeoutMs = 15_000): Promise<Result<string>> {
+  const primary = logsPath(p);
+  if (!primary.ok) return primary;
+  const first = await phoneGet(primary.value, env, fetchImpl, timeoutMs);
+  if (first.ok || !/^HTTP 404\b/.test(first.error)) return first;
+  const legacy = legacyLogsPath(p);
+  if (!legacy.ok) return first;
+  return phoneGet(legacy.value, env, fetchImpl, timeoutMs);
 }

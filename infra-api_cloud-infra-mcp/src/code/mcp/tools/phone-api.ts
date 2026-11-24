@@ -1,12 +1,12 @@
 // cloudy-c3-mcp: the phone's Cloud-Webserver API page as three obs.debug methods (#1490):
 //   obs.debug.phone_public   public endpoints        -> GET /endpoints/public
 //   obs.debug.phone_mesh     mesh endpoints          -> GET /endpoints/mesh
-//   obs.debug.phone_logs     apps logs, `<app>`      -> GET /ipc/<app>/logs  (the Cloud-Webserver mesh gateway, #1580)
+//   obs.debug.phone_logs     apps logs, `<app>`      -> GET /ipc/<app>/logs first, GET /logs/<app> on 404 (the Cloud-Webserver mesh gateway, #1580)
 // All three go over the mesh with the fleet bearer (phone-api-core.ts); nothing is reached publicly.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { LOG_METHODS, logsPath, phoneGet, defaultPhoneUrl } from "./phone-api-core.js";
+import { LOG_METHODS, phoneLogsGet, phoneGet, defaultPhoneUrl } from "./phone-api-core.js";
 import { meshPeers } from "./mesh-peers.js";
 
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
@@ -49,8 +49,8 @@ export function registerPhoneApiTools(server: McpServer, env: NodeJS.ProcessEnv 
       method: z.enum(LOG_METHODS).optional().describe("export (default: logcat + crashes) | logs | crashes | meta"),
     },
     async (p: { app: string; n?: number; errors?: boolean; crashes?: number; method?: (typeof LOG_METHODS)[number] }) => {
-      const path = logsPath(p);
-      return path.ok ? get(path.value) : errText(path.error);
+      const r = await phoneLogsGet(p, { ...env, PHONE_MESH_URL: meshUrl() });
+      return r.ok ? text(r.value) : errText(r.error);
     },
   );
 }
