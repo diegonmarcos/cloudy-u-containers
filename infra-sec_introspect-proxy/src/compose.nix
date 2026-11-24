@@ -68,6 +68,10 @@ in
         # TOKENS_VERIFY_SECRET arrives through the env_file (src/secrets.yaml).
         TOKENS_VERIFY_URL = "http://tokens-api.mesh.diegonmarcos.com:4184/v1/verify";
         TOKENS_CACHE_TTL  = "30";
+        # Shadow stage (#1872/#1877): every /auth decision is replayed, log only, to the Go port
+        # (infra-sec_introspect-proxy-go, :4186) and compared; GET /shadow-stats shows match/mismatch.
+        # Switch-over to Go only when mismatch stays 0 over real traffic. Remove this line to turn it off.
+        SHADOW_MIRROR_URL = "http://10.0.0.1:4186";
       };
       healthcheck = {
         # Hit the actual bind address (host network + wg0-only bind = no localhost

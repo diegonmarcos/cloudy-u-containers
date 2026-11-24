@@ -17,6 +17,7 @@ Architecture:
 import os
 import time
 import logging
+import threading
 import jwt
 from flask import Flask, request, Response
 from jwt import PyJWKClient
@@ -322,6 +323,78 @@ def auth():
     response.headers["X-Auth-Subject"] = subject
     response.headers["X-Auth-Email"] = client_id
     return response
+
+
+# ── Shadow mirror (#1872, #1877): decisions replayed to the Go port, log only ──────────
+# SHADOW_MIRROR_URL unset (default) = nothing below runs and /auth behaves exactly as
+# before. When set (e.g. http://10.0.0.1:4186), after /auth has answered the caller, the same
+# Authorization + X-Forwarded-Host are replayed to the Go port in a background thread and the
+# two decisions (status, body, X-Auth-* headers) are compared. The live answer is never
+# touched, a slow or dead Go port costs nothing (bounded threads, short timeout), and only
+# a short sha256 of the token is logged, never the token. Counters: GET /shadow-stats.
+SHADOW_MIRROR_URL = os.environ.get("SHADOW_MIRROR_URL", "")
+SHADOW_MIRROR_TIMEOUT = float(os.environ.get("SHADOW_MIRROR_TIMEOUT", "5"))
+_shadow_sem = threading.BoundedSemaphore(int(os.environ.get("SHADOW_MIRROR_MAX_INFLIGHT", "8")))
+_shadow_stats = {"match": 0, "mismatch": 0, "dropped": 0, "mirror_error": 0}
+_shadow_lock = threading.Lock()
+_SHADOW_HEADERS = ("X-Auth-User", "X-Auth-Subject", "X-Auth-Email", "X-Auth-Client", "X-Auth-Scopes")
+
+
+def _shadow_bump(name):
+    with _shadow_lock:
+        _shadow_stats[name] += 1
+
+
+def _shadow_compare(fwd, status, body, hdrs, tag):
+    import urllib.error
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(SHADOW_MIRROR_URL.rstrip("/") + "/auth", headers=fwd, method="GET")
+        try:
+            with urllib.request.urlopen(req, timeout=SHADOW_MIRROR_TIMEOUT) as r:
+                g_status, g_body, g_hdrs = r.status, r.read(), r.headers
+        except urllib.error.HTTPError as e:
+            g_status, g_body, g_hdrs = e.code, e.read(), e.headers
+    except Exception as e:
+        _shadow_bump("mirror_error")
+        logger.error(f"shadow-mirror error {tag}: {type(e).__name__}")
+        return
+    finally:
+        _shadow_sem.release()
+    same = g_status == status and g_body == body and all(
+        (g_hdrs.get(h) or "") == (hdrs.get(h) or "") for h in _SHADOW_HEADERS)
+    _shadow_bump("match" if same else "mismatch")
+    if not same:
+        logger.error(f"shadow-mirror MISMATCH {tag}: python={status} go={g_status}")
+
+
+@app.after_request
+def _shadow_mirror(resp):
+    if not SHADOW_MIRROR_URL or request.path != "/auth":
+        return resp
+    try:
+        if not _shadow_sem.acquire(blocking=False):
+            _shadow_bump("dropped")
+            return resp
+        import hashlib
+        fwd = {k: v for k, v in (("Authorization", request.headers.get("Authorization")),
+                                 ("X-Forwarded-Host", request.headers.get("X-Forwarded-Host"))) if v}
+        tag = "tok=" + hashlib.sha256(fwd.get("Authorization", "").encode()).hexdigest()[:8]
+        hdrs = {h: resp.headers.get(h) or "" for h in _SHADOW_HEADERS}
+        threading.Thread(target=_shadow_compare, args=(fwd, resp.status_code, resp.get_data(), hdrs, tag),
+                         daemon=True).start()
+    except Exception as e:  # the mirror must never affect the live answer
+        logger.error(f"shadow-mirror setup failed: {type(e).__name__}")
+    return resp
+
+
+@app.route("/shadow-stats", methods=["GET"])
+def shadow_stats():
+    import json
+    with _shadow_lock:
+        out = dict(_shadow_stats, enabled=bool(SHADOW_MIRROR_URL))
+    return Response(json.dumps(out), status=200, mimetype="application/json")
 
 
 @app.route("/health", methods=["GET"])
