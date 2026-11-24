@@ -1,0 +1,76 @@
+name: mcp-oauth-go tests (unit + parity against the Python original)
+
+# #1877. Own workflow with its own concurrency group: the shared per-service-tests workflow keeps one pending run per
+# branch and is cancelled under load. This one runs on every change to the Go port or to the Python service it must stay
+# identical to, and cannot be starved by unrelated pushes. Code and CI only: the service is declared with build.ship_hold.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra-sec_mcp-oauth-go/**'
+      - 'infra-sec_mcp-oauth/src/code/**'
+      - '_shared/go/fleetauth/**'
+      - '.github/workflows/mcp-oauth-go-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-oauth-go-tests
+  cancel-in-progress: false
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: infra-sec_mcp-oauth-go/src/code
+    steps:
+      - uses: actions/checkout@v4
+      # The original runs on python:3.11-slim: the reference must be that interpreter.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: fleetauth copy is byte-identical to the shared package
+        run: |
+          set -e
+          for f in $(cd ../../../_shared/go/fleetauth && ls *.go | grep -v '^copies_test.go$'); do
+            cmp "../../../_shared/go/fleetauth/$f" "fleetauth/$f"
+          done
+      - name: go.mod / go.sum tidy
+        run: |
+          cp go.mod /tmp/go.mod.before
+          go mod tidy
+          git diff --stat -- go.mod go.sum || true
+          git diff -- go.sum > /tmp/gosum.patch || true
+          cmp go.mod /tmp/go.mod.before
+      - name: gofmt clean
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: go vet
+        run: go vet ./... && go vet -tags parity ./...
+      - name: unit tests
+        run: go test -count=1 ./...
+      - name: python reference venv
+        run: |
+          python -m venv /tmp/ref-venv
+          /tmp/ref-venv/bin/pip install -q -r ../../../infra-sec_mcp-oauth/src/code/requirements.txt
+      - name: parity tests (original Python service as reference)
+        run: PY_BIN=/tmp/ref-venv/bin/python PY_APP_DIR=$PWD/../../../infra-sec_mcp-oauth/src/code PARITY_REQUIRE=1 go test -count=1 -timeout 25m -tags parity -v -run TestParity ./parity/
+      - name: mutation proof (a skewed Go side must be reported)
+        run: |
+          o=$(mktemp)
+          PY_BIN=/tmp/ref-venv/bin/python PY_APP_DIR=$PWD/../../../infra-sec_mcp-oauth/src/code PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 25m -tags parity -run TestParityCorpus ./parity/ >"$o" 2>&1 || true
+          grep -q 'requests differ' "$o" || { tail -40 "$o"; echo "mutation not detected"; exit 1; }
+      - name: go.sum patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosum-patch
+          path: /tmp/gosum.patch
+          if-no-files-found: ignore

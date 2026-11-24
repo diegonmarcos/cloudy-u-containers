@@ -5,6 +5,8 @@ import (
 	"crypto/subtle"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"os"
@@ -270,6 +272,20 @@ func JSONBody(r *http.Request) (obj *Object, ok bool) {
 	return v.O, true
 }
 
+// JSONValue is request.get_json(silent=True): the parsed body, or a null Value when the body is not declared as
+// JSON or does not parse.
+func JSONValue(r *http.Request) Value {
+	mt := mimetype(r)
+	if mt != "application/json" && !(strings.HasPrefix(mt, "application/") && strings.HasSuffix(mt, "+json")) {
+		return Value{}
+	}
+	v, err := ParseJSON(readBody(r))
+	if err != nil {
+		return Value{}
+	}
+	return v
+}
+
 // Form is request.form (urlencoded bodies only) as an ordered multi-dict.
 type Form struct{ pairs [][2]string }
 
@@ -338,12 +354,76 @@ func unhex(c byte) byte {
 // QueryForm is request.args.
 func QueryForm(r *http.Request) Form { return ParseQueryString(r.URL.RawQuery) }
 
-// PostForm is request.form: filled only for application/x-www-form-urlencoded bodies.
+// PostForm is request.form: urlencoded and multipart bodies (text fields only; file parts are not form fields).
 func PostForm(r *http.Request) Form {
-	if mimetype(r) != "application/x-www-form-urlencoded" {
-		return Form{}
+	switch mimetype(r) {
+	case "application/x-www-form-urlencoded":
+		return ParseQueryString(string(readBody(r)))
+	case "multipart/form-data":
+		_, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+		if err != nil || params["boundary"] == "" {
+			return Form{}
+		}
+		mr := multipart.NewReader(strings.NewReader(string(readBody(r))), params["boundary"])
+		var f Form
+		for {
+			p, err := mr.NextPart()
+			if err != nil {
+				break
+			}
+			if p.FileName() != "" {
+				continue
+			}
+			b, _ := io.ReadAll(p)
+			f.pairs = append(f.pairs, [2]string{p.FormName(), strings.ToValidUTF8(string(b), "\uFFFD")})
+		}
+		return f
 	}
-	return ParseQueryString(string(readBody(r)))
+	return Form{}
+}
+
+// B64StdDecode is base64.b64decode(s) with validate=False: binascii.a2b_base64 in non-strict mode over the
+// standard alphabet (bytes outside it are skipped; a dangling quantum is "Incorrect padding").
+func B64StdDecode(in []byte) ([]byte, error) {
+	out := make([]byte, 0, len(in)*3/4)
+	var quadPos, pads int
+	var left byte
+	for _, c := range in {
+		if c == '=' {
+			if quadPos >= 2 {
+				pads++
+				if quadPos+pads >= 4 {
+					return out, nil
+				}
+			}
+			continue
+		}
+		v := b64Table[c]
+		if v >= 64 {
+			continue
+		}
+		pads = 0
+		switch quadPos {
+		case 0:
+			quadPos, left = 1, v
+		case 1:
+			quadPos = 2
+			out = append(out, left<<2|v>>4)
+			left = v & 0x0f
+		case 2:
+			quadPos = 3
+			out = append(out, left<<4|v>>2)
+			left = v & 0x03
+		case 3:
+			quadPos = 0
+			out = append(out, left<<6|v)
+			left = 0
+		}
+	}
+	if quadPos != 0 {
+		return nil, ErrB64
+	}
+	return out, nil
 }
 
 // URLEncode is urllib.parse.urlencode on ordered pairs (quote_plus, safe="").

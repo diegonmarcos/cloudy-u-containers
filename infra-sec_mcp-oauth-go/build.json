@@ -1,0 +1,92 @@
+{
+  "name": "mcp-oauth-go",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Net-Routing & Security"
+  },
+  "description": "Go port of mcp-oauth (MCP OAuth 2.1 authorization server: RFC 8414/9728 discovery, RFC 7591 registration, PKCE S256 authorization code with signed consent form, refresh rotation, RFC 7662 introspection), shadow stage: own sqlite file, own port, outside every request path (ticket #1877). Parity harness drives the Python original with identical requests.",
+  "ports": {
+    "app": 4189
+  },
+  "bind_host": "10.0.0.1",
+  "category": "sec",
+  "deploy": {
+    "host": "gcp-proxy",
+    "remote_path": "/opt/containers/mcp-oauth-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "mcp-oauth-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "amd64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o mcp-oauth ./cmd/mcp-oauth",
+      "binary": "mcp-oauth",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Multi-stage: compiled in golang:1.24-bookworm on the arch-matched runner, shipped as one static binary on distroless static (no shell, no libc, non-root 65532). No apt/apk line: the base has neither."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "mcp-oauth-go",
+      "image": "ghcr.io/diegonmarcos/mcp-oauth-go:latest",
+      "port": 4189,
+      "port_env": null,
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [
+        "mcp_oauth_go_data:/data"
+      ],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "64M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true,
+    "ship_hold": "Shadow stage of the Go port (#1877): code and CI only. Not shipped until the hub is out of memory pressure (#1898) and the parity harness has been green for a release; shipping it earlier would add a second resident process next to the Python original."
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 9,
+    "display_name": "MCP OAuth Authorization Server (Go, shadow)",
+    "description": "Same contract as mcp-oauth: discovery, /register, /authorize, /token, /revoke, mesh-only /introspect.",
+    "auth": "oauth2"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PYREF=$(ls -d /opt/hostedtoolcache/Python/3.11*/x64/bin/python3 2>/dev/null | tail -1); ${PYREF:-python3} -m venv /tmp/mo-parity-venv && /tmp/mo-parity-venv/bin/pip install -q -r ../../../infra-sec_mcp-oauth/src/code/requirements.txt && PY_BIN=/tmp/mo-parity-venv/bin/python PY_APP_DIR=$PWD/../../../infra-sec_mcp-oauth/src/code PARITY_REQUIRE=1 go test -count=1 -timeout 15m -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the Python service main.py (CPython 3.11, Flask) driven by parity/ref.py with a fake clock and a deterministic byte stream; the Go port gets the same. Discovery, registration (redirect rules incl. urlsplit quirks), the signed consent form, PKCE, code single use, refresh rotation, client secrets (post and basic), introspection to the second, revocation, registry eviction, garbage collection; the sqlite file written by Python is served by both."
+    },
+    "parity-mutation": {
+      "cmd": "PYREF=$(ls -d /opt/hostedtoolcache/Python/3.11*/x64/bin/python3 2>/dev/null | tail -1); ${PYREF:-python3} -m venv /tmp/mo-parity-venv && /tmp/mo-parity-venv/bin/pip install -q -r ../../../infra-sec_mcp-oauth/src/code/requirements.txt && o=$(mktemp); PY_BIN=/tmp/mo-parity-venv/bin/python PY_APP_DIR=$PWD/../../../infra-sec_mcp-oauth/src/code PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 15m -tags parity -run TestParityCorpus ./parity/ >\"$o\" 2>&1; grep -q 'requests differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the Go side signs consent forms with another secret; the harness must report differing requests."
+    }
+  },
+  "_doc_addressing": "No mesh name on purpose during the shadow stage: nothing dials this container, so it needs no Hickory row and no Caddy fallback-map entry."
+}
