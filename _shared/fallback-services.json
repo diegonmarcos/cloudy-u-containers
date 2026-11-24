@@ -464,6 +464,15 @@
       "bearer": false
     },
     {
+      "slug": "ntfy-go",
+      "dir": "infra-obs_ntfy-go",
+      "description": "Go port of the six ntfy Python sidecars (syslog-bridge, rss-gateway, github-rss, notify-broker, digest, topic-scanner) as ONE static binary, shadow stage: runs next to the Python sidecars on its own ports and containers, every sender in dry",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "openobserve",
       "dir": "infra-obs_openobserve",
       "description": "OpenObserve - single-binary observability platform (logs + traces + metrics + RUM). Replaces LGTM stack.",
@@ -500,6 +509,15 @@
       "bearer": false
     },
     {
+      "slug": "c3-execd",
+      "dir": "infra-ops_c3-execd",
+      "description": "Go sidecar for cloud-infra-mcp / cloudy-c3-api / superapp-mcp: loopback exec with timeouts, pooled native SSH (x/crypto/ssh), policy-gated Docker unix-socket client and an audit log. Shadow stage: runs beside the Node helpers (shared/libs/e",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "c3bot-relay",
       "dir": "infra-ops_c3bot-relay",
       "description": "c3bot-relay (#1579): Telegram <-> c3 relay on the c3-bot (Bot A, ONE token). Primary ingestion is webhook mode via the public c3-pub route /c3bot-webhook (secret_token checked). While the webhook is unhealthy the relay calls deleteWebhook a",
@@ -512,15 +530,6 @@
       "slug": "c3bot-relay-go",
       "dir": "infra-ops_c3bot-relay-go",
       "description": "Go port of c3bot-relay (Telegram <-> c3 relay: WebSocket /ws, SSE /events, long-poll /poll, POST /send, /claim lease, webhook + getUpdates failover), shadow stage: runs next to the Node container on its own port, own container and own state",
-      "mesh": null,
-      "hosts": [],
-      "signin": false,
-      "bearer": false
-    },
-    {
-      "slug": "c3-execd",
-      "dir": "infra-ops_c3-execd",
-      "description": "Go loopback sidecar for the Node fleet tools: exec with timeouts, pooled native SSH, policy-gated Docker unix-socket client, audit log; shadow stage, nothing calls it until switch-over (ticket #1875)",
       "mesh": null,
       "hosts": [],
       "signin": false,

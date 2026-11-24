@@ -1,0 +1,149 @@
+{
+  "name": "ntfy-go",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Go port of the six ntfy Python sidecars (syslog-bridge, rss-gateway, github-rss, notify-broker, digest, topic-scanner) as ONE static binary, shadow stage: runs next to the Python sidecars on its own ports and containers, every sender in dry-run, outside every request path (ticket #1878)",
+  "ports": {
+    "rss_gateway": 8191,
+    "topic_scanner": 8192,
+    "notify_broker": 8193
+  },
+  "bind_host": "10.0.0.6",
+  "category": "obs",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/ntfy-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "ntfy-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o ntfy-sidecars ./cmd/ntfy-sidecars",
+      "binary": "ntfy-sidecars",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Multi-stage: compiled in golang:1.24-bookworm on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static (no shell, no libc, non-root 65532, CA bundle included for the GitHub TLS fetch). modernc.org/sqlite is pure Go, so CGO stays off. Same template as infra-ops_c3bot-relay-go."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "ntfy-go-rss-gateway",
+      "image": "ghcr.io/diegonmarcos/ntfy-go:latest",
+      "port": 8191,
+      "port_env": "LISTEN",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/feed/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    },
+    "topic-scanner": {
+      "container_name": "ntfy-go-topic-scanner",
+      "image": "ghcr.io/diegonmarcos/ntfy-go:latest",
+      "port": 8192,
+      "port_env": "LISTEN",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    },
+    "notify-broker": {
+      "container_name": "ntfy-go-notify-broker",
+      "image": "ghcr.io/diegonmarcos/ntfy-go:latest",
+      "port": 8193,
+      "port_env": "LISTEN",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    },
+    "github-rss": {
+      "container_name": "ntfy-go-github-rss",
+      "image": "ghcr.io/diegonmarcos/ntfy-go:latest",
+      "port": null,
+      "port_env": null,
+      "public": false,
+      "proxy": null,
+      "healthcheck": null,
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true
+    },
+    "syslog-bridge": {
+      "container_name": "ntfy-go-syslog-bridge",
+      "image": "ghcr.io/diegonmarcos/ntfy-go:latest",
+      "port": null,
+      "port_env": null,
+      "public": false,
+      "proxy": null,
+      "healthcheck": null,
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true
+    }
+  },
+  "resources": {
+    "mem_limit": "48M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 7,
+    "display_name": "ntfy sidecars (Go, shadow)",
+    "description": "Same contracts as the Python sidecars: rss-gateway /feed/*, topic-scanner / and /health, notify-broker /event /ack /health. Shadow stage: dry-run senders.",
+    "auth": "none"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the original Python sidecars (infra-obs_ntfy/src/code, unmodified) driven through parity/ref.py. Broker decide() over 12000 generated event steps on four policies, digest summarize()/read_history(), the topic scanner, the GitHub Atom parser and classifier, the syslog alert parser and the whole RSS gateway HTTP surface must be identical. See parity/parity_test.go."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1878). The live Python sidecars (containers syslog-bridge, rss-gateway, github-rss of the ntfy service) are untouched. These containers run the Go binary with NTFY_DRY_RUN=1: every sender logs what it WOULD publish and never reaches a ntfy topic, so no notification is duplicated. rss-gateway and topic-scanner only READ (ntfy poll, cache.db) on their own ports. The broker keeps its state on a tmpfs, never in the live notify state file. Switch-over (real publishing, public route for the gateway) is a separate step after the shadow has run clean next to the Python sidecars.",
+  "_doc_addressing": "No mesh name, no Caddy route and no client wiring on purpose during the shadow stage: only the containers themselves and operators on the mesh dial the bind addresses (10.0.0.6:8191 gateway, :8192 scanner, :8193 broker), so no Hickory row and no Caddy fallback-map entry are needed."
+}

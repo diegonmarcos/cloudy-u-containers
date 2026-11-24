@@ -18,11 +18,11 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 119,
+   "LicenseRef-NoLicenseGranted": 120,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 65,
+   "LicenseRef-NoLicenseGranted": 66,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -2697,6 +2697,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-obs_ntfy-go": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-obs_openobserve": {
    "kind": "dir",
    "declared_in": [
@@ -3445,6 +3453,8 @@
    "declared_in": [
     "infra-api_cloudy-all-go-mcp/build.json",
     "infra-api_cloudy-all-go-mcp/src/build.json",
+    "infra-obs_ntfy-go/build.json",
+    "infra-obs_ntfy-go/src/build.json",
     "infra-ops_c3-execd/build.json",
     "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
@@ -4177,6 +4187,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/ntfy-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-obs_ntfy-go/build.json",
+    "infra-obs_ntfy-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/ntfy-go:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/octocode-fastembed-graphrag-indexed-arm": {
    "kind": "docker",
    "declared_in": [
@@ -4332,6 +4354,8 @@
     "infra-api_cloudy-all-go-mcp/src/build.json",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
+    "infra-obs_ntfy-go/build.json",
+    "infra-obs_ntfy-go/src/build.json",
     "infra-ops_c3-execd/build.json",
     "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
@@ -4872,6 +4896,7 @@
     "infra-obs_dagu/src/flake.nix",
     "infra-obs_dbgate/src/flake.nix",
     "infra-obs_matomo/src/flake.nix",
+    "infra-obs_ntfy-go/src/flake.nix",
     "infra-obs_ntfy/src/flake.nix",
     "infra-obs_openobserve/src/flake.nix",
     "infra-obs_umami/src/flake.nix",
@@ -4949,6 +4974,7 @@
   "go:github.com/dustin/go-humanize": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.0.1",
@@ -4985,6 +5011,7 @@
   "go:github.com/google/uuid": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.6.0",
@@ -5009,6 +5036,7 @@
   "go:github.com/mattn/go-isatty": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.0.20",
@@ -5033,6 +5061,7 @@
   "go:github.com/ncruces/go-strftime": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.1.9",
@@ -5045,6 +5074,7 @@
   "go:github.com/remyoudompheng/bigfft": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.0.0-20230129092748-24d4a6f8daec",
@@ -5143,6 +5173,7 @@
    "kind": "go",
    "declared_in": [
     "infra-api_cloudy-all-go-mcp/src/code/go.mod",
+    "infra-obs_ntfy-go/src/code/go.mod",
     "infra-ops_c3-execd/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
@@ -5168,9 +5199,10 @@
   "go:modernc.org/libc": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
-   "version": "v1.66.10",
+   "version": "v1.55.3",
    "scope": "indirect",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[modernc.org/libc]",
@@ -5180,9 +5212,10 @@
   "go:modernc.org/mathutil": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
-   "version": "v1.7.1",
+   "version": "v1.6.0",
    "scope": "indirect",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[modernc.org/mathutil]",
@@ -5192,9 +5225,10 @@
   "go:modernc.org/memory": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
-   "version": "v1.11.0",
+   "version": "v1.8.0",
    "scope": "indirect",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[modernc.org/memory]",
@@ -5204,9 +5238,10 @@
   "go:modernc.org/sqlite": {
    "kind": "go",
    "declared_in": [
+    "infra-obs_ntfy-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
-   "version": "v1.40.1",
+   "version": "v1.34.5",
    "scope": "shipped",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[modernc.org/sqlite]",

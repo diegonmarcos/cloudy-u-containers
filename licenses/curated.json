@@ -402,6 +402,9 @@
   },
   "infra-api_cloudy-all-go-mcp": {
    "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-obs_ntfy-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
   }
  },
  "assets": {
