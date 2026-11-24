@@ -208,6 +208,10 @@
     "deliver-parity": {
       "cmd": "cargo build --release --manifest-path src/crate/Cargo.toml && python3 src/test-deliver-parity.py src/crate/target/release/maddy-sorter",
       "_doc": "#1883: the Rust `maddy-sorter deliver` must answer exactly like the shell classifier mail-sieve-subset-delivery-time.sh (jq + awk) on every generated rules x message x MAIL_SIEVE_STRATEGY combination: same stdout bytes, same exit status. The shell script is the unmodified reference; the harness exits 2 when a tool is missing or the corpus is too weak, it never skips."
+    },
+    "integrity-parity": {
+      "cmd": "cargo build --release --manifest-path src/crate/Cargo.toml && bash src/test-integrity-parity.sh src/crate/target/release/maddy-sorter",
+      "_doc": "#1883: `maddy-sorter integrity-check` (read-only, rusqlite) must print the same report as the shell `mail-sieve-subset-post-hoc integrity-check` (sqlite3 CLI + sort/comm/awk) on clean, broken and empty databases, and must not modify the database."
     }
   }
 }

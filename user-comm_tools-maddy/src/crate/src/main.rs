@@ -22,6 +22,7 @@ mod axes;
 mod db;
 mod deliver;
 mod email;
+mod integrity;
 mod jev;
 mod rules;
 
@@ -312,6 +313,10 @@ fn main() {
     let argv: Vec<String> = std::env::args().collect();
     if argv.get(1).map(String::as_str) == Some("deliver") {
         std::process::exit(deliver::main(&argv[2..]));
+    }
+
+    if argv.get(1).map(String::as_str) == Some("integrity-check") {
+        std::process::exit(integrity::main(&argv[2..]));
     }
 
     tracing_subscriber::fmt()

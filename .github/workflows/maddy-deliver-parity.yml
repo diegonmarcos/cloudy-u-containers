@@ -1,4 +1,4 @@
-name: maddy deliver parity (Rust maddy-sorter deliver vs the shell classifier)
+name: maddy deliver parity (Rust maddy-sorter deliver + integrity-check vs the shell scripts)
 
 # #1883. Own workflow and concurrency group (the shared per-service-tests workflow keeps one pending run per branch and
 # drops the rest under heavy push traffic). Builds the maddy-sorter crate, runs its unit tests, then proves the new
@@ -25,6 +25,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: reference tools (sqlite3 CLI, jq)
+        run: sudo apt-get install -y --no-install-recommends sqlite3 jq
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -41,3 +43,6 @@ jobs:
       - name: deliver parity
         working-directory: user-comm_tools-maddy
         run: python3 src/test-deliver-parity.py src/crate/target/release/maddy-sorter
+      - name: integrity-check parity (read-only report, shell vs Rust)
+        working-directory: user-comm_tools-maddy
+        run: bash src/test-integrity-parity.sh src/crate/target/release/maddy-sorter
