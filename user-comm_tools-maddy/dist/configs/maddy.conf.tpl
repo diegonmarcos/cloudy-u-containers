@@ -37,7 +37,7 @@ storage.imapsql local_mailboxes {
     # IMAP polling sorter that killed the IMAP backend under load, and the
     # earlier Python wrapper that pretended to emit IMAP keyword flags.)
     imap_filter {
-        command /usr/local/bin/mail-sieve-subset-delivery-time {account_name} {sender} {rcpt_to} {subject}
+        command /usr/local/bin/mail-sieve-subset-delivery-shadow {account_name} {sender} {rcpt_to} {subject}
     }
 }
 
