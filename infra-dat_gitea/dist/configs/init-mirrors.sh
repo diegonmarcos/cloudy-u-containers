@@ -310,6 +310,7 @@ converge_mirror cloudy_db_LFS https://github.com/diegonmarcos/cloudy_db_LFS.git 
 converge_mirror cloudy_db_assets-cdn https://github.com/diegonmarcos/cloudy_db_assets-cdn.git false
 converge_mirror cloudy_db_infra-ops-obsv_configs-sync https://github.com/diegonmarcos/cloudy_db_infra-ops-obsv_configs-sync.git false
 converge_mirror z-archived_My-ai-memory https://github.com/diegonmarcos/z-archived_My-ai-memory.git true
+converge_mirror z-archived_Projects-labtools https://github.com/diegonmarcos/z-archived_Projects-labtools.git false
 converge_mirror z-archived_c3-infra-plugin https://github.com/diegonmarcos/z-archived_c3-infra-plugin.git true
 converge_mirror z-archived_cloud-me-pub-data https://github.com/diegonmarcos/z-archived_cloud-me-pub-data.git false
 converge_mirror z-archived_cloud-me-pvt-containers https://github.com/diegonmarcos/z-archived_cloud-me-pvt-containers.git true
