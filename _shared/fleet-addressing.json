@@ -106,7 +106,6 @@
       "revealmd",
       "cloudy-browser-scrapper-api",
       "cloudy-ai-memory-api",
-      "cloudy-ai-tokens-api",
       "umami"
     ]
   },

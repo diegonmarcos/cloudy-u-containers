@@ -10,6 +10,8 @@
 //             (owner decision, no transition window): no alias, no expiry date.
 //  app_tld  : (#1123) no `*.app` host anywhere in a build.json value, the rendered hub Caddyfile or a Hickory zone list.
 //  pages    : github-pages hosts are on the unprotected allowlist
+//  mesh_dial: (#1885) a src/compose.nix dial of <name>.mesh.diegonmarcos.com:<port> at an off-hub container needs an owned
+//             Hickory A row that does not answer the hub (the wildcard sent ft_ token checks to gcp-proxy, nothing on :4184).
 // _shared/fleet-addressing.json holds the allowlist (host -> reason) and a transitional
 // list per rule. A listed entry that no longer violates FAILS (the lists only shrink);
 // they must be empty when ticket #1100 phase P4 lands. Run: node test-fleet-addressing.mjs
@@ -249,6 +251,47 @@ if (existsSync(CFP)) {
   if (appHostsIn({ dns: "tokens-api.app" }).length !== 1 || appHostsIn({ u: "https://x.mesh.diegonmarcos.com/" }).length !== 0 || appHostsIn({ u: "https://c3-x.app:8443/mcp" }).length !== 1) { fail++; console.error("FAIL app_tld mutation: detector is blind"); }
   if (existsSync(CF)) { const hosts = [...readFileSync(CF, "utf8").matchAll(/(^|[\s,])([A-Za-z0-9_.{}*-]+\.app)(?=[\s,:{]|$)/gm)].map((m) => m[2]).filter((h) => !THIRD_PARTY.has(h)); if (hosts.length) { fail++; console.error(`FAIL app_tld: hub Caddyfile still carries ${[...new Set(hosts)].slice(0, 5).join(", ")}`); } }
   if ((hk.dns?.zones ?? []).includes("app") || hk.dns?.records?.app) { fail++; console.error("FAIL app_tld: Hickory still declares the app zone"); }
+}
+// mesh_dial (#1885): a consumer that dials http://<label>.mesh.diegonmarcos.com:<port> (non-comment line of a src/compose.nix)
+// at a container (name or legacy alias) deployed off the hub needs an owned Hickory A row that does not answer the hub IP;
+// otherwise the wildcard sends it to gcp-proxy, which does not listen on that port (every ft_ token failed closed).
+{
+  const hubIp = "10.0.0.1"; // gcp-proxy wg0, the wildcard answer (infra-net_hickory-dns services.caddy.ip)
+  const deployHost = new Map();
+  for (const d of readdirSync(root, { withFileTypes: true })) {
+    const f = join(root, d.name, "build.json");
+    if (!d.isDirectory() || d.name === "z_archive" || !existsSync(f)) continue;
+    const j = JSON.parse(readFileSync(f, "utf8")), h = j.deploy?.host;
+    if (h) for (const a of [j.name, ...(j.legacy_aliases?.names ?? []), ...(j.dns_aliases ?? []).map((x) => x.split(".")[0])]) deployHost.set(a, h);
+  }
+  const dialProblems = (sources, rows) => {
+    const out = [];
+    for (const [src, text] of sources)
+      for (const line of text.split("\n")) {
+        if (/^\s*#/.test(line)) continue;
+        for (const m of line.matchAll(/([a-z0-9-]+)\.mesh\.diegonmarcos\.com:\d+/g)) {
+          const h = deployHost.get(m[1]);
+          if (!h || h === "gcp-proxy") continue;
+          const own = rows.filter((r) => r.name === m[1] && r.type === "A");
+          if (!own.length) out.push(`mesh_dial: ${src} dials ${m[0]} (on ${h}) but Hickory has no row for ${m[1]}; the wildcard answers the hub`);
+          else if (own.some((r) => r.value === hubIp)) out.push(`mesh_dial: ${src} dials ${m[0]} (on ${h}) but its Hickory row answers the hub`);
+        }
+      }
+    return out;
+  };
+  const sources = [];
+  for (const d of readdirSync(root, { withFileTypes: true })) {
+    const f = join(root, d.name, "src/compose.nix");
+    if (d.isDirectory() && d.name !== "z_archive" && existsSync(f)) sources.push([d.name, readFileSync(f, "utf8")]);
+  }
+  const rows = hk.dns?.records?.["mesh.diegonmarcos.com"] ?? [];
+  const probs = dialProblems(sources, rows);
+  const probe = [["mutation", 'TOKENS_VERIFY_URL = "http://tokens-api.mesh.diegonmarcos.com:4184/v1/verify";']];
+  if (!dialProblems(probe, rows.filter((r) => r.name !== "tokens-api")).length) probs.push('mesh_dial: mutation "row dropped" was not caught; the guard is blind');
+  if (!dialProblems(probe, rows.map((r) => (r.name === "tokens-api" ? { ...r, value: hubIp } : r))).length) probs.push('mesh_dial: mutation "row answers the hub" was not caught; the guard is blind');
+  if (dialProblems([["mutation", "  # reach it as tokens-api.mesh.diegonmarcos.com:4184"]], []).length) probs.push("mesh_dial: a comment line was flagged");
+  for (const pr of probs) { fail++; console.error(`FAIL ${pr}`); }
+  console.log(`mesh_dial: ${probs.length ? probs.length + " problem(s)" : "every off-hub mesh dial has an owned row, 3 mutations checked"}`);
 }
 const bad = (m) => { fail++; console.error(`FAIL ${m}`); };
 for (const rule of ["public_host", "naming", "mesh", "no_api_host", "mesh_direct", "mesh_tld", "app_tld", "public_subdomain", "protected", "pages"]) {

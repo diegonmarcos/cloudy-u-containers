@@ -165,6 +165,16 @@
           "name": "cloudy-browser-headless",
           "type": "A",
           "value": "10.0.0.6"
+        },
+        {
+          "name": "cloudy-ai-tokens-api",
+          "type": "A",
+          "value": "10.0.0.6"
+        },
+        {
+          "name": "tokens-api",
+          "type": "A",
+          "value": "10.0.0.6"
         }
       ],
       "diegonmarcos.com": [
@@ -180,6 +190,7 @@
     "_records_cloud_prefix_doc": "Private scheme cloud.<name>.mesh.diegonmarcos.com (cloud-infra a0_docs/eng-specs/url-scheme.md). The `*` wildcard already answers every cloud.<name>.mesh.diegonmarcos.com with the Caddy hub; only the direct-dial names above (mail backends, git-proxy-api mesh auth) need their own cloud.* rows, mirroring their legacy <name> rows.",
     "_records_mesh_direct_doc": "Mesh transport (#1104 architect ruling): the canonical mesh address of a container is http://<name>.mesh.diegonmarcos.com:<port>, dialled directly on its VM's WireGuard address (plain HTTP inside WG, no hub hop). A container gets an owned row here (A only, its VM wg0 IP) and binds its declared port on wg0 only. c3-infra-api: 10.0.0.6:8081 (HOST=10.0.0.6, network_mode host). Guard: _shared/test-fleet-addressing.mjs rule mesh_direct.",
     "_records_cgc_pvt_mcp_doc": "The private code index (user-ai_cloud-cgc-pub-mcp containers.pvt, CGC_SURFACE=pvt) binds oci-apps wg0 10.0.0.6:3107 (compose.nix MCP_HTTP_HOST=vmIp); fleet_endpoints cgc-pvt-mcp dials http://cloud-cgc-pvt-mcp.mesh.diegonmarcos.com:3107. Without an owned row the wildcard answered the hub, which does not listen on 3107. A only, no AAAA (no v6 bind).",
+    "_records_tokens_api_doc": "#1885 the fleet token engine (infra-sec_cloudy-ai-tokens-api) binds only oci-apps wg0 10.0.0.6:4184 (compose.nix --bind self.ip); introspect-proxy (Python and Go) on gcp-proxy dials http://tokens-api.mesh.diegonmarcos.com:4184/v1/verify. Without owned rows the wildcard answered the hub, which does not listen on 4184, so every ft_ token failed closed at forward_auth. The canonical name and the #1450 legacy alias both get a row. A only, no AAAA: the service has no v6 bind. Guard: _shared/test-fleet-addressing.mjs rule mesh_dial.",
     "_records_git_proxy_api_doc": "#849 git-proxy-api binds only oci-analytics wg0 10.0.0.4:8123 (no hub route, and #837 mesh auth needs a direct dial without X-Forwarded-*). A only, no AAAA: the service has no v6 bind, and an owned name stops the wildcard AAAA from pointing it back at the hub."
   },
   "ports": {
