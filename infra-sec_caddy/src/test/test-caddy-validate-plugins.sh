@@ -40,7 +40,7 @@ openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 
   -addext basicConstraints=critical,CA:TRUE -keyout "$W/secrets/MESH_CA_KEY" -out "$W/secrets/MESH_CA_CERT" 2>/dev/null
 validate(){ # validate <caddyfile>
   sed -e "s#/run/secrets/#$W/secrets/#g" -e "s#/var/log/caddy#$W/log#g" "$1" > "$W/v.caddy"
-  CF_API_TOKEN=x XDG_DATA_HOME="$W/xdg" XDG_CONFIG_HOME="$W/xdg" "$CADDY" validate --adapter caddyfile --config "$W/v.caddy" > "$W/v.log" 2>&1
+  CF_API_TOKEN=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa XDG_DATA_HOME="$W/xdg" XDG_CONFIG_HOME="$W/xdg" "$CADDY" validate --adapter caddyfile --config "$W/v.caddy" > "$W/v.log" 2>&1
 }
 validate "$DIST" || { tail -5 "$W/v.log"; fail "committed dist Caddyfile does not validate"; }
 ok "committed dist Caddyfile validates"
