@@ -232,12 +232,6 @@ func (s *Server) repos(w http.ResponseWriter, r *http.Request, _ *reqCtx) {
 func (s *Server) config(w http.ResponseWriter, r *http.Request, c *reqCtx) {
 	name := c.params["name"]
 	raw, found := s.rt.Datasets[name]
-	if !found && name == "__proto__" {
-		// JS: RT.datasets["__proto__"] is Object.prototype, a truthy object with no builtin, so the lookup falls into
-		// STORE.read(undefined, undefined). Reproduced exactly.
-		s.fromError(w, r, fail(403, "repo_not_declared", "repo is not declared"))
-		return
-	}
 	var probe map[string]any
 	isObj := found && jsonIsObject(raw) && (func() bool { return jsonUnmarshal(raw, &probe) == nil })()
 	if strings.HasPrefix(name, "_") || !found || !isObj {
