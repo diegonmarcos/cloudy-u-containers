@@ -61,12 +61,13 @@ if [ -s "$TOTP_SEED_FILE" ]; then
   echo "[init] Re-asserting TOTP factor for me@diegonmarcos.com..."
   TOTP_SECRET=$(cat "$TOTP_SEED_FILE")
   # --force: overwrite any existing row → idempotent
+  # #1884 its stdout is the otpauth:// URI with the seed: never let it reach the container log.
   # algorithm/digits/period match the Aegis export (SHA1/6/30 = RFC6238 default)
   authelia storage user totp generate "me@diegonmarcos.com" \
     --secret "$TOTP_SECRET" \
     --algorithm SHA1 --digits 6 --period 30 \
     --force \
-    --config /config/configuration.yml \
+    --config /config/configuration.yml >/dev/null 2>&1 \
     && echo "[init]   TOTP imported OK" \
     || echo "[init]   WARNING: TOTP import failed (non-fatal)"
   unset TOTP_SECRET
