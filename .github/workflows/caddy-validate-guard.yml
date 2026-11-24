@@ -9,8 +9,8 @@ name: caddy validate guard (plugin build)
 # test-real-client-ip.sh proves at runtime that the hub believes a PROXY header / X-Forwarded-For only from
 # the front edge -- run it green before an infra-sec_caddy or infra-sec_caddy-public Ship.
 # #1897 incident: test-two-caddy-chain.sh runs BOTH committed Caddyfiles as the real chain (front edge layer4 passthrough
-# -> hub layer4 :443 -> hub :8443) in network namespaces, with the built binary and the live image binaries; it must be
-# red on the incident pair (hub ab0d1a95 + edge 9004ff89) and green on main.
+# -> hub layer4 :443 -> hub :8443) in network namespaces, with the live image binaries and the xcaddy build; with the
+# live binaries it must be red on the incident pair (hub ab0d1a95 + edge 9004ff89), and green on main with both.
 on:
   push:
     branches: [main]
@@ -96,14 +96,17 @@ jobs:
           git show ab0d1a9514b2de7026b0cdbd8c696650d1c21574:infra-sec_caddy/dist/configs/Caddyfile > "$RUNNER_TEMP/hub-incident.caddy"
           git show 9004ff89710b3f634db3a7b0f11d3f16be05e01f:infra-sec_caddy-public/dist/configs/Caddyfile > "$RUNNER_TEMP/edge-incident.caddy"
           T=infra-sec_caddy/src/test/test-two-caddy-chain.sh; rc=0
-          sets="built:$RUNNER_TEMP/caddy:$RUNNER_TEMP/caddy"
-          [ -x "$RUNNER_TEMP/caddy-hub-live" ] && [ -x "$RUNNER_TEMP/caddy-edge-live" ] && sets="$sets live:$RUNNER_TEMP/caddy-hub-live:$RUNNER_TEMP/caddy-edge-live"
-          for s in $sets; do
+          # live = the binaries of the deployed images (hub: pinned digest, caddy-l4 v0.1.0; edge: caddy-public:latest),
+          # required: the incident reproduces only with the hub's caddy-l4 v0.1.0. built = xcaddy latest: the
+          # committed dists must pass there too (the next image rebuild); its incident-pair result is informational.
+          [ -x "$RUNNER_TEMP/caddy-hub-live" ] && [ -x "$RUNNER_TEMP/caddy-edge-live" ] || { echo "FAIL: live image binaries missing (see the previous step)"; exit 1; }
+          for s in "live:$RUNNER_TEMP/caddy-hub-live:$RUNNER_TEMP/caddy-edge-live" "built:$RUNNER_TEMP/caddy:$RUNNER_TEMP/caddy"; do
             IFS=: read -r name hb eb <<< "$s"
-            echo "::group::[$name] incident pair (must be red: passthrough TLS fails)"
+            echo "::group::[$name] incident pair (live: must be red, passthrough TLS fails)"
             CADDY_HUB="$hb" CADDY_EDGE="$eb" HUB_CADDYFILE="$RUNNER_TEMP/hub-incident.caddy" EDGE_CADDYFILE="$RUNNER_TEMP/edge-incident.caddy" bash "$T" > "$RUNNER_TEMP/inc.log" 2>&1; irc=$?
             cat "$RUNNER_TEMP/inc.log"; echo "::endgroup::"
             if [ "$irc" -ne 0 ] && grep -q '^RESULT: passthrough-tls-failed' "$RUNNER_TEMP/inc.log"; then echo "ok: [$name] the incident pair is red (passthrough TLS fails), as live on 2026-11-24"
+            elif [ "$name" = built ]; then echo "info: [built] the incident pair passes with xcaddy-latest caddy-l4 (rc $irc): the failure is specific to the hub image's caddy-l4"
             else echo "FAIL: [$name] the incident pair did not reproduce the passthrough TLS failure (rc $irc)"; rc=1; fi
             echo "::group::[$name] committed dists (must be green)"
             CADDY_HUB="$hb" CADDY_EDGE="$eb" bash "$T"; mrc=$?; echo "::endgroup::"

@@ -14,8 +14,9 @@
 #      wireguard_public peer oci-analytics (wg_ip/32, wg_ipv6/128) in the consolidated data; X-Forwarded-For
 #      is the only client-IP header; trusted_proxies_strict on;
 #   H2 the layer4 :443 listener starts with the front-edge PROXY route: matcher = remote_ip <front_edge> AND
-#      proxy_protocol, handler allow = <front_edge>, then PROXY v2 to the local HTTP server; nothing else in
-#      layer4 unwraps PROXY; the HTTP listener still unwraps PROXY from 127.0.0.1/32 only;
+#      proxy_protocol, piped as is (the front edge's own header) to the local HTTP server, which unwraps PROXY
+#      from 127.0.0.1/32 only; nothing in layer4 unwraps or re-wraps it on that route (incident 2026-11-24: the
+#      hub image's caddy-l4 v0.1.0 forwarded the unwrapped header again, see test-two-caddy-chain.sh);
 #   H3 every rate-limit zone key is {client_ip} or the authenticated identity; no zone keys on the raw
 #      connection address or on a client-supplied header; no request matcher reads client_ip (gates stay
 #      on remote_ip);
@@ -107,9 +108,9 @@ def check_hub(t):
     m = block(b443, b443.index("@front_edge_pp {"))
     assert norm(m) == f"@front_edge_pp {{ remote_ip {F} proxy_protocol }}", f"H2: PROXY matcher must be remote_ip {F} AND proxy_protocol: {m!r}"
     r = norm(block(b443, b443.index("route @front_edge_pp {")))
-    want = f"route @front_edge_pp {{ proxy_protocol {{ allow {F} }} proxy {{ proxy_protocol v2 upstream 127.0.0.1:8443 }} }}"
-    assert r == want, f"H2: PROXY route is {r!r}, want {want!r}"
-    assert len(re.findall(r"proxy_protocol \{", l4)) == 1, "H2: something else in layer4 unwraps PROXY"
+    want = "route @front_edge_pp { proxy { upstream 127.0.0.1:8443 } }"
+    assert r == want, f"H2: PROXY route is {r!r}, want {want!r} (the front edge's header piped as is)"
+    assert not re.findall(r"proxy_protocol \{", l4), "H2: a layer4 proxy_protocol handler (the incident form)"
     lw = norm(block(t, t.index("listener_wrappers {")))
     assert lw == "listener_wrappers { proxy_protocol { allow 127.0.0.1/32 } tls }", f"H2: HTTP listener PROXY trust changed: {lw}"
     keys = zone_keys(t); assert len(keys) >= 6, f"H3: found only {len(keys)} zones"
@@ -160,7 +161,8 @@ muts = [
     ("hub", "anonymous zone back on the connection", one(hub, "zone global {\n        key    {client_ip}", "zone global {\n        key    {remote_host}")),
     ("hub", "denied zone on a client header", one(hub, "zone denied {\n            key    {client_ip}", "zone denied {\n            key    {http.request.header.X-Forwarded-For}")),
     ("hub", "PROXY accepted from any source", one(hub, "            remote_ip " + F + "\n            proxy_protocol\n", "            proxy_protocol\n")),
-    ("hub", "PROXY allow widened", one(hub, "allow " + F, "allow 0.0.0.0/0 ::/0")),
+    ("hub", "PROXY route unwraps and re-wraps (the incident form)", one(hub, "route @front_edge_pp {\n            proxy {\n              upstream", "route @front_edge_pp {\n            proxy_protocol {\n              allow " + F + "\n            }\n            proxy {\n              proxy_protocol v2\n              upstream")),
+    ("hub", "PROXY route adds the hub's own header (double PROXY)", one(hub, "route @front_edge_pp {\n            proxy {\n              upstream", "route @front_edge_pp {\n            proxy {\n              proxy_protocol v2\n              upstream")),
     ("hub", "PROXY route dropped", hub[:hub.index("@front_edge_pp {")] + hub[hub.index("route @front_edge_pp {") + len(block(hub, hub.index("route @front_edge_pp {"))):]),
     ("hub", "HTTP listener trusts PROXY from the front edge", one(hub, "      proxy_protocol {\n        allow 127.0.0.1/32", "      proxy_protocol {\n        allow 127.0.0.1/32 10.1.0.1/32")),
     ("hub", "a gate on client_ip", one(hub, "@not_mesh not remote_ip", "@not_mesh not client_ip")),

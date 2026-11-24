@@ -402,10 +402,17 @@ ${fbMapLines}
   #      record header) before SNI parse and would always win the race.
   # Source: https://github.com/mholt/caddy-l4/issues/294
   # #1897: the front edge's raw-TLS passthrough tier prefixes a PROXY v2 header carrying the real
-  # client. Unwrapped here ONLY for a connection from the front edge that starts with one; the
-  # connection then goes to the local HTTP server with the client's address (not 10.1.0.1). A
-  # PROXY header from any other source never matches and dies at the TLS handshake; a connection
-  # from the front edge without one (its re-proxied L7 tier) takes the normal mux below.
+  # client. A connection from the front edge that starts with one is piped AS IS (its PROXY header
+  # included) to the local HTTP server, whose listener_wrappers proxy_protocol (allow 127.0.0.1/32)
+  # unwraps it, so the client's address arrives instead of 10.1.0.1. The trust decision is this
+  # matcher: only the front edge's address reaches :8443 with its own header; every other
+  # connection takes the mux below, which prefixes the hub's PROXY header, so a PROXY header from
+  # anyone else arrives doubled and dies at the TLS handshake. A connection from the front edge
+  # without one (its re-proxied L7 tier) takes the normal mux too.
+  # No layer4 proxy_protocol handler + re-wrap: on the hub image's caddy-l4 v0.1.0 the handler
+  # unwraps the header but the proxy still forwards it from the prefetch buffer, so :8443 got a
+  # second PROXY header in place of the ClientHello and every passthrough host failed TLS (incident
+  # 2026-11-24; reproduced by src/test/test-two-caddy-chain.sh with the live image binary).
   # Lines built explicitly: a '' string would have its common indentation stripped.
   frontEdgePp = if frontEdge == "" then "" else lib.concatMapStrings (l: "\n" + (if l == "" then "" else "          " + l)) [
     "# ── #1897 front edge PROXY v2 (real client address, front edge only) ──"
@@ -414,11 +421,7 @@ ${fbMapLines}
     "  proxy_protocol"
     "}"
     "route @front_edge_pp {"
-    "  proxy_protocol {"
-    "    allow ${frontEdge}"
-    "  }"
     "  proxy {"
-    "    proxy_protocol v2"
     "    upstream 127.0.0.1:8443"
     "  }"
     "}"
