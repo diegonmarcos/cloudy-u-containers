@@ -20,6 +20,7 @@
 
 mod axes;
 mod db;
+mod deliver;
 mod email;
 mod jev;
 mod rules;
@@ -306,6 +307,13 @@ fn auth_backfill(
 }
 
 fn main() {
+    // `maddy-sorter deliver ACCOUNT SENDER RCPT [SUBJECT]` is the per-message imap_filter hook (no logging setup, no
+    // SQLite): it must stay as cheap as the shell script it replaces.
+    let argv: Vec<String> = std::env::args().collect();
+    if argv.get(1).map(String::as_str) == Some("deliver") {
+        std::process::exit(deliver::main(&argv[2..]));
+    }
+
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()

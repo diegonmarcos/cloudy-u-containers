@@ -138,6 +138,7 @@
         # commit after Phase 4 prod migration + 30-day soak (see z-archive/README.md).
         extraAssets = [
           ./mail-sieve-subset-delivery-time.sh
+          ./mail-sieve-subset-delivery-shadow.sh
           ./mail-sieve-subset-post-hoc.sh
           # A file on disk, compiled by derive-mail-rules.ts and committed like
           # the rest of dist/. Consumed by the subset scripts at

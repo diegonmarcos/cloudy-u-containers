@@ -27,6 +27,9 @@ in
         # doesn't know about).
         IMAPSQL_DB = "/data/imapsql.db";
         RULES_PATH = "/data/mail-rules.json";
+        # #1883 per-message classifier engine: shadow = shell answers, Rust (maddy-sorter deliver) is compared and
+        # logged; rust = Rust answers with the shell as per-message fallback; shell = pre-migration behaviour.
+        DELIVER_ENGINE = "shadow";
         STARTUP_DELAY = "30";
         # 120 -> 300 (2026-11-18 oci-mail incident: load 13, IO PSI ~75%,
         # maddy 145 GB read). Only the category COPIES wait on this; INBOX
@@ -55,6 +58,9 @@ in
         # via _shared/lib/derive-mail-rules.ts; here we mount the Maddy subset).
         "./assets/mail-rules.json:/data/mail-rules.json:ro"
         "./assets/mail-sieve-subset-delivery-time.sh:/usr/local/bin/mail-sieve-subset-delivery-time:ro"
+        # #1883: the imap_filter command is this wrapper; it runs the shell script above (authoritative) and the Rust
+        # `maddy-sorter deliver` side by side (DELIVER_ENGINE=shadow), see the script header.
+        "./assets/mail-sieve-subset-delivery-shadow.sh:/usr/local/bin/mail-sieve-subset-delivery-shadow:ro"
         # Post-hoc maintenance script (operator-triggered via build.sh
         # post-hoc-* lifecycle hooks). SQL-direct on imapsql.db for 30k-scale
         # safety. Subcommands: integrity-check, integrity-fix, recover-headers,

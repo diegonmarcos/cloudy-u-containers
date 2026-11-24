@@ -1,0 +1,43 @@
+name: maddy deliver parity (Rust maddy-sorter deliver vs the shell classifier)
+
+# #1883. Own workflow and concurrency group (the shared per-service-tests workflow keeps one pending run per branch and
+# drops the rest under heavy push traffic). Builds the maddy-sorter crate, runs its unit tests, then proves the new
+# `deliver` subcommand answers byte for byte like mail-sieve-subset-delivery-time.sh (jq + awk, unmodified) on a
+# generated rules x message x strategy corpus. The runner's jq, awk (mawk), base64 and sh are the reference tools.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'user-comm_tools-maddy/src/**'
+      - '.github/workflows/maddy-deliver-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: maddy-deliver-parity
+  cancel-in-progress: false
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: user-comm_tools-maddy/src/crate
+      - name: crate unit tests
+        working-directory: user-comm_tools-maddy
+        run: cargo test --manifest-path src/crate/Cargo.toml
+      - name: build release binary
+        working-directory: user-comm_tools-maddy
+        run: cargo build --release --manifest-path src/crate/Cargo.toml
+      - name: tool versions (reference environment)
+        run: |
+          jq --version; awk -W version 2>&1 | head -1 || true; base64 --version | head -1; sh -c 'echo sh ok'
+      - name: deliver parity
+        working-directory: user-comm_tools-maddy
+        run: python3 src/test-deliver-parity.py src/crate/target/release/maddy-sorter
