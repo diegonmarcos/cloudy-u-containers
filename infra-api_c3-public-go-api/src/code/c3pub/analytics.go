@@ -25,14 +25,9 @@ func (s *Server) analytics(w http.ResponseWriter, r *http.Request, slug, rest st
 		s.errorHandler(w, r, st, msg)
 		return
 	}
-	base, err := url.Parse(b.URL)
-	if err != nil {
-		s.errorHandler(w, r, 500, err.Error())
-		return
-	}
 	// rewritePrefix "": the part of the request after the prefix is appended to the backend URL (which already carries
 	// the rewrite path), not resolved against it.
-	dest, err := url.Parse(strings.TrimRight(b.URL, "/") + rest)
+	dest, err := url.Parse(b.URL + rest)
 	if err != nil {
 		s.errorHandler(w, r, 500, err.Error())
 		return
