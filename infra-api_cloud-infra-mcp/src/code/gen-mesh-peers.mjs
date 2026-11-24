@@ -2,18 +2,35 @@
 // (cloudy-t-infra config.json native.wireguard: `peers` = the VMs, `clients` = phones, desktop, runners), never a hand list.
 // Usage: node gen-mesh-peers.mjs <consolidated-or-config.json> [out]   (the consolidated dist file carries the same native block)
 // sshd route : VMs ssh alias = the peer name; phones = the doors of build.json ssh.extra_hosts for that wg_client; others = the wg address.
-// MCP route  : http://<wg_ip>:8004 (Cloud C3 Webserver mesh listener; /mcp + the API paths), mesh address only.
+// MCP route  : phones/clients http://<wg_ip>:8004 (Cloud C3 Webserver mesh listener; /mcp + the API paths); VMs the declared hub MCP/API of that host, else null (not declared). Mesh address only.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 export const MCP_PORT = 8004;
 
-export function derive(config, build) {
+// VMs do NOT run the Cloud C3 Webserver listener (:8004 is the phone/desktop app's). A VM's mesh MCP and API are the
+// DECLARED hub containers on that host (their build.json: deploy.host + ports.app), probed on the host's mesh address.
+// A VM hosting neither declares null = "not declared" (never reported as down).
+export const HUBS = { mcp: { dir: "infra-api_cloudy-all-mcp", path: "/mcp" }, api: { dir: "infra-api_cloudy-all-api", path: "/health" } };
+export function hubsByHost(read) {
+  const out = {};
+  for (const [kind, h] of Object.entries(HUBS)) {
+    const b = read(h.dir);
+    if (!b) continue;
+    (out[b.deploy.host] ??= {})[kind] = { port: b.ports.app, path: h.path };
+  }
+  return out;
+}
+
+export function derive(config, build, hubs = {}) {
   const wg = config.native.wireguard;
   const hosts = build.ssh.extra_hosts.filter((h) => (h.family ?? "v4") === "v4");
   const peers = [];
   for (const p of wg.peers) {
-    peers.push({ id: p.name, kind: "vm", wg_ip: p.wg_ip, ssh: { hosts: [p.name] }, mcp: { url: `http://${p.wg_ip}:${MCP_PORT}` } });
+    const h = hubs[p.name] ?? {};
+    peers.push({ id: p.name, kind: "vm", wg_ip: p.wg_ip, ssh: { hosts: [p.name] },
+      mcp: h.mcp ? { url: `http://${p.wg_ip}:${h.mcp.port}` } : null,
+      api: h.api ? { url: `http://${p.wg_ip}:${h.api.port}`, path: h.api.path } : null });
   }
   for (const [id, c] of Object.entries(wg.clients)) {
     const doors = hosts.filter((h) => h.wg_client === id).map((h) => h.host);
@@ -27,5 +44,6 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const here = new URL(".", import.meta.url);
   const build = JSON.parse(readFileSync(new URL("../../build.json", here), "utf8"));
   const out = process.argv[3] ?? fileURLToPath(new URL("mcp/peers/mesh-peers.json", here));
-  writeFileSync(out, JSON.stringify(derive(JSON.parse(readFileSync(process.argv[2], "utf8")), build), null, 1) + "\n");
+  const read = (dir) => { try { return JSON.parse(readFileSync(new URL(`../../../${dir}/build.json`, here), "utf8")); } catch { return null; } };
+  writeFileSync(out, JSON.stringify(derive(JSON.parse(readFileSync(process.argv[2], "utf8")), build, hubsByHost(read)), null, 1) + "\n");
 }

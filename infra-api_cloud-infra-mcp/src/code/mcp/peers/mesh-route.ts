@@ -23,7 +23,12 @@ export type Route = "mcp" | "api" | "sshd";
 /** The transport order: MCP first, the API second, sshd last. */
 export const ROUTE_ORDER: readonly Route[] = ["mcp", "api", "sshd"];
 
-export interface Peer { id: string; kind: "vm" | "phone" | "client"; wg_ip: string; ssh: { hosts: string[] }; mcp: { url: string } }
+/** `mcp`/`api`: the route's declared mesh origin, or null when the peer declares no such service (#1835 follow-up: a route a peer does not declare is "not declared", never down).
+ *  `api` absent = the Cloud C3 Webserver listener's own API on the same origin as `mcp` (GET /endpoints/mesh), as on phones and clients.
+ *  `api` {url, path} = a declared plain API origin and its health path (VMs: the hub API of that host). */
+export interface Peer { id: string; kind: "vm" | "phone" | "client"; wg_ip: string; ssh: { hosts: string[] }; mcp: { url: string } | null; api?: { url: string; path: string } | null }
+export const NOT_DECLARED = "not declared" as const;
+export type Up = boolean | typeof NOT_DECLARED;
 
 export interface Deps {
   token: string;
@@ -52,7 +57,8 @@ export function parsePeers(doc: unknown): Peer[] {
 export function routeGaps(p: Peer): string[] {
   const gaps: string[] = [];
   if (!Array.isArray(p.ssh?.hosts) || p.ssh.hosts.length === 0 || p.ssh.hosts.some((h) => !/^[A-Za-z0-9._-]+$/.test(h))) gaps.push("sshd route");
-  if (!phoneBase({ PHONE_MESH_URL: p.mcp?.url }).ok) gaps.push("mcp route (not a mesh origin)");
+  if (p.mcp && !phoneBase({ PHONE_MESH_URL: p.mcp.url }).ok) gaps.push("mcp route (not a mesh origin)");
+  if (p.api && !phoneBase({ PHONE_MESH_URL: p.api.url }).ok) gaps.push("api route (not a mesh origin)");
   return gaps;
 }
 
@@ -93,16 +99,17 @@ const lastAnswer = new Map<string, Last>();
 export const lastOf = (peer: string, r: Route): Last | null => lastAnswer.get(`${peer}/${r}`) ?? null;
 const record = (peer: string, r: Route, d: Deps, ok: boolean, detail: string) => lastAnswer.set(`${peer}/${r}`, { at: d.now(), ok, detail: detail.slice(0, 200) });
 
-function guard(p: Peer, d: Deps): string {
-  const base = phoneBase({ PHONE_MESH_URL: p.mcp.url });
+function guard(p: Peer, d: Deps, url: string | undefined = p.mcp?.url): string {
+  if (!url) throw new Error(`${NOT_DECLARED}: ${p.id} declares no such mesh route`);
+  const base = phoneBase({ PHONE_MESH_URL: url });
   if (!base.ok) throw new Error(base.error);
   if (!d.token) throw new Error("no fleet bearer in the environment (SUPERAPP_FLEET_TOKEN): refusing to call the mesh API without it");
   return base.value;
 }
 const clean = (e: unknown, d: Deps) => String((e as Error)?.message ?? e).split(d.token || "\u0000").join("***");
 
-async function httpText(p: Peer, d: Deps, method: string, path: string, body?: string): Promise<string> {
-  const base = guard(p, d);
+async function httpText(p: Peer, d: Deps, method: string, path: string, body?: string, origin?: string): Promise<string> {
+  const base = guard(p, d, origin ?? p.mcp?.url);
   const headers: Record<string, string> = { authorization: `Bearer ${d.token}`, accept: "application/json, text/event-stream" };
   if (body !== undefined) headers["content-type"] = "application/json";
   const r = await d.http(base + path, { method, headers, body, signal: AbortSignal.timeout(TIMEOUT) });
@@ -151,7 +158,7 @@ export async function callPeer(p: Peer, tool: string, args: Record<string, unkno
         const r = await rpc(p, d, "tools/call", { name: tool, arguments: args });
         text = (r.content ?? []).map((c: { text?: string }) => c.text ?? "").join("\n");
         if (r.isError) throw new Error(`the peer's tool failed: ${text.slice(0, 200)}`);
-      } else if (route === "api") text = await httpText(p, d, "GET", toolPath(tool, args));
+      } else if (route === "api") { if (p.api !== undefined) throw new Error(`${NOT_DECLARED}: the declared API of ${p.id} serves health only, not the peer tools`); text = await httpText(p, d, "GET", toolPath(tool, args)); }
       else text = await viaSshd(p, d, toolPath(tool, args));
       record(p.id, route, d, true, `${tool} ok`);
       tried.push({ route, ok: true });
@@ -165,23 +172,24 @@ export async function callPeer(p: Peer, tool: string, args: Record<string, unkno
   throw new Error(`no route served ${tool} on ${p.id}: ${tried.map((t) => `${t.route}: ${t.error}`).join(" | ")}`);
 }
 
-export interface Health { peer: string; kind: string; wg_ip: string; sshd_up: boolean; mcp_up: boolean; api_up: boolean; tool_count: number | null; last: Record<Route, Last | null>; gaps: string[] }
+export interface Health { peer: string; kind: string; wg_ip: string; sshd_up: boolean; mcp_up: Up; api_up: Up; tool_count: number | null; last: Record<Route, Last | null>; gaps: string[] }
 
 /** Probe every peer on both routes. A peer that does not answer is a row with its flags false, never dropped; this never throws. */
 export async function health(peers: Peer[], d: Deps): Promise<Health[]> {
   return Promise.all(peers.map(async (p) => {
-    const probe = async (r: Route, fn: () => Promise<void>) => { try { await fn(); return true; } catch (e) { record(p.id, r, d, false, clean(e, d)); return false; } };
+    const probe = async (r: Route, fn: () => Promise<void>): Promise<Up> => { try { await fn(); return true; } catch (e) { record(p.id, r, d, false, clean(e, d)); return false; } };
     let count: number | null = null;
+    const apiTarget = p.api === undefined ? (p.mcp ? { url: p.mcp.url, path: "/endpoints/mesh" } : null) : p.api;
     const [mcp_up, api_up, sshd_up] = await Promise.all([
-      probe("mcp", async () => { count = (await peerTools(p, d)).length; }),
-      probe("api", async () => { await httpText(p, d, "GET", "/endpoints/mesh"); record(p.id, "api", d, true, "/endpoints/mesh 200"); }),
+      p.mcp ? probe("mcp", async () => { count = (await peerTools(p, d)).length; }) : Promise.resolve<Up>(NOT_DECLARED),
+      apiTarget ? probe("api", async () => { await httpText(p, d, "GET", apiTarget.path, undefined, apiTarget.url); record(p.id, "api", d, true, `${apiTarget.path} 200`); }) : Promise.resolve<Up>(NOT_DECLARED),
       probe("sshd", async () => {
         const errs: string[] = [];
         for (const h of p.ssh.hosts) { try { await d.ssh(h, "true\n"); record(p.id, "sshd", d, true, `${h} ok`); return; } catch (e) { errs.push(`${h}: ${clean(e, d)}`); } }
         throw new Error(errs.join(" | "));
       }),
     ]);
-    return { peer: p.id, kind: p.kind, wg_ip: p.wg_ip, sshd_up, mcp_up, api_up, tool_count: mcp_up ? count : null,
+    return { peer: p.id, kind: p.kind, wg_ip: p.wg_ip, sshd_up, mcp_up, api_up, tool_count: mcp_up === true ? count : null,
       last: { mcp: lastOf(p.id, "mcp"), api: lastOf(p.id, "api"), sshd: lastOf(p.id, "sshd") }, gaps: routeGaps(p) };
   }));
 }

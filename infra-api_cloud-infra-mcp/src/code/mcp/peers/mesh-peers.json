@@ -10,9 +10,8 @@
      "gcp-proxy"
     ]
    },
-   "mcp": {
-    "url": "http://10.0.0.1:8004"
-   }
+   "mcp": null,
+   "api": null
   },
   {
    "id": "gha-runner",
@@ -49,9 +48,8 @@
      "oci-analytics"
     ]
    },
-   "mcp": {
-    "url": "http://10.0.0.4:8004"
-   }
+   "mcp": null,
+   "api": null
   },
   {
    "id": "oci-apps",
@@ -63,7 +61,11 @@
     ]
    },
    "mcp": {
-    "url": "http://10.0.0.6:8004"
+    "url": "http://10.0.0.6:3112"
+   },
+   "api": {
+    "url": "http://10.0.0.6:8082",
+    "path": "/health"
    }
   },
   {
@@ -75,9 +77,8 @@
      "oci-mail"
     ]
    },
-   "mcp": {
-    "url": "http://10.0.0.3:8004"
-   }
+   "mcp": null,
+   "api": null
   },
   {
    "id": "samsung-a37",

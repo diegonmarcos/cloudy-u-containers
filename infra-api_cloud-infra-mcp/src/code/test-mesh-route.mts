@@ -5,8 +5,8 @@
 //   M  mesh-only: a peer URL outside the mesh is refused, and the phone listener binds the mesh address only (Rust source guard)
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { derive } from "./gen-mesh-peers.mjs";
-import { ROUTE_ORDER, callPeer, fleetBearer, findPeer, health, parsePeers, phoneBase, routeGaps, toolPath, type Deps, type Peer } from "./mcp/peers/mesh-route.ts";
+import { derive, hubsByHost } from "./gen-mesh-peers.mjs";
+import { NOT_DECLARED, ROUTE_ORDER, callPeer, fleetBearer, findPeer, health, parsePeers, phoneBase, routeGaps, toolPath, type Deps, type Peer } from "./mcp/peers/mesh-route.ts";
 import { phoneBase as coreBase } from "./mcp/tools/phone-api-core.ts";
 
 let n = 0;
@@ -47,11 +47,12 @@ await t("G declared peers == peers configured on the sshd route AND the MCP rout
   const declared = [...wg.peers.map((p: any) => p.name), ...Object.keys(wg.clients)].sort();
   assert.ok(declared.length >= 8, "the mesh has VMs and clients");
   assert.deepEqual(peers.map((p) => p.id).sort(), declared, "mesh-peers.json drifted from the declared membership: node gen-mesh-peers.mjs <consolidated>");
-  assert.deepEqual(derive(cfg, build).peers, peers, "mesh-peers.json is not what the generator derives");
+  const readBuild = (dir: string) => { try { return JSON.parse(readFileSync(here(`../../../${dir}/build.json`), "utf8")); } catch { return null; } };
+  assert.deepEqual(derive(cfg, build, hubsByHost(readBuild)).peers, peers, "mesh-peers.json is not what the generator derives");
   for (const p of peers) assert.deepEqual(routeGaps(p), [], `${p.id} lacks a route`);
   const sshd = peers.filter((p) => p.ssh.hosts.length).map((p) => p.id).sort();
-  const mcp = peers.filter((p) => p.mcp.url).map((p) => p.id).sort();
-  assert.deepEqual(sshd, declared); assert.deepEqual(mcp, declared);
+  const mcp = peers.filter((p) => p.mcp?.url).map((p) => p.id).sort();
+  assert.deepEqual(sshd, declared); assert.deepEqual(mcp, peers.filter((p) => p.kind !== "vm" || p.mcp).map((p) => p.id).sort());
   for (const ph of build.ssh.phones) { const p = peers.find((x) => x.id === ph.wg_client)!; assert.equal(p.kind, "phone"); assert.ok(p.ssh.hosts.includes(ph.alias), `${ph.alias} doors kept`); }
 });
 
@@ -110,7 +111,7 @@ await t("M mesh only: a non-mesh peer URL is refused before anything is sent, an
   }
   assert.equal(calls.length, 0);
   for (const good of ["http://10.0.0.10:8004", "http://10.1.0.9:8004", "http://a37.mesh.diegonmarcos.com:8004"]) assert.equal(phoneBase({ PHONE_MESH_URL: good }).ok, coreBase({ PHONE_MESH_URL: good }).ok);
-  for (const p of peers) assert.ok(phoneBase({ PHONE_MESH_URL: p.mcp.url }).ok, p.id);
+  for (const p of peers) { if (p.mcp) assert.ok(phoneBase({ PHONE_MESH_URL: p.mcp.url }).ok, p.id); if (p.api) assert.ok(phoneBase({ PHONE_MESH_URL: p.api.url }).ok, p.id); }
 });
 
 await t("M the phone's mcp endpoint sits behind the bearer gate and the mesh-only bind (Rust source guard)", () => {
@@ -132,12 +133,31 @@ await t("health: every declared peer is a row; a peer that answers nothing is sh
   const dead: Deps = { token: TOKEN, http: async () => { throw new Error("timeout"); }, ssh: async () => { throw new Error("closed"); }, now: () => 5 };
   const rows = await health(peers, dead);
   assert.deepEqual(rows.map((r) => r.peer), peers.map((p) => p.id));
-  assert.ok(rows.every((r) => !r.sshd_up && !r.mcp_up && !r.api_up && r.tool_count === null && r.last.mcp?.ok === false && r.last.sshd?.at === 5));
+  assert.ok(rows.every((r) => !r.sshd_up && r.mcp_up !== true && r.api_up !== true && r.tool_count === null && r.last.sshd?.at === 5));
+  assert.ok(rows.filter((r) => peers.find((p) => p.id === r.peer)!.mcp).every((r) => r.mcp_up === false && r.last.mcp?.ok === false), "a declared MCP that does not answer is down");
   const live = await health([one], deps());
   assert.deepEqual([live[0].sshd_up, live[0].mcp_up, live[0].api_up, live[0].tool_count], [true, true, true, 2]);
   assert.equal(live[0].last.api?.ok, true);
   const half = await health([one], { ...deps(), ssh: async () => { throw new Error("sshd closed"); } });
   assert.deepEqual([half[0].sshd_up, half[0].mcp_up], [false, true], "sshd closed, MCP still serves");
+});
+
+await t("health: a route the peer does not declare is \"not declared\", never down; a declared VM hub route probes its own origin and path (#1835)", async () => {
+  const calls: Call[] = [];
+  const vmHub: Peer = { id: "vm-a", kind: "vm", wg_ip: "10.0.0.6", ssh: { hosts: ["vm-a"] }, mcp: { url: "http://10.0.0.6:3112" }, api: { url: "http://10.0.0.6:8082", path: "/health" } };
+  const vmBare: Peer = { id: "vm-b", kind: "vm", wg_ip: "10.0.0.3", ssh: { hosts: ["vm-b"] }, mcp: null, api: null };
+  const rows = await health([vmHub, vmBare], deps({ calls }));
+  assert.deepEqual([rows[0].mcp_up, rows[0].api_up, rows[0].tool_count], [true, true, 2]);
+  assert.deepEqual([rows[1].mcp_up, rows[1].api_up, rows[1].tool_count, rows[1].sshd_up], [NOT_DECLARED, NOT_DECLARED, null, true]);
+  assert.ok(calls.some((c) => c.url === "http://10.0.0.6:3112/mcp") && calls.some((c) => c.method === "GET" && c.url === "http://10.0.0.6:8082/health"), "the declared origins and health path are what is probed");
+  assert.ok(calls.every((c) => !c.url.includes("10.0.0.3")) && calls.every((c) => !c.url.endsWith(":8004/endpoints/mesh") || c.url.startsWith("http://10.0.0.6") === false), "an undeclared route sends no request");
+  assert.deepEqual(routeGaps(vmBare), [], "not declared is not a gap");
+  // a declared route that fails is down (false), not "not declared"
+  const dead = await health([vmHub], { ...deps(), http: async () => { throw new Error("refused"); } });
+  assert.deepEqual([dead[0].mcp_up, dead[0].api_up], [false, false]);
+  // the real declared membership: no VM is probed on the phone listener port
+  assert.ok(peers.filter((p) => p.kind === "vm").every((p) => !(p.mcp?.url ?? "").endsWith(":8004") && !(p.api?.url ?? "").endsWith(":8004")));
+  assert.ok(peers.filter((p) => p.id === "oci-apps").every((p) => p.mcp?.url === "http://10.0.0.6:3112" && p.api?.path === "/health"));
 });
 
 await t("findPeer by id or mesh address; unknown lists the declared", () => {
