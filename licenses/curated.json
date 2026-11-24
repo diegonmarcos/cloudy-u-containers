@@ -405,6 +405,9 @@
   },
   "infra-obs_ntfy-go": {
    "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-ai_jev-sidecar-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
   }
  },
  "assets": {

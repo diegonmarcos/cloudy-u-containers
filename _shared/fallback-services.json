@@ -47,6 +47,15 @@
       "bearer": false
     },
     {
+      "slug": "jev-sidecar-go",
+      "dir": "infra-ai_jev-sidecar-go",
+      "description": "Go port of jev-gate (the Jev pre-flight gate: agent hooks, decide/outcome/precision and the sidecar `serve` with POST /decide/<use>, POST /outcome/<use>, GET /health, GET /precision), shadow stage: runs next to the Python jev-sidecar on its",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "languagetool",
       "dir": "infra-ai_languagetool",
       "description": "LanguageTool grammar/spell-check HTTP API — rules-only, no n-grams, WG-only sidecar on oci-apps",

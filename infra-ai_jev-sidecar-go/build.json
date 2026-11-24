@@ -1,0 +1,89 @@
+{
+  "name": "jev-sidecar-go",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Go port of jev-gate (the Jev pre-flight gate: agent hooks, decide/outcome/precision and the sidecar `serve` with POST /decide/<use>, POST /outcome/<use>, GET /health, GET /precision), shadow stage: runs next to the Python jev-sidecar on its own port with no key, outcome journal and budget of its own, outside every request path (ticket #1879)",
+  "ports": {
+    "app": 3143
+  },
+  "bind_host": "10.0.0.6",
+  "category": "ai",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/jev-sidecar-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "jev-sidecar-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o jev-gate ./cmd/jev-gate",
+      "binary": "jev-gate",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Same multi-stage template as c3bot-relay-go (#1873): compiled in golang on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static nonroot."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "jev-sidecar-go",
+      "image": "ghcr.io/diegonmarcos/jev-sidecar-go:latest",
+      "port": 3143,
+      "port_env": "PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "64M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 4,
+    "display_name": "Jev gate sidecar (Go, shadow)",
+    "description": "Same contract as jev-sidecar: POST /decide/<use>, POST /outcome/<use>, GET /health, GET /precision.",
+    "auth": "none"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -timeout 9m -tags parity -v -run 'TestParity' ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = _shared/jev-gate/jev_gate.py (python3). Every scenario (claude/goose hooks incl. the never-auto-approve list, redaction, budget, impact and route_context against a mock code-graph MCP, goose-prompt, decide/outcome/precision, the sidecar HTTP surface) runs through both with the same stdin, environment, mock Decisions server and mock MCP server; stdout, the journal lines (key order included), the requests the mocks saw, the ledger, the caches and the goose context file must be identical."
+    },
+    "parity-mutation": {
+      "cmd": "o=$(mktemp); PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 9m -tags parity -run 'TestParity$' ./parity/ >\"$o\" 2>&1; grep -q 'scenarios differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the mock Decisions server skews its noul answers for the Go run only; the harness must report differing scenarios (the grep passes only then, not on a build error)."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1879). The live Python jev-sidecar (port 3110, OPENROUTER_API_KEY, volume jev-sidecar-data) and every in-image jev-gate (claude, goose, hermes) are untouched; hermes keeps the Python module as its plugin shim (select_tools and route_context stay in jev_gate.py). The config is embedded in the binary (a unit test keeps it identical to _shared/jev-gate/jev-gate.json). Known dialect notes: \\\\s and \\\\S follow Python's Unicode whitespace; \\\\b and \\\\w stay ASCII (a non-ASCII letter before a secret prefix counts as a boundary, so Go redacts slightly more, never less)."
+}

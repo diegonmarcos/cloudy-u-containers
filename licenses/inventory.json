@@ -18,11 +18,11 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 120,
+   "LicenseRef-NoLicenseGranted": 121,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 66,
+   "LicenseRef-NoLicenseGranted": 67,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -2329,6 +2329,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-ai_jev-sidecar-go": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-ai_languagetool": {
    "kind": "dir",
    "declared_in": [
@@ -3451,11 +3459,14 @@
   "docker:gcr.io/distroless/static-debian12": {
    "kind": "docker",
    "declared_in": [
+    "infra-ai_jev-sidecar-go/build.json",
+    "infra-ai_jev-sidecar-go/src/build.json",
     "infra-api_cloudy-all-go-mcp/build.json",
     "infra-api_cloudy-all-go-mcp/src/build.json",
     "infra-obs_ntfy-go/build.json",
     "infra-obs_ntfy-go/src/build.json",
     "infra-ops_c3-execd/build.json",
+    "infra-ops_c3-execd/dist/code/amd64/Dockerfile",
     "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
     "infra-ops_c3bot-relay-go/dist/code/arm64/Dockerfile",
@@ -4115,6 +4126,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/jev-sidecar-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-ai_jev-sidecar-go/build.json",
+    "infra-ai_jev-sidecar-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/jev-sidecar-go:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/maddy": {
    "kind": "docker",
    "declared_in": [
@@ -4350,6 +4373,8 @@
   "docker:golang": {
    "kind": "docker",
    "declared_in": [
+    "infra-ai_jev-sidecar-go/build.json",
+    "infra-ai_jev-sidecar-go/src/build.json",
     "infra-api_cloudy-all-go-mcp/build.json",
     "infra-api_cloudy-all-go-mcp/src/build.json",
     "infra-db_postlite/dist/Dockerfile",
@@ -4365,7 +4390,7 @@
     "user-news_capital-stack-news-gdelt-go-api/build.json",
     "user-news_capital-stack-news-gdelt-go-api/src/build.json"
    ],
-   "version": "golang:1.25-bookworm",
+   "version": "golang:1.24-bookworm",
    "scope": "build",
    "licence": "BSD-3-Clause AND LicenseRef-OS-Distribution",
    "licence_source": "licenses/curated.json::docker_licences[golang]",
@@ -4858,6 +4883,7 @@
     "bc-obs_alerts-api/src/flake.nix",
     "infra-ai_cloudy-ai-api/src/flake.nix",
     "infra-ai_cloudy-ai-embeddings-api/src/flake.nix",
+    "infra-ai_jev-sidecar-go/src/flake.nix",
     "infra-ai_jev-sidecar/src/flake.nix",
     "infra-ai_languagetool/src/flake.nix",
     "infra-api_c3-public-api/src/flake.nix",

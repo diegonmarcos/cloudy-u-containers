@@ -1,0 +1,582 @@
+{
+  "_doc": "#764 — the ONE declaration of the Jev pre-flight gate shared by the claude, goose and hermes agent CLIs. jev_gate.py (beside this file) is the only implementation; every CLI reaches it through its own real hook mechanism (claude: PermissionRequest + UserPromptSubmit command hooks in claude-config/settings.json; goose 1.44: PreToolUse + UserPromptSubmit plugin hooks in hooks/hooks.json; hermes: llm_request middleware + pre_llm_call hook registered by __init__.py). #765 adds code-graph context: Jev routes each prompt to a cloud-cgc lookup (or none) and the gate injects the result, and the safety state carries the touched files' code-graph impact. Jev is TypeSafe's structured decision model behind OpenRouter's Decisions API (docs: openrouter.ai/docs/guides/community/jev, /jev-tutorial). Every failure path — no key, timeout, HTTP error, malformed answer, a probability outside [0,1] — behaves exactly as if the gate did not exist.",
+  "endpoint": "https://openrouter.ai/api/alpha/decisions",
+  "model": "typesafe/jev-1.13",
+  "_model_doc": "Pinned release, not the ~typesafe/jev-latest alias: the thresholds below were chosen against 1.13, and the docs recommend pinning when thresholds must stay stable.",
+  "timeout_s": 6,
+  "_timeout_doc": "Per Decisions call, and never more than what is left of a code_graph budget. Below every host's own hook timeout (claude registrations: 12s PermissionRequest / 25s UserPromptSubmit; goose: 12s / 25s), so the gate always answers 'no opinion' itself instead of being killed mid-request.",
+  "key_env": [
+    "OPENROUTER_API_KEY"
+  ],
+  "_key_env_doc": "Env var NAMES only. The value is the sops-encrypted OPENROUTER_API_KEY in each service's src/secrets.yaml, delivered through .secrets like every other AI key (cloud-vault C_A1-configs/ai/sources.json records the stores). No key in the environment = gate off for that call, logged as no_key.",
+  "log_path": "~/.local/state/jev-gate/decisions.jsonl",
+  "_log_doc": "JSONL, one line per decision: use, verdict, probabilities, latency, Jev request id, usage.cost and a short sha256 of the state. Never the state text itself, so nothing a redaction pattern missed can reach the log. JEV_GATE_LOG overrides the path.",
+  "budget": {
+    "_doc": "#881 the spend control the gate lacked: cost was logged, never enforced. daily_cost_cap (USD, UTC day) is the host's total across every use; a call that finds today's spend at or above it is not made and behaves exactly like no_key (logged over_budget). A use's own max_calls_per_hour caps how often it may call (logged rate_limited). est_call_cost is charged when an answer carries no usage.cost. The ledger is a file shared by every hook process (flock); JEV_GATE_BUDGET overrides its path. 0 or absent daily_cost_cap = no cap.",
+    "daily_cost_cap": 1.0,
+    "est_call_cost": 0.0005,
+    "ledger_path": "~/.local/state/jev-gate/budget.json"
+  },
+  "sidecar": {
+    "_doc": "#881 `jev-gate serve`: the one Decisions caller for sites that cannot hold a gate of their own (Dagu DAGs, journal-ntfy.sh, maddy post-hoc) - POST /decide/<use> with {state, questions}, GET /health. One OPENROUTER_API_KEY, one cache, one budget ledger, one journal (stdout, shipped to OpenObserve by the fleet's log-shipper). bind/port are overridden by JEV_GATE_BIND/JEV_GATE_PORT; the container binds the mesh address, never a public one. Desktop and termux keep the in-process CLI with their own key.",
+    "bind": "127.0.0.1",
+    "port": 3110
+  },
+  "_uses_doc": "#881 THE SHARED USE SHAPE, the same one the Android decisions engine declares in fleet-config.json: enabled, threshold, allowed (the option keys a choice question of the use may offer), class (user_facing | background | gating), ttl_s (answer cache; REQUIRED for background, which must cache and never re-ask), max_calls_per_hour. The four hook uses below predate it and are driven by their own adapter; a use that declares a `class` is also served by `jev-gate decide --use <name>` and the sidecar. A gating use answers advice_only: a suggestion or a confirm, never an automatic action. Static deny lists always run before Jev, in the caller.",
+  "uses": {
+    "probe": {
+      "enabled": true,
+      "class": "background",
+      "threshold": 0.75,
+      "ttl_s": 3600,
+      "max_calls_per_hour": 6,
+      "_doc": "#881 wave 0: the plumbing's own end-to-end check (`echo '{\"state\":{\"statement\":\"2+2=4\"},\"questions\":{\"correct\":{\"type\":\"noul\",\"instructions\":\"The statement in `statement` is arithmetically correct.\"}}}' | jev-gate decide --use probe`). Calls made nowhere else; waves #882-#884 declare their own uses beside it."
+    },
+    "claude_permission": {
+      "enabled": true,
+      "threshold": 0.85,
+      "max_calls_per_hour": 600,
+      "on_error": "defer",
+      "_doc": "Claude Code PermissionRequest hook (Bash|Edit|Write). Every asked noul >= threshold -> {decision:{behavior:allow}}. Anything else -> no output, so the normal prompt (or headless auto-deny) happens exactly as without the gate. Never denies. Deny and ask rules are evaluated by Claude Code regardless of a hook's allow."
+    },
+    "goose_pretool": {
+      "enabled": true,
+      "threshold": 0.85,
+      "max_calls_per_hour": 600,
+      "on_error": "defer",
+      "on_unsafe": "block_when_gate_open",
+      "_doc": "goose 1.44 PreToolUse plugin hook. It runs AFTER goose's own permission stage and can only block or pass — there is no allow/ask channel — so 'safe -> allow, else defer to the normal flow' is a pass in both branches. on_unsafe=log records Jev's verdict and passes; on_unsafe=block refuses a call only when every asked noul <= 1 - threshold (confidently unsafe), with an explicit reason the model sees. log is the default because blocking turns Jev's opinion into an automatic deny of dispatched work (git push scores low on reversibility by design). #884 S13: on_unsafe=block_when_gate_open logs until the journal's outcomes (jev-gate outcome) show precision >= gate.min_precision over gate.min_labelled confident verdicts, then blocks by itself and reverts if precision falls.",
+      "gate": {
+        "after": [
+          "goose_pretool"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.95
+      }
+    },
+    "hermes_tool_select": {
+      "enabled": true,
+      "threshold": 0.75,
+      "max_calls_per_hour": 600,
+      "on_error": "all_tools",
+      "first_call_only": true,
+      "api_modes": [
+        "chat_completions"
+      ],
+      "max_options": 400,
+      "description_chars": 100,
+      "_doc": "hermes llm_request middleware. On the FIRST API call of a turn (api_call_count == 1) Jev picks one of the offered tool names or 'none' from the latest user message; P(choice) >= threshold -> only that tool's schema is sent ('none' -> no tools, but only when the history carries no tool traffic a provider could reject). Below threshold, any later call of the turn, an unlisted api_mode, more than max_options tools, or on_error=all_tools -> the request is untouched. on_error=no_tools is the fail-closed alternative."
+    },
+    "code_context": {
+      "enabled": true,
+      "threshold": 0.75,
+      "max_calls_per_hour": 120,
+      "_doc": "#765. Per user prompt (claude UserPromptSubmit, goose UserPromptSubmit -> tom file, hermes pre_llm_call), Jev picks one of code_graph.route.options or 'none'. P(choice) >= threshold and not 'none' -> the gate runs that lookup against the cloud-cgc MCP server the CLI's own config already declares and injects the size-capped text. 'none', below threshold, no key, no endpoint, a timeout or any error -> nothing is fetched or injected, exactly as without the gate."
+    },
+    "mail_fallback_folder": {
+      "enabled": true,
+      "class": "background",
+      "threshold": 0.8,
+      "allowed": [
+        "newsletters",
+        "notifications",
+        "finance",
+        "travel",
+        "social",
+        "work",
+        "others"
+      ],
+      "ttl_s": 86400,
+      "max_calls_per_hour": 120,
+      "wave": 1,
+      "_doc": "#882 spec §4 S1 (maddy fallback rows only): served by the sidecar; advisory only, today's behaviour is the fallback and the caller wires it in observe mode first. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "alert_priority": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.8,
+      "allowed": [
+        "min",
+        "low",
+        "default",
+        "high",
+        "urgent"
+      ],
+      "max_calls_per_hour": 120,
+      "wave": 1,
+      "_doc": "#882 spec §4 S3 (re-rank ntfy priority; never suppress): served by the sidecar; advisory only, today's behaviour is the fallback and the caller wires it in observe mode first. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "alert_priority"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    },
+    "remediation_suggestion": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.75,
+      "allowed": [
+        "none",
+        "container.restart",
+        "service.restart",
+        "page"
+      ],
+      "max_calls_per_hour": 60,
+      "wave": 1,
+      "_doc": "#882 spec §4 S5 suggestion (vm.reset is never an option): served by the sidecar; advisory only, today's behaviour is the fallback and the caller wires it in observe mode first. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "remediation_suggestion"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    },
+    "mail_ingest_stall": {
+      "enabled": true,
+      "class": "background",
+      "threshold": 0.8,
+      "ttl_s": 3600,
+      "max_calls_per_hour": 12,
+      "wave": 1,
+      "_doc": "#882 spec §4 S2 (lower priority only, never suppress the page): served by the sidecar; advisory only, today's behaviour is the fallback and the caller wires it in observe mode first. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "mail_ingest_stall"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    },
+    "router_tier": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.8,
+      "max_calls_per_hour": 600,
+      "wave": 1,
+      "_doc": "#882 spec §4 S9 (model tier / compression profile; explicit headers win): served by the sidecar; advisory only, today's behaviour is the fallback and the caller wires it in observe mode first. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "router_tier"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "deploy_pullup_rc": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.8,
+      "allowed": [
+        "retry-once",
+        "rollback-tag",
+        "page"
+      ],
+      "max_calls_per_hour": 30,
+      "wave": 2,
+      "_doc": "#883 S8 advisory in the alert body. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "deploy_pullup_rc"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "security_digest": {
+      "enabled": true,
+      "class": "background",
+      "threshold": 0.8,
+      "ttl_s": 86400,
+      "max_calls_per_hour": 6,
+      "wave": 2,
+      "_doc": "#883 S10: bump above P2 only. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "security_digest"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "ops_report": {
+      "enabled": true,
+      "class": "background",
+      "threshold": 0.8,
+      "ttl_s": 21600,
+      "max_calls_per_hour": 24,
+      "wave": 2,
+      "_doc": "#883 S11: backup/capacity/prune stay deterministic. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers. Called from the Dagu ops_backup-check and ops_capacity-review reports (lib/jev-ask.sh).",
+      "gate": {
+        "after": [
+          "ops_report"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "gha_flake_vs_real": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.85,
+      "max_calls_per_hour": 60,
+      "wave": 2,
+      "_doc": "#883 S12: advisory; one audited rerun at most. Observe-only until its own journal shows it right: gate.after is itself, so the sidecar scores and journals but answers gate_closed (callers behave exactly as before) until `jev-gate precision` shows >= min_precision over >= min_labelled outcome-labelled confident answers.",
+      "gate": {
+        "after": [
+          "gha_flake_vs_real"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      },
+      "implicit_accept_days": 7
+    },
+    "remediation_preflight": {
+      "enabled": true,
+      "class": "gating",
+      "threshold": 0.85,
+      "max_calls_per_hour": 30,
+      "wave": 3,
+      "_doc": "#884 S6: defer-on-doubt pre-flight for remediation verbs; vm.reset stays in the caller's static deny list ahead of Jev.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder",
+          "alert_priority",
+          "remediation_suggestion"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.9
+      }
+    },
+    "auto_container_restart": {
+      "enabled": true,
+      "class": "gating",
+      "threshold": 0.9,
+      "allowed": [
+        "none",
+        "container.restart"
+      ],
+      "max_calls_per_hour": 30,
+      "wave": 3,
+      "_doc": "#884 S5 auto: container.restart only, only for names on the caller's static allowlist; never data/access loss, never vm.reset.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder",
+          "alert_priority",
+          "remediation_suggestion"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.9
+      }
+    },
+    "updater_downgrade_confirm": {
+      "enabled": true,
+      "class": "gating",
+      "threshold": 0.85,
+      "max_calls_per_hour": 30,
+      "wave": 3,
+      "_doc": "#884 Android 1: may turn the refusal into a confirm dialog, never auto-allow.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder",
+          "alert_priority",
+          "remediation_suggestion"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.9
+      }
+    },
+    "git_sync_conflict": {
+      "enabled": true,
+      "class": "gating",
+      "threshold": 0.85,
+      "allowed": [
+        "ours",
+        "theirs",
+        "manual"
+      ],
+      "max_calls_per_hour": 30,
+      "wave": 3,
+      "_doc": "#884 Android 5: a recommendation, never auto-applied.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder",
+          "alert_priority",
+          "remediation_suggestion"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.9
+      }
+    },
+    "firewall_rule_suggestion": {
+      "enabled": true,
+      "class": "gating",
+      "threshold": 0.85,
+      "allowed": [
+        "block",
+        "direct",
+        "vpn"
+      ],
+      "max_calls_per_hour": 30,
+      "wave": 3,
+      "_doc": "#884 Android 11: suggested rule, computed offline.",
+      "gate": {
+        "after": [
+          "mail_fallback_folder",
+          "alert_priority",
+          "remediation_suggestion"
+        ],
+        "min_labelled": 50,
+        "min_precision": 0.9
+      }
+    },
+    "router_ponytail": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.8,
+      "max_calls_per_hour": 600,
+      "wave": 1,
+      "implicit_accept_days": 7,
+      "_doc": "#882 S9: the compression profile (lite|full|ultra, never off) when the request carries no x-ponytail-mode header; header and bot state win.",
+      "gate": {
+        "after": [
+          "router_ponytail"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    },
+    "desktop_commit_msg": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.85,
+      "max_calls_per_hour": 120,
+      "wave": 2,
+      "implicit_accept_days": 7,
+      "_doc": "#883 D2: noul 'the commit message describes the staged diff' - an advisory stderr warning from the commit-msg hook, never a block.",
+      "gate": {
+        "after": [
+          "desktop_commit_msg"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    },
+    "desktop_secret_miss": {
+      "enabled": true,
+      "class": "user_facing",
+      "threshold": 0.9,
+      "max_calls_per_hour": 120,
+      "wave": 2,
+      "implicit_accept_days": 7,
+      "_doc": "#883 D2: noul 'this staged diff contains a secret the regexes missed' - advisory only, after redact, never for vault paths.",
+      "gate": {
+        "after": [
+          "desktop_secret_miss"
+        ],
+        "min_labelled": 30,
+        "min_precision": 0.85
+      }
+    }
+  },
+  "code_graph": {
+    "_doc": "#765 — how the gate reaches the code graph. Jev cannot call tools; the gate does: one streamable-HTTP MCP session (initialize -> notifications/initialized -> tools/list|tools/call) against the first of `servers` that the CLI's OWN MCP config declares (client_configs), with that entry's own headers, so the bearer gate is whatever the CLI already sends. A header naming an unset ${VAR} skips that server rather than sending a literal placeholder. Results are cached per CLI session id (cache_dir, at most cache_max_entries keys per session); failures are never cached.",
+    "servers": [
+      "cloud-cgc-pvt-mcp",
+      "cloud-cgc-pub-mcp"
+    ],
+    "_servers_doc": "Preference order, by the fleet's canonical MCP keys. pvt first: it indexes the private repos the agents work in and is unauthenticated on the mesh; pub is the fallback.",
+    "client_configs": {
+      "claude": {
+        "path": "~/.claude.json",
+        "servers_key": "mcpServers"
+      },
+      "goose": {
+        "path": "${XDG_CONFIG_HOME:-~/.config}/goose/config.yaml",
+        "servers_key": "extensions"
+      },
+      "hermes": {
+        "path": "${HERMES_HOME:-~/.hermes}/config.yaml",
+        "servers_key": "mcp_servers"
+      }
+    },
+    "_client_configs_doc": "Where each CLI keeps the MCP server list it already uses (claude: ~/.claude.json rendered by render-mcp.mjs; goose: config.yaml extensions; hermes: config.yaml mcp_servers). A server entry's url (or goose's uri) and headers are read as-is. *.json is parsed as JSON, anything else with the gate's minimal block-YAML reader.",
+    "protocol_version": "2025-03-26",
+    "max_response_bytes": 1048576,
+    "cache_dir": "~/.cache/jev-gate",
+    "cache_max_entries": 64,
+    "route": {
+      "budget_s": 20,
+      "_budget_doc": "Wall-clock budget for the whole prompt path (Jev route + optional repo question + MCP session). Sized from live measurements on 2026-10-02: Jev route ~0.6s, cgc.octocode.search ~5.4s, cgc.octocode.graphrag ~9.0s (octocode reloads its whole graph per call). Below every registration's timeout (claude UserPromptSubmit 25s, goose 25s, hermes plugins.hook_callback_timeout 30s). Only a routed prompt pays it, once per session per prompt.",
+      "instructions": "Which code-graph lookup, if any, would give useful repository context for answering `request`? Pick none unless the request is about code, configuration or architecture in one of our repositories.",
+      "none_criterion": "No repository context is needed: conversation, general knowledge, or the request already names the exact files to open.",
+      "repo_instructions": "Which one of our repositories is `request` about?",
+      "query_arg": "query",
+      "repo_arg": "repo",
+      "query_chars": 400,
+      "max_inject_chars": 4000,
+      "options": {
+        "graphrag": {
+          "criterion": "The request is about how files, modules or services relate: what depends on, wires up or connects to what (architecture, call paths, where something is plugged in).",
+          "tool": "cgc.octocode.graphrag",
+          "args": {
+            "operation": "search",
+            "format": "text"
+          }
+        },
+        "semantic_search": {
+          "criterion": "The request needs specific code, config or docs located by meaning: where X is implemented, declared or documented.",
+          "tool": "cgc.octocode.search",
+          "args": {
+            "mode": "all",
+            "format": "text"
+          }
+        }
+      },
+      "drop_lines": [
+        "^Loading \\d+ GraphRAG ",
+        "^\\s*Deduplicated \\d+",
+        "^Loaded GraphRAG ",
+        "^Searching for: "
+      ],
+      "_drop_lines_doc": "Progress lines octocode prints before its results; they cost context and say nothing."
+    },
+    "impact": {
+      "enabled": true,
+      "budget_s": 3,
+      "_budget_doc": "Wall-clock budget for the impact lookups of one tool call. 3s + Jev's 6s stays under the 12s claude PermissionRequest and goose PreToolUse registrations.",
+      "tool": "cgc.codegraph.impact_analysis",
+      "args": {
+        "depth": 2
+      },
+      "target_arg": "target",
+      "node_key": "file:{repo}/{path}",
+      "_node_key_doc": "cgc.codegraph's file node key: the repo directory name plus the path inside it (worktrees keep the repo name as their directory name).",
+      "max_paths": 3,
+      "max_chars": 1200,
+      "no_match": "^No node matches",
+      "_doc": "For Edit/Write (path_fields) and shell commands naming existing files inside a git repo, the gate adds the touched files' downstream dependents to the safety state as `impact`. Any failure, no match, or a state that would no longer fit max_state_chars -> the state is sent without it, exactly as before."
+    }
+  },
+  "questions": {
+    "_doc": "Noul questions for the safety verdict. All asked ones must clear the threshold. `needs` names a state field that must be present for the question to be asked (the cookbook's serves_task needs a task; without one only reversibility is asked).",
+    "reversible": {
+      "type": "noul",
+      "instructions": "The tool call in `tool` with arguments `input` only reads, or only changes files inside `project` in a way git or a rerun can undo. It does not push, publish, deploy, delete files outside the project, escalate privileges, change system settings, touch credentials, or send data to a network service."
+    },
+    "serves_task": {
+      "type": "noul",
+      "needs": "task",
+      "instructions": "Running the tool call in `tool` with arguments `input` is a reasonable next step toward `task`."
+    }
+  },
+  "tool_pick_instructions": "Which single tool, if any, is needed for the first step of answering `request`? Pick none when the request can be answered directly in text.",
+  "max_state_chars": 8000,
+  "_max_state_doc": "A state that does not fit is NOT truncated and sent: Jev can only clear what it can see, so an oversized edit or command is left to the normal flow without a call.",
+  "shell_tools": [
+    "Bash",
+    "developer__shell",
+    "shell"
+  ],
+  "path_fields": [
+    "file_path",
+    "path",
+    "notebook_path"
+  ],
+  "never_auto_approve": {
+    "_doc": "Static list evaluated BEFORE Jev, adapted from OpenRouter's auto-approve cookbook. A match means no Decisions call and no approval — the host's normal flow decides. This list, not the threshold, is the security boundary: Jev only sees the text it is sent.",
+    "opaque_shell": "\\$\\(|[<>]\\(|`|\\\\\\r?\\n",
+    "split": "\\s*(?:&&|\\|\\||;|\\||&|\\n|[(){}])\\s*",
+    "normalize": [
+      "^(if|then|elif|else|fi|while|until|do|done|for|in|case|esac|!)\\s+",
+      "^(command|builtin|exec|env|nohup|time|timeout|nice|watch|npx|bunx|pnpx)\\s+",
+      "^[A-Za-z_][A-Za-z0-9_]*=[^\\s'\"\\\\$]*\\s+",
+      "^\\\\",
+      "^[^\\s'\"\\\\$]*/"
+    ],
+    "commands": [
+      "^(\\S*['\"\\\\=$]|[-0-9])",
+      "^(sudo|doas|su)\\b",
+      "^(bash|sh|zsh|fish|eval|xargs|source|\\.)\\b",
+      "^(node|bun|python3?|perl|ruby)\\s+(-\\S+\\s+)*(-c|-e|-p|--eval)\\b",
+      "^rm\\s+(-\\S*[rRf]\\S*\\s+)+",
+      "^git\\b.*\\b(push|reset\\s+--hard|clean\\s+-\\S*[fd]|branch\\s+-D|filter-repo|filter-branch)\\b",
+      "^(npm|pnpm|yarn|bun)\\s+publish\\b",
+      "^(wrangler|vercel|fly|flyctl)\\s+deploy\\b|^terraform\\s+(apply|destroy)\\b|^kubectl\\s+(delete|apply)\\b",
+      "^(docker|podman)\\s+(rm|rmi|system\\s+prune|volume\\s+rm)\\b",
+      "^(ssh|scp|rsync|curl|wget|nc)\\b",
+      "^(sops|age|gpg|rbw|bw)\\b",
+      "^(chmod|chown)\\s+(-\\S*R)",
+      "^(dd|mkfs\\S*|shutdown|reboot|kill|pkill|killall)\\b"
+    ],
+    "paths": "\\.env\\b|\\.ssh\\b|\\.aws\\b|\\.npmrc\\b|\\.netrc\\b|\\.git/|credentials|secrets?\\.ya?ml|\\.secrets\\b|\\.age\\b|\\.pem\\b|\\.key\\b|cloud-vault|/etc/|\\.github/workflows/",
+    "_paths_doc": "Applied to every shell command and to the path fields of file tools. cloud-vault is here so vault contents never become Jev state."
+  },
+  "redact": {
+    "_doc": "Applied to every string before it becomes Jev state. Pattern list first, then exact values of any environment variable whose NAME looks secret, so a key the patterns do not know is still masked if it is live in this process.",
+    "mask": "[REDACTED]",
+    "patterns": [
+      {
+        "re": "-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?(-----END [A-Z ]*PRIVATE KEY-----|$)",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "AGE-SECRET-KEY-[0-9A-Z]+",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "ENC\\[AES256_GCM,[^\\]]*\\]",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "\\bsk-(or|ant|proj)?-?[A-Za-z0-9_-]{16,}",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "\\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}|\\bgithub_pat_[A-Za-z0-9_]{20,}",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "\\b(AKIA|ASIA)[0-9A-Z]{16}\\b",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "\\bxox[abprs]-[A-Za-z0-9-]{10,}",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "\\beyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}",
+        "sub": "[REDACTED]"
+      },
+      {
+        "re": "(?i)(authorization\\s*:\\s*(bearer|basic|token)\\s+)\\S+",
+        "sub": "\\1[REDACTED]"
+      },
+      {
+        "re": "(?i)\\b([A-Z0-9_]*(api[_-]?key|token|secret|passw(or)?d|private[_-]?key|credential)[A-Z0-9_]*[\"']?\\s*[:=]\\s*[\"']?)[^\\s\"']{4,}",
+        "sub": "\\1[REDACTED]"
+      },
+      {
+        "re": "(://[^/\\s:@]+:)[^@\\s]+@",
+        "sub": "\\1[REDACTED]@"
+      }
+    ],
+    "env_name": "(?i)(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL)",
+    "env_min_len": 8
+  },
+  "_gates_doc": "#884 evidence gates: a use with `gate` is observe-only (scored, journaled, answered gate_closed) until `jev-gate precision` shows its `after` uses right >= min_precision over >= min_labelled confident, outcome-labelled answers. No flag to flip: the journal decides, and a fall in precision closes it again."
+}
