@@ -22,7 +22,7 @@
     "image": "c3-execd",
     "dockerfile": "Dockerfile",
     "registry": "ghcr.io/diegonmarcos",
-    "arch": "amd64",
+    "arch": "arm64",
     "native_build": {
       "type": "binary",
       "app_dir": "code",
