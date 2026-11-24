@@ -56,6 +56,38 @@ let
       "@HIDE_HEADERS@"      = lib.concatMapStringsSep "\n        " (x: "-${x}") (h.hide_headers or []);
     } (readTpl "10-security-headers.caddy.tpl");
 
+  # ── #1896 authenticated rate limit (build.json security_snippets, opt-in) ──
+  # Off (auth_rate_limit absent) the render is byte-identical to the pre-#1896 one. On:
+  #   - the per-IP zones below skip requests the edge gate marked as carrying a credential
+  #     (vars ea_cred, _shared/edge-auth.nix) and every snippet gains the per-IP backstop zone;
+  #   - the gate counts a REFUSED credential in the strict per-IP zone denied_rate_limit;
+  #   - a credential that PASSED is limited by the named route below (invoked after forward_auth),
+  #     keyed on the identity headers the auth service copied back, never on the credential.
+  rlAuth = ss.auth_rate_limit or null;
+  rlOn = rlAuth != null;
+  rlNeed = k: ss.${k} or (throw "security_snippets.auth_rate_limit is set but security_snippets.${k} is missing (#1896): refusing to render half of the authenticated rate limit");
+  rlAuthMcp = rlNeed "auth_mcp_rate_limit";
+  rlBackstop = rlNeed "backstop_rate_limit";
+  rlDenied = rlNeed "denied_rate_limit";
+  # Lines are built explicitly (not '' strings, whose indentation stripping would flatten them).
+  rlLines = ind: ls: lib.concatMapStrings (l: "\n" + ind + l) ls;
+  rlZone = ind: r: matchSets: rlLines ind ([
+      "zone ${r.zone} {"
+      "  key    ${r.key}"
+      "  events ${toString r.events}"
+      "  window ${r.window}"
+    ] ++ lib.concatMap (m: [ "  match {" ] ++ map (x: "    " + x) m ++ [ "  }" ]) matchSets ++ [ "}" ]);
+  rlAuthedRoute = "edge_rl_authed";
+  # MCP traffic: the MCP hosts (mcp_routes) and c3-pvt paths that name an MCP (auth_mcp_rate_limit.path_regexp).
+  rlMcpHosts = lib.concatStringsSep " " mcpHosts;
+  rlAuthedBlock = if !rlOn then "" else
+    "\n\n  # #1896: authenticated requests, invoked by the edge gate AFTER its forward_auth passed. Keyed on"
+    + "\n  # the identity the auth service returned; the credential itself is never a key."
+    + "\n  &(${rlAuthedRoute}) {\n    rate_limit {"
+    + rlZone "      " rlAuth [ [ "not host ${rlMcpHosts}" "not path_regexp ${rlAuthMcp.path_regexp}" ] ]
+    + rlZone "      " rlAuthMcp [ [ "host ${rlMcpHosts}" ] [ "path_regexp ${rlAuthMcp.path_regexp}" ] ]
+    + "\n    }\n  }";
+
   mkRateLimiting = name: r:
     subst {
       "@RL_SNIPPET@" = name;
@@ -63,6 +95,10 @@ let
       "@RL_KEY@"    = r.key;
       "@RL_EVENTS@" = toString r.events;
       "@RL_WINDOW@" = r.window;
+      # Anonymous only: a request the edge gate marked as carrying a credential is limited by the
+      # denied / authenticated zones instead (#1896).
+      "@RL_MATCH@"  = if !rlOn then "" else rlLines "        " [ "match {" "  not vars ea_cred 1" "}" ];
+      "@RL_BACKSTOP@" = if !rlOn then "" else rlZone "      " rlBackstop [];
     } (readTpl "11-rate-limiting.caddy.tpl");
   rateLimiting = mkRateLimiting "rate_limiting" ss.rate_limit;
   rateLimitingMcp = mkRateLimiting "rate_limiting_mcp" ss.mcp_rate_limit;
@@ -144,6 +180,7 @@ let
   ea = import ../../_shared/edge-auth.nix {
     inherit lib auth wgCidrs introspectUpstream autheliaUpstream;
     edgeAuth = caddyRoutes.edge_auth or {};
+    rateLimit = if !rlOn then null else { route = rlAuthedRoute; denied = rlDenied; };
   };
 
   # MCP OAuth AS routes on the MCP hub (WIP option 31.1, _shared/mcp-oauth.nix).
@@ -1608,7 +1645,7 @@ ${odtAskBlock}
   ${securityHeaders}
   ${rateLimiting}
   ${rateLimitingMcp}
-  ${rateLimitingJmap}
+  ${rateLimitingJmap}${rlAuthedBlock}
   ${blockBots}
   ${blockScanners}
   ${requestLimits}

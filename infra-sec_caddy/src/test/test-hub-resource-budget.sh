@@ -41,6 +41,20 @@ BUDGET_MB=$(( LIMIT_MB * BUDGET_PCT / 100 ))
 strip_modules() { # strip_modules <in> <out>: drop what the stock Caddy cannot load
   python3 - "$1" "$2" <<'PY'
 import re, sys
+def strip_rl(s):
+    # Stock Caddy lacks caddy-ratelimit: drop every rate_limit block (brace-matched; #1896 nests them in
+    # handle_response), the #1896 named route and its invokes. Rate limiting is guarded by
+    # test-authed-rate-limit.sh and by the plugin build in caddy-validate-guard.yml.
+    for pat in (r"\n[ \t]*rate_limit \{", r"\n[ \t]*&\(edge_rl_authed\) \{"):
+        while True:
+            m = re.search(pat, s)
+            if not m: break
+            k = s.index("{", m.start()); d = 0
+            for j in range(k, len(s)):
+                d += (s[j] == "{") - (s[j] == "}")
+                if d == 0: break
+            s = s[:m.start()] + s[j + 1:]
+    return re.sub(r"\n[ \t]*invoke @ea_authed \S+", "", s)
 s = open(sys.argv[1]).read()
 s = re.sub(r'\n\s*acme_dns cloudflare \{.*?\n  \}\n', '\n', s, count=1, flags=re.S)
 i = s.find('\n    layer4 {')
@@ -51,7 +65,7 @@ if i >= 0:
         if d == 0: break
         k += 1
     s = s[:i] + s[k+1:]
-s = re.sub(r'^\s*rate_limit \{.*?\n    \}\n', '', s, flags=re.S | re.M)
+s = strip_rl(s)
 s = re.sub(r'\n\s*tls \{\n\s*dns cloudflare [^\n]*\n(?:\s*[a-z_]+ [^\n]*\n)*?\s*\}\n', '\n', s)
 # Mesh vhosts (#1797) carry `tls { issuer acme { dns cloudflare ... } issuer internal { ca mesh } }`: drop
 # only the ACME issuer, so the block keeps its internal issuer and still adapts.

@@ -57,6 +57,20 @@ for s in "$IP edge-introspect" "$AP edge-authelia" "$BP stalwart"; do
 done
 python3 -I - "$SVC/infra-sec_caddy/dist/configs/Caddyfile" "$W" "$P" "$IP" "$AP" "$BP" <<'PY'
 import re, sys
+def strip_rl(s):
+    # Stock Caddy lacks caddy-ratelimit: drop every rate_limit block (brace-matched; #1896 nests them in
+    # handle_response), the #1896 named route and its invokes. Rate limiting is guarded by
+    # test-authed-rate-limit.sh and by the plugin build in caddy-validate-guard.yml.
+    for pat in (r"\n[ \t]*rate_limit \{", r"\n[ \t]*&\(edge_rl_authed\) \{"):
+        while True:
+            m = re.search(pat, s)
+            if not m: break
+            k = s.index("{", m.start()); d = 0
+            for j in range(k, len(s)):
+                d += (s[j] == "{") - (s[j] == "}")
+                if d == 0: break
+            s = s[:m.start()] + s[j + 1:]
+    return re.sub(r"\n[ \t]*invoke @ea_authed \S+", "", s)
 f, w, p, ip, ap, bp = sys.argv[1:]
 t = open(f).read()
 i = t.index("  (edge_auth_offmesh) {")
@@ -65,7 +79,7 @@ for j in range(i, len(t)):
     depth += (t[j] == "{") - (t[j] == "}")
     seen = seen or t[j] == "{"
     if seen and depth == 0: break
-snip = t[i:j + 1]
+snip = strip_rl(t[i:j + 1])
 auth = re.findall(r"forward_auth @ea_session (\S+) \{", snip)[0]
 snip = snip.replace("forward_auth @ea_bearer 10.0.0.1:4182", f"forward_auth @ea_bearer 127.0.0.1:{ip}")
 snip = snip.replace("forward_auth @ea_fleet 10.0.0.1:4182", f"forward_auth @ea_fleet 127.0.0.1:{ip}")

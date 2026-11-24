@@ -81,6 +81,7 @@ for k in ("hub", "edge"):
     assert on.count(CF_NOT) == 3 and on.count("forward_auth @ea_cfaccess 10.0.0.6:4180") == 3 and on.count("uri /oauth2/google/cf-auth") == 3, f"{k}: Cloudflare Access branch must be in all 3 gate snippets"
     assert off.count("cf-auth") == 0 and off.count("Cf-Access-Jwt-Assertion") == 0, f"{k}: Cloudflare Access leaked into the OFF render"
     t = on.replace(CF_NOT, "").replace(GATE_NOT, "")
+    t = re.sub(r"\n *vars @ea_(broker|cfaccess) ea_cred 1", "", t)  # #1896 marks the multi-SSO branches too
     t = re.sub(r"\n*# Order of the chain:.*?forward_auth @ea_cfaccess [^\n]* \{\n.*?\n\}", "", t, flags=re.S)
     t = re.sub(r"\n@ea_broker \{.*?\n\}\n# Broker session[^\n]*\nforward_auth @ea_broker [^\n]* \{\n.*?\n\}", "", t, flags=re.S)
     t = t.replace("auth.diegonmarcos.com, account.diegonmarcos.com, sso.diegonmarcos.com {", "auth.diegonmarcos.com {")
@@ -156,10 +157,24 @@ PA=19511; PI=19512; PB=19513; PU=19514; PS=19515
 for r in "authelia $PA" "introspect $PI" "broker $PB" "app $PU"; do python3 -I "$W/stubs.py" $r & PIDS="$PIDS $!"; done
 python3 -I - "$W" "$PA" "$PI" "$PB" <<'PY'
 import re, sys
+def strip_rl(s):
+    # Stock Caddy lacks caddy-ratelimit: drop every rate_limit block (brace-matched; #1896 nests them in
+    # handle_response), the #1896 named route and its invokes. Rate limiting is guarded by
+    # test-authed-rate-limit.sh and by the plugin build in caddy-validate-guard.yml.
+    for pat in (r"\n[ \t]*rate_limit \{", r"\n[ \t]*&\(edge_rl_authed\) \{"):
+        while True:
+            m = re.search(pat, s)
+            if not m: break
+            k = s.index("{", m.start()); d = 0
+            for j in range(k, len(s)):
+                d += (s[j] == "{") - (s[j] == "}")
+                if d == 0: break
+            s = s[:m.start()] + s[j + 1:]
+    return re.sub(r"\n[ \t]*invoke @ea_authed \S+", "", s)
 W, pa, pi, pb = sys.argv[1:5]
 t = open(f"{W}/hub-on.txt").read()
 m = re.search(r"\n *\(edge_auth\) \{\n.*?\n *\}\n(?=\n|\s*\(edge_auth_offmesh)", t, flags=re.S)
-snip = m.group(0)
+snip = strip_rl(m.group(0))
 intro = re.search(r"forward_auth @ea_bearer (\S+) \{", snip).group(1)
 snip = snip.replace(intro, f"127.0.0.1:{pi}").replace("172.18.0.3:9091", f"127.0.0.1:{pa}").replace("10.0.0.6:4180", f"127.0.0.1:{pb}")
 sso = t[t.index("# multi-SSO chooser"):]

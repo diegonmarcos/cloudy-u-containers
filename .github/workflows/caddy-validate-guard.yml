@@ -1,0 +1,53 @@
+name: caddy validate guard (plugin build)
+
+# #1896: the hub Caddyfile is validated by a Caddy built exactly like the image (src/code/Dockerfile:
+# xcaddy + caddy-l4 + caddy-ratelimit + caddy-dns/cloudflare), nothing stripped, plus a runtime check of the
+# authenticated rate limit. Runs on source pushes, after every render-dist run (its GITHUB_TOKEN push does
+# not trigger push workflows), and on demand -- run it and see it green before an infra-sec_caddy Ship.
+on:
+  push:
+    branches: [main]
+    paths: ['infra-sec_caddy/**', '_shared/edge-auth.*', '.github/workflows/caddy-validate-guard.yml']
+  workflow_run:
+    workflows: ["render-dist (re-render one service's committed dist/ in CI and push it)"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/checkout@v4
+        with:
+          repository: diegonmarcos/cloudy-t-infra
+          path: _cloud-infra
+          sparse-checkout: 1_cloud-configs/dist
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - uses: cachix/install-nix-action@v27
+      - name: Build Caddy like the image (xcaddy, same plugins as src/code/Dockerfile)
+        run: |
+          set -eu
+          go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+          plugins=$(grep -o 'with github.com/[^ ]*' infra-sec_caddy/src/code/Dockerfile | sed 's/^with /--with /' | tr '\n' ' ')
+          echo "plugins: $plugins"
+          "$(go env GOPATH)/bin/xcaddy" build $plugins --output "$RUNNER_TEMP/caddy"
+          "$RUNNER_TEMP/caddy" version
+      - name: Validate dist + render, runtime check of the authenticated rate limit
+        env:
+          MULTI_SSO_JSON_DIR: ${{ github.workspace }}/_cloud-infra/1_cloud-configs/dist
+        run: CADDY="$RUNNER_TEMP/caddy" bash infra-sec_caddy/src/test/test-caddy-validate-plugins.sh
+      - name: Rendered-text guard (#1896)
+        env:
+          MULTI_SSO_JSON_DIR: ${{ github.workspace }}/_cloud-infra/1_cloud-configs/dist
+          ALLOW_STALE_DIST: ${{ github.event_name == 'push' && '1' || '0' }}
+        run: bash infra-sec_caddy/src/test/test-authed-rate-limit.sh

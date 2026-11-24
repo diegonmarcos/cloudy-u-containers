@@ -23,6 +23,10 @@
 , autheliaUpstream         # forward_auth target for the session branch
 , introspectUpstream       # forward_auth target for the bearer branch
 , wgCidrs                  # mesh source CIDRs (space separated)
+# #1896 authenticated rate limit, opt-in (null = off: the gate renders byte-identical, which is what
+# the edge Caddyfile (infra-sec_caddy-public) gets). Set by the hub from build.json security_snippets:
+#   { route = "<named route invoked after auth>"; denied = { zone; key; events; window; }; }
+, rateLimit ? null
 }:
 # Fail closed AND loud: a build json without the policy block (e.g. the derive
 # ran from a checkout that predates it) must break the render. Rendering with an
@@ -80,7 +84,7 @@ let
       header_up -Connection
       header_up -Upgrade
       uri ${msAuthProv.prefix}/auth
-      copy_headers X-Auth-Request-Email
+      copy_headers X-Auth-Request-Email${rlDeny}
     }'' + (if !cfOn then "" else ''
 
     # Order of the chain: Authelia session, else broker cookie (above), else Cloudflare Access JWT.
@@ -101,8 +105,78 @@ let
       header_up -Connection
       header_up -Upgrade
       uri ${msAuthProv.prefix}/cf-auth
-      copy_headers X-Auth-Request-Email
+      copy_headers X-Auth-Request-Email${rlDeny}
     }'');
+
+  # ── #1896 authenticated rate limit (opt-in: rateLimit) ──
+  # Anonymous traffic keeps the per-IP zones of the security snippets. A request that carries a
+  # credential is marked (vars ea_cred) by the branch matcher it hits, which takes it out of the
+  # strict per-IP zone (`match { not vars ea_cred 1 }` there), and then:
+  #   - the auth service refuses it (any 3xx/4xx/5xx from forward_auth): the refusal is counted in
+  #     the strict per-IP zone `denied` (handle_response below), so a fake or expired credential
+  #     gets no more than the anonymous allowance;
+  #   - it passes: `invoke` (Caddy sorts it AFTER forward_auth and before handle) runs the hub's
+  #     named route, whose zones are keyed on the identity headers the auth service copied back,
+  #     never on the credential itself.
+  # The Authelia branch is split so a request with NO credential keeps the untouched plain branch:
+  # only a request that carries the session cookie takes @ea_session_ck (same Authelia call).
+  rlOn = rateLimit != null;
+  # Lines are built explicitly (not '' strings, whose indentation stripping would flatten them).
+  rlLines = ind: ls: lib.concatMapStrings (l: "\n" + ind + l) ls;
+  rlDeny = if !rlOn then "" else let d = rateLimit.denied; in rlLines "      " [
+    "# #1896: a credential the auth service refuses counts in the strict per-IP zone."
+    "@ea_denied status 3xx 4xx 5xx"
+    "handle_response @ea_denied {"
+    "  rate_limit {"
+    "    zone ${d.zone} {"
+    "      key    ${d.key}"
+    "      events ${toString d.events}"
+    "      window ${d.window}"
+    "    }"
+    "  }"
+    "  copy_response_headers"
+    "  copy_response"
+    "}"
+  ];
+  rlSessionNot = if !rlOn then "" else "      not header Cookie *${msAuthCk}=*\n";
+  # No blank line inside the gate: test-multi-sso.sh cuts the snippet at the first `}` + blank line.
+  rlBlock = offmesh: ws: if !rlOn then "" else rlLines "    " ([
+    "# #1896: a request carrying the Authelia session cookie (and no Bearer): the same Authelia call"
+    "# as @ea_session, but a refused cookie is counted (ea_denied)."
+    "@ea_session_ck {"
+    "  header Cookie *${msAuthCk}=*"
+    "  not header Authorization Bearer*"
+    "  not header X-Fleet-Authorization Bearer*"
+    "  not path {args[:]}"
+    "  not {"
+    "    method OPTIONS"
+    "    header Access-Control-Request-Method *"
+    "  }"
+  ] ++ lib.optional ws "  not header Upgrade websocket"
+    ++ lib.optional offmesh "  not remote_ip ${wgCidrs}"
+    ++ [
+    "}"
+    "forward_auth @ea_session_ck ${autheliaUpstream} {"
+    "  # A websocket upgrade must not reach the auth subrequest: an introspect/authelia"
+    "  # backend that gets Connection: Upgrade never answers and the edge hangs."
+    "  header_up -Connection"
+    "  header_up -Upgrade"
+    "  uri ${auth.authelia_uri or "/api/authz/forward-auth"}"
+    "  header_up X-Forwarded-Uri {http.request.orig_uri}"
+    ("  copy_headers ${lib.concatStringsSep " " (auth.authelia_copy or [ "Remote-User" ])}" + rlDeny)
+    "}"
+    "# #1896: mark every credential branch (vars sorts before rate_limit and forward_auth). A marked"
+    "# request that reaches `invoke` (sorted after forward_auth) passed its forward_auth, so the named"
+    "# route only ever sees authenticated requests."
+    "vars @ea_fleet ea_cred 1"
+    "vars @ea_bearer ea_cred 1"
+    "vars @ea_session_ck ea_cred 1"
+  ] ++ lib.optional msOn "vars @ea_broker ea_cred 1"
+    ++ lib.optional cfOn "vars @ea_cfaccess ea_cred 1"
+    ++ [
+    "@ea_authed vars ea_cred 1"
+    "invoke @ea_authed ${rateLimit.route}"
+  ]);
 
   mk = name: offmesh: ws: note name offmesh ws + "\n" + lib.removeSuffix "\n" (subst {
     "@GATE@"                = name;
@@ -123,6 +197,9 @@ let
     "@AUTHELIA_COPY@"       = lib.concatStringsSep " " (auth.authelia_copy or [ "Remote-User" ]);
     "@EA_SSO_NOT@"          = msNot;
     "@EA_SSO_BLOCK@"        = msBlock name offmesh ws;
+    "@EA_DENY@"             = rlDeny;
+    "@EA_RL_SESSION_NOT@"   = rlSessionNot;
+    "@EA_RL@"               = rlBlock offmesh ws;
   } tpl);
 
   entries   = edgeAuth.public_open or [];

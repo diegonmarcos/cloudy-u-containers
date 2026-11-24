@@ -23,7 +23,7 @@
     @ea_session {
       not header Authorization Bearer*
       not header X-Fleet-Authorization Bearer*
-@EA_SSO_NOT@      not path {args[:]}
+@EA_SSO_NOT@@EA_RL_SESSION_NOT@      not path {args[:]}
       not {
         method OPTIONS
         header Access-Control-Request-Method *
@@ -40,7 +40,7 @@
       method GET
       uri @INTROSPECT_URI@
       header_up Authorization {http.request.header.X-Fleet-Authorization}
-      copy_headers @INTROSPECT_COPY@
+      copy_headers @INTROSPECT_COPY@@EA_DENY@
     }
     # Never forward the fleet token to an upstream; Authorization passes untouched.
     request_header -X-Fleet-Authorization
@@ -51,7 +51,7 @@
       header_up -Upgrade
       method GET
       uri @INTROSPECT_URI@
-      copy_headers @INTROSPECT_COPY@
+      copy_headers @INTROSPECT_COPY@@EA_DENY@
     }
     forward_auth @ea_session @AUTHELIA_UPSTREAM@ {
       # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
@@ -61,5 +61,5 @@
       uri @AUTHELIA_URI@
       header_up X-Forwarded-Uri {http.request.orig_uri}
       copy_headers @AUTHELIA_COPY@
-    }@EA_SSO_BLOCK@
+    }@EA_SSO_BLOCK@@EA_RL@
   }
