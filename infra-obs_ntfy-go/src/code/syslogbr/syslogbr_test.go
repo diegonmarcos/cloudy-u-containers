@@ -34,7 +34,7 @@ func TestPassOffsetsRotationAndPartialLine(t *testing.T) {
 	dir := t.TempDir()
 	log := filepath.Join(dir, "messages")
 	st := filepath.Join(dir, "offset")
-	if err := os.WriteFile(log, []byte("noise\n{\"vm\":\"a\",\"alert\":{\"rule\":\"R1\"}}\n{\"vm\":\"b\",\"alert\":{\"rule\":\"R2\"}"), 0o644); err != nil {
+	if err := os.WriteFile(log, []byte("noise\n{\"vm\":\"a\",\"alert\":{\"rule\":\"R1\"}}\n{\"vm\":\"b\",\"alert\":{\"rule\":\"R2\"}}"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	pub := &ntfyc.DryRun{}
