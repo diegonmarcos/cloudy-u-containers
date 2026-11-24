@@ -69,13 +69,13 @@
 @m_imap_diegonmarcos_com tls sni imap.diegonmarcos.com
 route @m_imap_diegonmarcos_com {
   proxy {
-    upstream 10.0.0.3:2993
+    upstream 10.0.0.6:2993
   }
 }
 @m_smtps_diegonmarcos_com tls sni smtps.diegonmarcos.com
 route @m_smtps_diegonmarcos_com {
   proxy {
-    upstream 10.0.0.3:2465
+    upstream 10.0.0.6:2465
   }
 }
           @public tls sni diegonmarcos.com www.diegonmarcos.com linktree.diegonmarcos.com nexus.diegonmarcos.com suite.diegonmarcos.com maps.diegonmarcos.com vpn.diegonmarcos.com matrix.diegonmarcos.com mcp.diegonmarcos.com auth.diegonmarcos.com account.diegonmarcos.com sso.diegonmarcos.com c3-pvt.diegonmarcos.com
@@ -584,7 +584,7 @@ import security
   reverse_proxy 10.1.0.2:443
 }
 handle /.well-known/jmap {
-  reverse_proxy https://10.0.0.3:2443 {
+  reverse_proxy https://10.0.0.6:2443 {
     header_up X-Real-IP {http.request.remote.host}
     transport http {
       tls_insecure_skip_verify
@@ -592,7 +592,7 @@ handle /.well-known/jmap {
   }
 }
 handle /jmap/* {
-  reverse_proxy https://10.0.0.3:2443 {
+  reverse_proxy https://10.0.0.6:2443 {
     header_up X-Real-IP {http.request.remote.host}
     transport http {
       tls_insecure_skip_verify
