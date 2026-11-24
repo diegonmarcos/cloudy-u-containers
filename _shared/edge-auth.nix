@@ -134,7 +134,8 @@ let
     "      window ${d.window}"
     "    }"
     "  }"
-    "  copy_response_headers"
+    "  # copy_response writes the auth service's status, headers and body as-is (a separate header"
+    "  # copy duplicated every header and the body was lost behind a doubled Content-Length)."
     "  copy_response"
     "}"
   ];

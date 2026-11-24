@@ -105,7 +105,7 @@ def check(t):
             if n in CRED:
                 assert "@ea_denied status 3xx 4xx 5xx" in b and "handle_response @ea_denied" in b, f"{g}: @{n} does not count refusals"
                 hz = zones(b); want(hz.get(d["zone"]), d, f"{g} @{n} denied")
-                assert "copy_response_headers" in b and "copy_response\n" in b, f"{g}: @{n} refusal is not passed through"
+                assert "copy_response\n" in b and "copy_response_headers" not in b, f"{g}: @{n} refusal is not passed through as-is (copy_response only)"
             elif n == "ea_session":
                 assert "handle_response" not in b and "rate_limit" not in b, f"{g}: the no-credential Authelia branch was changed"
             else:
