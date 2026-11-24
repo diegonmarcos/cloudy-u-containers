@@ -1,0 +1,42 @@
+name: ntfy-go tests (unit + parity against the Python sidecars)
+
+# #1878. Own workflow with its own concurrency group: the shared per-service-tests workflow keeps only one pending run
+# per branch, so under many pushes its runs get replaced before they start. This one runs on every change to the Go port
+# or to the Python sidecars it must stay identical to, and cannot be starved by unrelated pushes.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra-obs_ntfy-go/**'
+      - 'infra-obs_ntfy/src/code/**'
+      - '.github/workflows/ntfy-go-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ntfy-go-tests
+  cancel-in-progress: false
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: infra-obs_ntfy-go/src/code
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: gofmt clean
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: go vet
+        run: go vet ./... && go vet -tags parity ./...
+      - name: unit tests
+        run: go test -count=1 ./...
+      - name: parity tests (original Python sidecars as reference)
+        run: PARITY_REQUIRE=1 go test -count=1 -tags parity -v -run TestParity ./parity/
