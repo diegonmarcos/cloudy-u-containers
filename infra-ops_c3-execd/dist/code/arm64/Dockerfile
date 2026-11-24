@@ -6,7 +6,7 @@
 # ║ Source:  a_solutions/infra-ops_c3-execd/src/flake.nix
 # ║ Rebuild: a_solutions/infra-ops_c3-execd/build.sh ship
 # ╚══════════════════════════════════════════════════════════════════╝
-# Type A — own code, arch=amd64
+# Type A — own code, arch=arm64
 FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY c3-execd /usr/local/bin/c3-execd
