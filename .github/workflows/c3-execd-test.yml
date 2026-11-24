@@ -1,0 +1,43 @@
+name: c3-execd tests
+
+# Go sidecar c3-execd (ticket #1875): vet + the full test suite (exec parity against Node spawnSync,
+# shell-quote / validator parity against the TS files, in-process sshd pool tests, docker allowlist,
+# policy) and the TS shadow-hook contract test. Dedicated so a failure is attributable and fast;
+# the same commands are declared in infra-ops_c3-execd/build.json tests for the per-service runner.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infra-ops_c3-execd/**'
+      - 'infra-api_cloudy-c3-api/src/code/shared/libs/execd-shadow.ts'
+      - 'infra-api_cloudy-c3-api/src/code/shared/libs/shell-quote.ts'
+      - 'infra-api_cloudy-c3-api/src/code/shared/libs/validators.ts'
+      - 'infra-api_cloudy-c3-api/src/test-execd-shadow.ts'
+      - '.github/workflows/c3-execd-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: TS shadow hook contract
+        working-directory: infra-api_cloudy-c3-api/src
+        run: node test-execd-shadow.ts
+      - name: go vet
+        working-directory: infra-ops_c3-execd/src/code
+        run: go vet ./...
+      - name: go test (race)
+        working-directory: infra-ops_c3-execd/src/code
+        run: go test -count=1 -race -timeout 8m -v ./...
