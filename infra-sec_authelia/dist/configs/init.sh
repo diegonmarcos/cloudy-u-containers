@@ -73,8 +73,37 @@ if [ -s "$TOTP_SEED_FILE" ]; then
   unset TOTP_SECRET
 fi
 
-echo "[init] Starting Authelia..."
-exec authelia \
-  --config /config/configuration.yml \
-  --config /tmp/jwks-overlay.yml \
-  --config.experimental.filters template
+# #1886: authelia FATALs at boot when redis is not answering yet ("redis
+# connection error: i/o timeout"), and with restart: "no" that exit was the
+# outage (2026-11-24 00:30Z and 02:50Z). compose depends_on service_healthy
+# covers a fresh `up`; this covers the rest (redis restarted, shed, or slow
+# under load): a run that dies within START_WINDOW seconds is retried, with
+# backoff, up to START_RETRIES times. A run that stayed up longer resets the
+# count, so a later crash is retried too. SIGTERM/SIGINT are forwarded, so
+# `docker stop` still stops authelia cleanly instead of being retried.
+START_RETRIES=12
+START_WINDOW=120
+attempt=0
+pid=""
+trap 'if [ -n "$pid" ]; then kill -TERM "$pid" 2>/dev/null; wait "$pid"; fi; exit 143' TERM INT
+while :; do
+  attempt=$((attempt + 1))
+  echo "[init] Starting Authelia (attempt $attempt/$START_RETRIES)..."
+  started=$(date +%s)
+  authelia \
+    --config /config/configuration.yml \
+    --config /tmp/jwks-overlay.yml \
+    --config.experimental.filters template &
+  pid=$!
+  rc=0; wait "$pid" || rc=$?   # `|| rc=` keeps set -e from ending the loop on the first failure
+  pid=""
+  [ "$rc" -eq 0 ] && exit 0
+  [ $(( $(date +%s) - started )) -ge "$START_WINDOW" ] && attempt=0
+  if [ "$attempt" -ge "$START_RETRIES" ]; then
+    echo "[init] Authelia exited $rc on $attempt consecutive early starts; giving up"
+    exit "$rc"
+  fi
+  delay=$((attempt * 5)); [ "$delay" -gt 30 ] && delay=30
+  echo "[init] Authelia exited $rc; retrying in ${delay}s (redis not ready yet?)"
+  sleep "$delay"
+done
