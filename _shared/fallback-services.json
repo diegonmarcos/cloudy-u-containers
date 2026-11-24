@@ -500,6 +500,15 @@
       "bearer": false
     },
     {
+      "slug": "c3bot-relay-go",
+      "dir": "infra-ops_c3bot-relay-go",
+      "description": "Go port of c3bot-relay (Telegram <-> c3 relay: WebSocket /ws, SSE /events, long-poll /poll, POST /send, /claim lease, webhook + getUpdates failover), shadow stage: runs next to the Node container on its own port, own container and own state",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "disk-janitor",
       "dir": "infra-ops_disk-janitor",
       "description": "oci-apps disk janitor (#811) — declared, scheduled cleanup so agents and ships never hit disk-full: unused images older than N hours (keeping every image a container references and the newest K per repository), build cache, ANONYMOUS dangli",

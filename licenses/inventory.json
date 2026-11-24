@@ -18,11 +18,11 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 115,
+   "LicenseRef-NoLicenseGranted": 116,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 61,
+   "LicenseRef-NoLicenseGranted": 62,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -53,6 +53,7 @@
   },
   "go": {
    "BSD-3-Clause": 1,
+   "ISC": 1,
    "MIT": 1,
    "MPL-2.0": 1
   },
@@ -2727,6 +2728,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-ops_c3bot-relay-go": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-ops_disk-janitor": {
    "kind": "dir",
    "declared_in": [
@@ -3409,7 +3418,10 @@
   "docker:gcr.io/distroless/static-debian12": {
    "kind": "docker",
    "declared_in": [
+    "infra-ops_c3bot-relay-go/build.json",
+    "infra-ops_c3bot-relay-go/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
+    "infra-sec_introspect-proxy-go/dist/code/amd64/Dockerfile",
     "infra-sec_introspect-proxy-go/src/build.json"
    ],
    "version": "gcr.io/distroless/static-debian12:nonroot",
@@ -3473,6 +3485,18 @@
     "infra-ops_c3bot-relay/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/c3bot-relay:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/c3bot-relay-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-ops_c3bot-relay-go/build.json",
+    "infra-ops_c3bot-relay-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/c3bot-relay-go:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -4238,6 +4262,8 @@
    "declared_in": [
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
+    "infra-ops_c3bot-relay-go/build.json",
+    "infra-ops_c3bot-relay-go/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
     "infra-sec_introspect-proxy-go/src/build.json"
    ],
@@ -4775,6 +4801,7 @@
     "infra-obs_openobserve/src/flake.nix",
     "infra-obs_umami/src/flake.nix",
     "infra-ops_agents-tmp-reaper/src/flake.nix",
+    "infra-ops_c3bot-relay-go/src/flake.nix",
     "infra-ops_c3bot-relay/src/flake.nix",
     "infra-ops_disk-janitor/src/flake.nix",
     "infra-sec_auth-broker/src/flake.nix",
@@ -4829,6 +4856,18 @@
    "licence": "MIT",
    "licence_source": "licenses/curated.json::flake_licences[github:nixos/nixpkgs]",
    "note": "The Nix expressions; every package built from it keeps its own licence (meta.license)."
+  },
+  "go:github.com/coder/websocket": {
+   "kind": "go",
+   "declared_in": [
+    "infra-ops_c3bot-relay-go/src/code/go.mod"
+   ],
+   "version": "v1.8.15",
+   "scope": "shipped",
+   "licence": "ISC",
+   "licence_source": "licenses/curated.json::go_licences[github.com/coder/websocket]",
+   "note": "LICENSE in the module (v1.8.15); used unmodified as a library.",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "go:github.com/golang-jwt/jwt/v5": {
    "kind": "go",

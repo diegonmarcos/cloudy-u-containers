@@ -379,6 +379,9 @@
   "infra-ops_c3bot-relay": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-ops_c3bot-relay-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "infra-api_cloudy-all-mcp": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
@@ -669,6 +672,10 @@
   }
  },
  "go_licences": {
+  "github.com/coder/websocket": {
+   "licence": "ISC",
+   "note": "LICENSE in the module (v1.8.15); used unmodified as a library."
+  },
   "github.com/golang-jwt/jwt/v5": {
    "licence": "MIT",
    "note": "LICENSE in the module (v5.2.2)."
