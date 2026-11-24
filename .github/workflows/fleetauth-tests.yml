@@ -1,0 +1,39 @@
+name: fleetauth shared package tests
+
+# #1877. The shared Go package _shared/go/fleetauth and the byte-identical copy every service carries.
+# Own workflow, own concurrency group: the per-service-tests run is cancelled under load.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '_shared/go/fleetauth/**'
+      - '*/src/code/fleetauth/**'
+      - '.github/workflows/fleetauth-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fleetauth-tests
+  cancel-in-progress: false
+
+jobs:
+  shared:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: _shared/go/fleetauth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: gofmt clean
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: go vet
+        run: go vet ./...
+      - name: unit tests and copy guard
+        run: go test -count=1 -v ./...
