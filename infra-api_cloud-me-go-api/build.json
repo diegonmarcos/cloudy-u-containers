@@ -1,0 +1,225 @@
+{
+  "name": "cloud-me-go-api",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "Me"
+  },
+  "description": "Go port of cloud-me-api (read-only, authenticated read path to the owner's private cloud-me-* repos: git deploy-key sync, file gate, builtin fleet datasets, autocomplete rows), shadow stage: runs next to the Node container on its own port, outside every request path (ticket #1882). Authorization is the shared Go authz package (_shared/go/authz).",
+  "ports": {
+    "app": 8134
+  },
+  "bind_host": "10.0.0.4",
+  "category": "app",
+  "deploy": {
+    "host": "oci-analytics",
+    "remote_path": "/opt/containers/cloud-me-go-api",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "cloud-me-go-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "amd64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o cloud-me-api ./cmd/cloud-me-api",
+      "binary": "cloud-me-api",
+      "base_image": "debian:bookworm-slim",
+      "_doc": "Static Go binary on debian-slim: git and openssh-client do the read-only deploy-key fetch (same as the Node image), ca-certificates for the HTTPS Authelia JWKS/session calls. oci-analytics is amd64.",
+      "apt": "ca-certificates git openssh-client"
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "cloud-me-go-api",
+      "image": "ghcr.io/diegonmarcos/cloud-me-go-api:latest",
+      "port": 8134,
+      "port_env": "PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/me/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "192M",
+    "mem_reservation": "16M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/me",
+    "endpoint_count": 6,
+    "display_name": "Cloud Me API (Go, shadow)",
+    "description": "Same contract as cloud-me-api (runtime block pinned by test).",
+    "auth": "mixed"
+  },
+  "runtime": {
+    "_doc": "THE endpoint contract, declared once. The image-wrapper COPYs build.json to /app/build.json and code/contract.mjs reads this block, so GET /me/endpoints serves it verbatim.",
+    "base_path": "/me",
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/me/health",
+        "auth": "none",
+        "description": "Liveness. The only pre-auth route. Returns {\"status\":\"ok\",\"service\":\"cloud-me-api\"} and nothing about the repos."
+      },
+      {
+        "method": "GET",
+        "path": "/me/endpoints",
+        "auth": "authelia",
+        "description": "This contract from build.json runtime, minus transport fields (ssh URLs, key env names, host key) and the filter regexes."
+      },
+      {
+        "method": "GET",
+        "path": "/me/repos",
+        "auth": "authelia",
+        "description": "The declared repos and their sync state: {repos:[{name,branch,commit,synced_at,ok}]}. A projection: no URL, key or path of the server is included."
+      },
+      {
+        "method": "GET",
+        "path": "/me/config/:name",
+        "auth": "authelia",
+        "description": "A declared dataset (runtime.datasets[name]) as JSON: the file at {repo,path} of the last sync, parsed and re-serialised. Unknown name -> 404 not_found; a dataset that has not synced yet -> 503 not_synced; a file that fails the secret filter -> 403 secret_filtered and the file is never sent."
+      },
+      {
+        "method": "GET",
+        "path": "/me/repos/:repo/file",
+        "auth": "authelia",
+        "description": "One config file of a declared repo (query `path`). Only runtime.files.allowed_ext, at most runtime.files.max_bytes, never a path matching runtime.files.deny_path, never content matching runtime.files.deny_content (403 secret_filtered). Errors {error,code}: 400 bad_path, 403 repo_not_declared/path_denied/secret_filtered, 404 not_found, 413 too_large, 503 not_synced."
+      },
+      {
+        "method": "GET",
+        "path": "/me/autocomplete",
+        "auth": "authelia",
+        "description": "#1103 The owner's Autocomplete rows {v:1,ids,addresses,urls,secrets:[{label,value}]} from runtime.autocomplete {repo,path}; only the four pages, string label/value, at most 500 rows a page. The one personal file served past the secret filter, so it is authenticated (Authelia bearer or session), no-store, and never reachable through /me/config or /me/repos/:repo/file. No file yet -> 200 with empty pages; repo not synced -> 503 not_synced."
+      }
+    ],
+    "autocomplete": {
+      "_doc": "#1103 the ONE personal file this service serves past the secret filter, at GET /me/autocomplete: a JSON object {ids,addresses,urls,secrets: [{label,value}]} in a declared private repo. Cloud Account pulls it (mesh first, then c3-pvt.diegonmarcos.com/cloud-me-api with the fleet bearer) and hands it to Cloud Keyboard's own store. Absent file = an empty document.",
+      "repo": "cloud-me_configs",
+      "path": "autocomplete.json"
+    },
+    "repos": {
+      "_doc": "The allow-list is DATA, here. Each repo is read with its OWN read-only deploy key (GitHub allows a deploy key on one repo only), delivered as a base64 sops env_file value named by key_env. cloud-me_vault is deliberately NOT declared: it holds credentials and the test asserts it is never served.",
+      "sync_interval_s": 300,
+      "git_timeout_ms": 60000,
+      "list": [
+        {
+          "name": "cloud-me-containers",
+          "ssh": "git@github.com:diegonmarcos/cloud-me-pvt-containers.git",
+          "branch": "main",
+          "key_env": "CME_KEY_CONTAINERS_B64"
+        },
+        {
+          "name": "cloud-me_configs",
+          "ssh": "git@github.com:diegonmarcos/cloud-me-pvt-configs.git",
+          "branch": "main",
+          "key_env": "CME_KEY_CONFIGS_B64"
+        },
+        {
+          "name": "cloud-me_cgc",
+          "ssh": "git@github.com:diegonmarcos/cloud-me-pvt-cgc.git",
+          "branch": "main",
+          "key_env": "CME_KEY_CGC_B64"
+        }
+      ],
+      "known_hosts": "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
+    },
+    "datasets": {
+      "_doc": "name -> {builtin} | {repo,path}. The c3-* front ends fetch /me/config/<site>. builtin = real fleet config generated from this repo's build.json files by src/gen-c3-datasets.mjs into src/code/data/ (shipped in the image, never hand-edited; the test fails when stale). No placeholder seed is read.",
+      "c3-mail": {
+        "builtin": "data/c3-mail.json"
+      },
+      "c3-security-network": {
+        "builtin": "data/c3-security-network.json"
+      },
+      "c3-dns-routing": {
+        "builtin": "data/c3-dns-routing.json"
+      },
+      "c3-observability": {
+        "builtin": "data/c3-observability.json"
+      },
+      "c3-mcp-apis": {
+        "builtin": "data/c3-mcp-apis.json"
+      }
+    },
+    "files": {
+      "_doc": "The no-secrets-in-responses guard. deny_path and deny_content are regular expressions (case-insensitive); a hit refuses the whole file, nothing is partially redacted. Every string leaving the service also passes redactSecrets() against the deploy keys it holds.",
+      "allowed_ext": [
+        ".json",
+        ".yaml",
+        ".yml",
+        ".md",
+        ".txt"
+      ],
+      "max_bytes": 262144,
+      "deny_path": "(^|/)(\\.git|\\.ssh|\\.gnupg|secrets?|vault|credentials?|creds?|tokens?|keys?)(/|\\.|$)|(secret|token|credential|creds|password|passwd|private|\\.env|id_rsa|id_ed25519|\\.pem|\\.key|\\.age|sops)",
+      "deny_content": "-----BEGIN [A-Z ]*PRIVATE KEY-----|\\bgh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|AGE-SECRET-KEY-|\\bxox[abprs]-[A-Za-z0-9-]{10,}|\"[A-Za-z0-9_-]*(password|passwd|secret|token|api_?key|private_?key)[A-Za-z0-9_-]*\"\\s*:\\s*\"[^\"\\s]{6,}\"|^\\s*[A-Za-z0-9_-]*(password|passwd|secret|token|api_?key)[A-Za-z0-9_-]*\\s*[:=]\\s*['\"]?[^\\s'\"]{8,}|ENC\\[AES256_GCM"
+    },
+    "cors": {
+      "_doc": "Browser callers: the c3-* pages are static sites on another origin and send Authorization: Bearer, so the service answers the preflight and echoes ONLY a declared origin. No wildcard, and no credentials mode.",
+      "origins": [
+        "https://diegonmarcos.github.io",
+        "https://diegonmarcos.com",
+        "https://www.diegonmarcos.com"
+      ],
+      "origin_suffix": ".diegonmarcos.com"
+    },
+    "authelia": {
+      "jwks_url": "https://auth.diegonmarcos.com/jwks.json",
+      "issuer": "https://auth.diegonmarcos.com",
+      "required_scope": "authelia.bearer.authz",
+      "jwks_cache_ttl_s": 600,
+      "jwks_fetch_timeout_ms": 3000,
+      "session": {
+        "verify_url": "https://auth.diegonmarcos.com/api/authz/auth-request",
+        "public_url": "https://api.diegonmarcos.com",
+        "users": [
+          "me@diegonmarcos.com"
+        ],
+        "timeout_ms": 3000,
+        "_doc": "Same two credentials as git-proxy-api: an Authelia bearer (JWKS verified in-service) or a live Authelia session cookie asked of Authelia's auth-request endpoint; the user must be listed."
+      },
+      "_doc": "Same three values infra-sec_introspect-proxy validates on, so a token minted for any existing Authelia client works unchanged."
+    }
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -timeout 8m -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the Node service index.mjs; the Go port; both clone the same local bare git repos and use the same stub JWKS/Authelia; the same ordered request list (every credential defect on every route, session path, dataset/file gate refusals, symlink escape, redaction, builtin datasets, /endpoints derivation, autocomplete with and without its file, CORS preflight) must give identical status, headers and raw bodies, in two fixture variants."
+    },
+    "parity-mutation": {
+      "cmd": "o=$(mktemp); PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 8m -tags parity -run TestParity ./parity/ >\"$o\" 2>&1; grep -q 'requests differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the Go port is fed a skewed accepted issuer; the harness must report differing requests."
+    },
+    "ojson-shared": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "../_shared/go/ojson",
+      "_doc": "The shared order-preserving JSON package (_shared/go/ojson): JS JSON.stringify-compatible output and the byte-identical-copy guard for every service copy."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1882). The live Node cloud-me-api (container cloud-me-api, 10.0.0.4:8124) is untouched. No env_file: the vault mapping of the CME_KEY_*_B64 deploy keys for this service name is part of the switch-over, so it runs with ALLOW_NO_KEYS=1 (no repo syncs, /me/repos reports ok:false) until then; contract, authorization, CORS, builtin datasets and every refusal are live. Binds the oci-analytics WG IP only on port 8134; clones live on tmpfs."
+}

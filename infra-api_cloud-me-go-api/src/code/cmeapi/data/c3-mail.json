@@ -1,0 +1,275 @@
+{
+  "_generated_from": "cloud-u-containers */build.json + _shared/public-route-allowlist.json (gen-c3-datasets.mjs); no secrets by construction",
+  "dataset": "c3-mail",
+  "count": 7,
+  "services": [
+    {
+      "service": "user-comm_tools-stalwart",
+      "name": "stalwart",
+      "description": "Stalwart Mail Server — JMAP webmail backend (jmap.diegonmarcos.com)",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "stalwart.mesh.diegonmarcos.com",
+      "domain": "jmap.diegonmarcos.com",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "stalwart",
+          "dns": "stalwart.mesh.diegonmarcos.com",
+          "port": 2443,
+          "protocol": "https",
+          "mesh_route": true
+        },
+        {
+          "key": "sorter",
+          "container_name": "stalwart-sorter",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "jmap.diegonmarcos.com",
+          "auth": "none",
+          "wg_only": true
+        },
+        {
+          "block": "mail_hub",
+          "host": "mail.diegonmarcos.com",
+          "base_path": "/stalwart",
+          "auth": "none",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      }
+    },
+    {
+      "service": "user-comm_tools-maddy",
+      "name": "maddy",
+      "description": "Maddy Mail Server (mail.diegonmarcos.com)",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-mail",
+      "dns": "maddy.mesh.diegonmarcos.com",
+      "domain": "mail.diegonmarcos.com",
+      "ports": {
+        "app": 993,
+        "smtp": 465,
+        "imap": 993
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "maddy",
+          "dns": "maddy.mesh.diegonmarcos.com",
+          "port": null,
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mail.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        },
+        {
+          "block": "mail_hub",
+          "host": "mail.diegonmarcos.com",
+          "type": "static",
+          "base_path": "/maddy",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      }
+    },
+    {
+      "service": "user-comm_cloud-webmail",
+      "name": "cloud-webmail",
+      "description": "Cloud Webmail — Stalwart-native JMAP webmail with multi-account/multi-server (webmail.diegonmarcos.com); OUR build of bulwarkmail/webmail 1.9.2. Replaces SnappyMail.",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "webmail.mesh.diegonmarcos.com",
+      "domain": "webmail.diegonmarcos.com",
+      "ports": {
+        "app": 3000
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-webmail",
+          "dns": "webmail.mesh.diegonmarcos.com",
+          "port": 3000,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "webmail.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-comm_mail-puller",
+      "name": "mail-puller",
+      "description": "Rust sidecar — IMAP-IDLE pulls from external providers (Gmail, Outlook/Live, …) and delivers into Maddy via SMTP submission (:465 implicit TLS; Maddy dual-writes to Stalwart). Declarative source list in src/sources.json; OAuth2 creds via sops.",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-mail",
+      "dns": "mail-puller.mesh.diegonmarcos.com",
+      "domain": "mail-puller.diegonmarcos.com",
+      "ports": {
+        "app": null
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "mail-puller",
+          "port": null,
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "health": null,
+      "monitoring": {
+        "container_check": true
+      }
+    },
+    {
+      "service": "infra-api_cloud-mail-mcp",
+      "name": "cloud-mail-mcp",
+      "description": "Mail MCP server — IMAP/SMTP/Admin via Stalwart REST API",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "mail-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3103
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-mail-mcp",
+          "dns": "mail-mcp.mesh.diegonmarcos.com",
+          "port": 3103,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/mail-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 28,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Mail MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "name": "cloudy-mail-http-to-smtp-api",
+      "description": "HTTP-to-SMTP bridge sidecar of Caddy on gcp-proxy. CF Worker POSTs JSON email payloads to this container (because GCP blocks outbound TCP/25); container speaks SMTP over WG to maddy:25 + stalwart:2025 on oci-mail. Public path: api.diegonmarcos.com/http-to-smtp-proxy-api/ [DECOMMISSIONED 2026-05-21]",
+      "category": "app",
+      "enabled": false,
+      "host": "gcp-proxy",
+      "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/http-to-smtp-proxy-api",
+      "ports": {
+        "app": 8090
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-mail-http-to-smtp-api",
+          "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+          "port": 8090,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-mail-http-to-smtp-api",
+          "auth": "bearer",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/cloudy-mail-http-to-smtp-api",
+        "endpoint_count": 1,
+        "display_name": "HTTP-to-SMTP Proxy API",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-sec_caddy-l4-image",
+      "name": "caddy-l4-image",
+      "description": "Custom Caddy with L4 TCP proxy, ratelimit, Cloudflare DNS plugins",
+      "category": "sec",
+      "enabled": true,
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    }
+  ],
+  "mta_sts": {
+    "domain": "mta-sts.diegonmarcos.com",
+    "policy_path": "/.well-known/mta-sts.txt",
+    "mode": "enforce",
+    "mx": [
+      "route1.mx.cloudflare.net",
+      "route2.mx.cloudflare.net",
+      "route3.mx.cloudflare.net"
+    ],
+    "max_age": 604800
+  },
+  "wkd": {
+    "domains": [
+      "diegonmarcos.com, www.diegonmarcos.com",
+      "linktree.diegonmarcos.com",
+      "nexus.diegonmarcos.com",
+      "suite.diegonmarcos.com",
+      "maps.diegonmarcos.com"
+    ],
+    "hash": "s8y7oh5xrdpu9psba3i5ntk64ohouhga",
+    "path": "/.well-known/openpgpkey/*"
+  }
+}

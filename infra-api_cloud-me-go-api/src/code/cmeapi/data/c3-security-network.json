@@ -1,0 +1,529 @@
+{
+  "_generated_from": "cloud-u-containers */build.json + _shared/public-route-allowlist.json (gen-c3-datasets.mjs); no secrets by construction",
+  "dataset": "c3-security-network",
+  "count": 10,
+  "services": [
+    {
+      "service": "infra-sec_authelia",
+      "name": "authelia",
+      "description": "SSO and 2FA authentication portal",
+      "category": "sec",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "dns": "authelia.mesh.diegonmarcos.com",
+      "domain": "auth.diegonmarcos.com",
+      "ports": {
+        "app": 9091,
+        "redis": 6380
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "authelia",
+          "dns": "authelia.mesh.diegonmarcos.com",
+          "port": 9091,
+          "protocol": "http",
+          "mesh_route": true
+        },
+        {
+          "key": "redis",
+          "container_name": "authelia-redis",
+          "dns": "authelia-redis.mesh.diegonmarcos.com",
+          "port": 6380,
+          "protocol": "tcp",
+          "mesh_route": false
+        },
+        {
+          "key": "postlite",
+          "container_name": "postlite-authelia",
+          "port": null,
+          "protocol": "tcp",
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "auth.diegonmarcos.com",
+          "auth": "bypass",
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "health": "/api/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/api",
+        "display_name": "Authelia Auth API",
+        "auth": "oidc"
+      }
+    },
+    {
+      "service": "infra-sec_crowdsec",
+      "name": "crowdsec",
+      "description": "CrowdSec behavioral IDS/IPS engine — DORMANT placeholder (Cloudflare-off fallback). Container runs but detects/remediates nothing: empty acquisition, online API (CAPI) disabled, no bouncers wired.",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "crowdsec.mesh.diegonmarcos.com",
+      "domain": "crowdsec.diegonmarcos.com",
+      "ports": {
+        "lapi": 8088,
+        "metrics": 6062
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "crowdsec",
+          "dns": "crowdsec.mesh.diegonmarcos.com",
+          "port": 8088,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "crowdsec.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": false
+      }
+    },
+    {
+      "service": "infra-sec_introspect-proxy",
+      "name": "introspect-proxy",
+      "description": "OIDC token introspection sidecar for Caddy Bearer auth",
+      "category": "sec",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "dns": "introspect-proxy.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 4182
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "introspect-proxy",
+          "dns": "introspect-proxy.mesh.diegonmarcos.com",
+          "port": 4182,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/",
+        "endpoint_count": 2,
+        "display_name": "JWT Introspection Proxy",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-sec_mcp-oauth",
+      "name": "mcp-oauth",
+      "description": "MCP OAuth 2.1 authorization server for mcp.diegonmarcos.com (option 31.1, approved 2026-10-28): RFC 8414/9728 discovery, RFC 7591 DCR, /authorize behind Authelia, PKCE S256 /token, opaque tokens introspected by introspect-proxy",
+      "category": "sec",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "dns": "mcp-oauth.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 4183
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "mcp-oauth",
+          "dns": "mcp-oauth.mesh.diegonmarcos.com",
+          "port": 4183,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/",
+        "endpoint_count": 9,
+        "display_name": "MCP OAuth Authorization Server",
+        "auth": "oauth2"
+      }
+    },
+    {
+      "service": "infra-sec_cloudy-ai-tokens-api",
+      "name": "cloudy-ai-tokens-api",
+      "description": "Fleet token engine: lists, generates, reveals and revokes every fleet bearer token (fleet ft_ tokens and adopted Authelia JWTs); introspect-proxy asks it before accepting a Bearer, so a revoked token stops working within 60 seconds. Public address: c3-pvt.diegonmarcos.com/tokens-api (shared gate, #1104); mesh tokens-api.mesh.diegonmarcos.com",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 4184
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-ai-tokens-api",
+          "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com",
+          "port": 4184,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "health": "/health",
+      "monitoring": {
+        "tls_check": false,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/",
+        "endpoint_count": 8,
+        "display_name": "Fleet Token Engine",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-sec_caddy",
+      "name": "caddy",
+      "description": "Caddy reverse proxy + security dashboard (gcp-proxy, wg0 bind)",
+      "category": "sec",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "dns": "caddy.mesh.diegonmarcos.com",
+      "domain": "proxy.diegonmarcos.com",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "caddy",
+          "dns": "caddy.mesh.diegonmarcos.com",
+          "port": 443,
+          "protocol": "https",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "proxy_dashboard",
+          "host": "proxy.diegonmarcos.com",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-sec_caddy-public",
+      "name": "caddy-public",
+      "description": "Caddy public-edge L7 allowlist on oci-analytics. Terminates TLS on :8443, serves ONLY the declared-public allowlist (build-caddy-public.json: gh-pages, no-auth subdomains, well-known, explicit public_paths), and FORWARDS everything else to the private hub gcp-proxy over wg-public (10.1.0.2:443). Fail-closed: any host/path not explicitly allowlisted is forwarded to gcp-proxy, whose @wg gate 403s public clients.",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-analytics",
+      "dns": "caddy-public.mesh.diegonmarcos.com",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "caddy-public",
+          "dns": "caddy-public.mesh.diegonmarcos.com",
+          "port": 443,
+          "protocol": "https",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-net_wireguard-mesh",
+      "name": "wireguard-mesh",
+      "description": "Read-only data-driven control panel for the WireGuard mesh + wstunnel TCP/443 fallback. Mimics Headscale's UI shape but holds zero state and exposes zero mutations — pure observability over the existing declarative VPN data (cloud-data-topology.json + bb-net_vpn/build.json + terraform.json). Snapshot is frozen at deploy time; the page hydrates from PORTAL_DATA, no runtime fetch.",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "domain": "mesh.diegonmarcos.com",
+      "ports": {
+        "app": 8084
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "wireguard-mesh",
+          "port": 8084,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mesh.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      }
+    },
+    {
+      "service": "infra-net_wireguard-mesh-ws-tunnel",
+      "name": "wireguard-mesh-ws-tunnel",
+      "description": "WireGuard-over-TCP/443 fallback for hostile networks (airport / hotel / corporate guest Wi-Fi blocking UDP). Sibling to bb-net_wireguard-mesh (the panel) — this folder owns the wstunnel-server that terminates WSS on gcp-proxy and forwards UDP to the kernel WG listener at 127.0.0.1:51820. UDP/51820 remains the primary transport; this kicks in only when clients can't reach UDP.",
+      "category": "tools",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "domain": "vpn.diegonmarcos.com",
+      "ports": {
+        "ws": 8080
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "wireguard-mesh-ws-tunnel",
+          "port": 8080,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "vpn.diegonmarcos.com",
+          "auth": "none",
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": false
+      }
+    },
+    {
+      "service": "infra-net_wireguard-public",
+      "name": "wireguard-public",
+      "description": "Owner of the wg-public mesh topology + client list. Data-only entry (enabled=false → no container/compose). Replaces the previous wireguard_public block that lived in config.json (root global), so adding/rotating/sharing a wg-public client is a one-file edit here instead of touching the global config.",
+      "category": "net",
+      "enabled": false,
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    }
+  ],
+  "public_allowlist": {
+    "_doc": "THE fleet public-route allowlist. Every route is WG-only fail-closed (wgOnly(proxy) = proxy.wg_only ?? true, off-mesh -> 403) unless its service is listed here. Public means: some proxy block in build.json sets wg_only:false. Memory: cloud-me-my-ai 4___ASSETS___/4.3.Memory/cloud-u-containers/infra-sec_caddy/project_wg-only-fleet-posture.md (+ feedback_cloudflare_wildcard_only.md). Guard: _shared/test-public-route-allowlist.mjs.",
+    "allowed": {
+      "infra-api_c3-public-api": "the one named public API (/pub)",
+      "infra-net_wireguard-mesh-ws-tunnel": "mesh bootstrap (vpn.)",
+      "infra-obs_matomo": "public-site analytics beacons",
+      "infra-obs_umami": "public-site analytics beacons",
+      "infra-obs_openobserve": "public-site analytics beacons",
+      "user-comm_matrix-continuwuity": "matrix federation",
+      "infra-sec_authelia": "SSO login portal, must be reachable off-mesh",
+      "user-ai_cloud-cgc-pub-mcp": "public, bearer-protected"
+    },
+    "_pending_doc": "Public today but NOT in the posture note's allowlist. Listed so the guard passes on current main without hiding them; each needs an owner decision (move to WG-only, or promote to allowed with a reason). The guard prints them as WARN, fails with STRICT=1, and fails if a service is listed here that is no longer public (remove it when fixed).",
+    "pending_owner_review": {}
+  },
+  "public_services": [
+    {
+      "service": "infra-api_c3-public-api",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "infra-net_wireguard-mesh-ws-tunnel",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "infra-obs_matomo",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "infra-obs_openobserve",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "infra-obs_umami",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "infra-sec_authelia",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "user-ai_cloud-cgc-pub-mcp",
+      "exposure": "public (allowlisted)"
+    },
+    {
+      "service": "user-comm_matrix-continuwuity",
+      "exposure": "public (allowlisted)"
+    }
+  ],
+  "edge_auth_policy": {
+    "public_open": [
+      {
+        "host": "auth.diegonmarcos.com",
+        "scope": "host",
+        "reason": "The IdP itself: login portal and OIDC endpoints (authorize / token / JWKS / discovery) cannot require the token or session they exist to issue."
+      },
+      {
+        "host": "linktree.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Owner decision 2026-10-16: the public link page is deliberately anonymous."
+      },
+      {
+        "host": "c3-pub.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Routing tier pub (#1104): Cloudflare-proxied, explicit unauthenticated allowlist only (_shared/fleet-addressing.json tiers.pub); every other path answers 404 and no upstream is reachable beyond the listed paths."
+      },
+      {
+        "host": "mcp.diegonmarcos.com",
+        "scope": "paths",
+        "paths": [
+          "/.well-known/oauth-protected-resource*",
+          "/.well-known/oauth-authorization-server*",
+          "/.well-known/openid-configuration*",
+          "/register",
+          "/authorize",
+          "/token",
+          "/callback",
+          "/oauth/*",
+          "/*/.well-known/oauth-protected-resource*",
+          "/*/.well-known/oauth-authorization-server*",
+          "/*/register",
+          "/*/authorize",
+          "/*/token",
+          "/*/callback"
+        ],
+        "reason": "Owner decision 2026-10-16 + item 5 (MCP auth discovery): a claude.ai MCP connector completes the OAuth sign-in BEFORE it holds a token -- discovery metadata (RFC 9728 / RFC 8414, incl. per-resource variants), Dynamic Client Registration (/register), /authorize, /token and the callback. The tool endpoints (/<route>/mcp) stay Bearer-protected; a request to any of these paths is answered by the MCP side itself."
+      },
+      {
+        "host": "analytics.diegonmarcos.com",
+        "scope": "paths",
+        "paths": [
+          "/umami/script.js",
+          "/umami/api/send",
+          "/matomo/matomo.js",
+          "/matomo/piwik.js",
+          "/matomo/matomo.php",
+          "/matomo/piwik.php",
+          "/matomo/js/*"
+        ],
+        "reason": "Owner decision 2026-10-16: the tracker script and its event-collection endpoint are loaded by anonymous visitors of the public websites (umami script.js + /api/send; Matomo's tracker equivalents). Dashboards, the reporting APIs (matomo api.php, umami /api/*) and OpenObserve stay protected."
+      },
+      {
+        "host": "matrix.diegonmarcos.com",
+        "scope": "paths",
+        "paths": [
+          "/_matrix/federation/*",
+          "/_matrix/key/*",
+          "/.well-known/matrix/*",
+          "/_matrix/client/*"
+        ],
+        "reason": "Owner decision 2026-10-16: other homeservers federate and discover this one without credentials. Owner decision 22: the Matrix client API (/_matrix/client/*) is open for Element web and token-less clients -- the homeserver does its own auth. Media and everything else stays protected."
+      },
+      {
+        "host": "chat.diegonmarcos.com",
+        "scope": "paths",
+        "paths": [
+          "/api/v4/*"
+        ],
+        "reason": "Owner decision 22: Mattermost mobile login and API -- Mattermost does its own authentication on /api/v4/*. The web UI stays gated."
+      },
+      {
+        "host": "git.diegonmarcos.com",
+        "scope": "paths",
+        "paths": [
+          "/*/*/info/refs",
+          "/*/*/git-upload-pack",
+          "/*/*/git-receive-pack",
+          "/api/v1/*"
+        ],
+        "reason": "Owner decision 22: git-over-HTTPS (smart HTTP) with Basic auth and the Gitea API -- Gitea does its own authentication; git clients cannot do a cookie/bearer handshake. The web UI stays gated."
+      },
+      {
+        "host": "diegonmarcos.com",
+        "scope": "host",
+        "reason": "Routing tier public HTML (#1104, owner ruling 2026-10-22): the apex and www are the ONLY unauthenticated public hosts. Static landing page plus WKD (OpenPGP public keys by design) and the /.well-known/jmap autoconfig redirect."
+      },
+      {
+        "host": "www.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Routing tier public HTML (#1104, owner ruling 2026-10-22): www and the apex are the ONLY unauthenticated public hosts; static landing page."
+      },
+      {
+        "host": "nexus.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Owner ruling 2026-10-22 (#1104): GitHub Pages custom domain, explicit public HTML host without auth; the content is public on github.io anyway."
+      },
+      {
+        "host": "suite.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Owner ruling 2026-10-22 (#1104): GitHub Pages custom domain, explicit public HTML host without auth; the content is public on github.io anyway."
+      },
+      {
+        "host": "maps.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Owner ruling 2026-10-22 (#1104): GitHub Pages custom domain, explicit public HTML host without auth; the content is public on github.io anyway."
+      },
+      {
+        "host": "*.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Routing tier (#1104, owner ruling 2026-10-22): there is NO public wildcard route. This catch-all serves nothing: an undeclared subdomain is redirected to the apex and reaches no upstream. Guard: _shared/test-fleet-addressing.mjs."
+      },
+      {
+        "host": "mta-sts.diegonmarcos.com",
+        "scope": "host",
+        "reason": "Owner decision 2026-10-29 (#1292): the whole MTA-STS host is public, home page included. The policy (RFC 8461) is fetched anonymously by sending MTAs and the host carries nothing else: /.well-known/mta-sts.txt serves the policy, / a one-line public notice, any other path 404. Previously only the policy path was exempt (scope paths) so / answered 302 to auth."
+      },
+      {
+        "host": "vpn.diegonmarcos.com",
+        "scope": "websocket",
+        "reason": "Owner decision 2026-10-16: the wstunnel client opens a WebSocket upgrade to a secret path prefix and cannot do a cookie/bearer handshake. The exemption is `Upgrade: websocket` only; wstunnel itself rejects every upgrade whose path is not its secret --http-upgrade-path-prefix, and every non-upgrade request to vpn. is gated."
+      }
+    ],
+    "technical": [
+      {
+        "id": "acme-http-01",
+        "match": "/.well-known/acme-challenge/*",
+        "reason": "Owner decision 2026-10-16: ACME http-01 validation requests come from the CA and cannot carry a token. Exempted on EVERY host (the path is excluded from the gate). Caddy core answers a live token before any route runs; this fleet itself issues via DNS-01."
+      },
+      {
+        "id": "cors-preflight",
+        "match": "OPTIONS with Access-Control-Request-Method",
+        "reason": "Browsers never attach credentials to a CORS preflight. The (edge_auth) snippet answers it itself with 204; it is never proxied to an upstream, so it serves no content. Plain OPTIONS (WebDAV discovery) is NOT exempt."
+      },
+      {
+        "id": "mail-protocol-l4",
+        "hosts": [
+          "imap.diegonmarcos.com",
+          "smtps.diegonmarcos.com"
+        ],
+        "reason": "IMAPS / SMTPS are not HTTP: caddy-l4 forwards the raw TLS stream to Stalwart, which authenticates the mail login itself. There is no HTTP request to carry a bearer or cookie."
+      }
+    ]
+  }
+}

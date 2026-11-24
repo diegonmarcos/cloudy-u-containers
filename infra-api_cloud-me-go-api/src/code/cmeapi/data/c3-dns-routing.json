@@ -1,0 +1,976 @@
+{
+  "_generated_from": "cloud-u-containers */build.json + _shared/public-route-allowlist.json (gen-c3-datasets.mjs); no secrets by construction",
+  "dataset": "c3-dns-routing",
+  "count": 6,
+  "services": [
+    {
+      "service": "infra-net_hickory-dns",
+      "name": "hickory-dns",
+      "description": "Internal DNS server for WireGuard mesh (per-service mesh zone)",
+      "category": "cloud",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "domain": "dns.internal",
+      "ports": {
+        "dns": 53
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "hickory-dns",
+          "dns": "hickory-dns.mesh.diegonmarcos.com",
+          "port": 53,
+          "protocol": "udp",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-net_unbound-dns64",
+      "name": "unbound-dns64",
+      "description": "DNS64 resolver for NAT64 — synthesises AAAA records for IPv4-only names so IPv6-only clients can reach the internet via the Tayga NAT64 translator",
+      "category": "infra-net",
+      "enabled": true,
+      "host": "oci-analytics",
+      "domain": "dns64.internal",
+      "ports": {
+        "dns": 53
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "unbound-dns64",
+          "dns": "unbound-dns64.mesh.diegonmarcos.com",
+          "port": 53,
+          "protocol": "udp",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-net_cloudflared",
+      "name": "cloudflared",
+      "description": "Cloudflare Tunnel connector (remotely-managed tunnel 'fleet-edge') — the network half of the Cloudflare One (Zero Trust) edge. Outbound-only: no inbound port is opened anywhere. Hostnames, Access apps and ingress rules are declared in cloud-infra c_vps/ba-clo_cloudflare (terraform.json .zero_trust + zero-trust.tf); this container only carries the connector. Origins are reached over the WireGuard mesh (10.0.0.0/24), so one tunnel can front any VM. Design: cloud-infra a0_docs/eng-specs/cloudflare-zero-trust.md. Caddy + Authelia on gcp-proxy stay the fallback path and do not depend on this.",
+      "category": "infra-net",
+      "enabled": true,
+      "host": "oci-apps",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudflared",
+          "protocol": "none",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "monitoring": {
+        "tls_check": false,
+        "dns_check": false,
+        "endpoint_check": false,
+        "_doc": "No vhost of its own. Health = the tunnel's connector status in Cloudflare (cf-zero-trust workflow [zt:probe]) and http://127.0.0.1:20241/ready on oci-apps."
+      }
+    },
+    {
+      "service": "infra-cloud_cloudflare-worker",
+      "name": "cloudflare-worker",
+      "description": "Cloudflare Email Worker — inbound mail forwarder. Parallel legs (Promise.allSettled): Google Workspace (Gmail API) and Maddy (via c3-public-api http-to-smtp; Maddy's durable stalwart_queue feeds Stalwart). Accept if either lands, reject only if both fail; each leg has its own retries and lost-leg log. live.com disaster backup when mail health is unhealthy.",
+      "category": "cloud",
+      "enabled": true,
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-sec_caddy",
+      "name": "caddy",
+      "description": "Caddy reverse proxy + security dashboard (gcp-proxy, wg0 bind)",
+      "category": "sec",
+      "enabled": true,
+      "host": "gcp-proxy",
+      "dns": "caddy.mesh.diegonmarcos.com",
+      "domain": "proxy.diegonmarcos.com",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "caddy",
+          "dns": "caddy.mesh.diegonmarcos.com",
+          "port": 443,
+          "protocol": "https",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "proxy_dashboard",
+          "host": "proxy.diegonmarcos.com",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-sec_caddy-public",
+      "name": "caddy-public",
+      "description": "Caddy public-edge L7 allowlist on oci-analytics. Terminates TLS on :8443, serves ONLY the declared-public allowlist (build-caddy-public.json: gh-pages, no-auth subdomains, well-known, explicit public_paths), and FORWARDS everything else to the private hub gcp-proxy over wg-public (10.1.0.2:443). Fail-closed: any host/path not explicitly allowlisted is forwarded to gcp-proxy, whose @wg gate 403s public clients.",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-analytics",
+      "dns": "caddy-public.mesh.diegonmarcos.com",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "caddy-public",
+          "dns": "caddy-public.mesh.diegonmarcos.com",
+          "port": 443,
+          "protocol": "https",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    }
+  ],
+  "hickory": {
+    "zones": [
+      "db",
+      "mesh.diegonmarcos.com",
+      "diegonmarcos.com"
+    ],
+    "forwarders": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ]
+  },
+  "rule": "Cloudflare and Hickory are wildcard-only; Caddy is the single SoT for routing and exposure; every route is WG-only unless on the public allowlist.",
+  "route_table": [
+    {
+      "service": "infra-obs_matomo",
+      "mesh_name": "matomo.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "analytics.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/matomo",
+      "auth": "two_factor",
+      "wg_only": false
+    },
+    {
+      "service": "infra-obs_openobserve",
+      "mesh_name": "openobserve.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "analytics.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/openobserve",
+      "auth": "two_factor",
+      "wg_only": false
+    },
+    {
+      "service": "infra-obs_umami",
+      "mesh_name": "umami.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "analytics.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/umami",
+      "auth": "two_factor",
+      "public_paths": [
+        "/umami/script.js",
+        "/umami/api/send"
+      ],
+      "wg_only": false
+    },
+    {
+      "service": "user-fin_capital-stack-finterm-api",
+      "mesh_name": "capital-stack-finterm-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/capital-stack-finterm-api",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-all-api",
+      "mesh_name": "cloudy-all-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-all-api",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-data_cloudy-browser-scrapper-api",
+      "mesh_name": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-browser-scrapper-api",
+      "auth": "two_factor",
+      "public_paths": [
+        "/scrappers/health",
+        "/scrappers/openapi.json"
+      ],
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-c3-api",
+      "mesh_name": "cloudy-c3-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-c3-api",
+      "auth": "two_factor",
+      "public_paths": [
+        "/c3-infra-api/docs/json",
+        "/c3-infra-api/public/logs",
+        "/c3-infra-api/public/events/*"
+      ],
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "mesh_name": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-mail-http-to-smtp-api",
+      "auth": "bearer",
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-drive-git-proxy-api",
+      "mesh_name": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/git",
+      "auth": "two_factor",
+      "public_paths": [
+        "/git/health"
+      ],
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_c3-public-api",
+      "mesh_name": "c3-public-api.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "api.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/pub",
+      "auth": "two_factor",
+      "public_paths": [
+        "/pub/health",
+        "/pub/ready",
+        "/pub/analytics/*"
+      ],
+      "wg_only": false
+    },
+    {
+      "service": "user-prod_etherpad",
+      "mesh_name": "etherpad.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "app.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/etherpad",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_filebrowser",
+      "mesh_name": "filebrowser.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "app.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/filebrowser",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_hedgedoc",
+      "mesh_name": "hedgedoc.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "app.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/hedgedoc",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-sec_authelia",
+      "mesh_name": "authelia.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "auth.diegonmarcos.com",
+      "auth": "bypass",
+      "wg_only": false
+    },
+    {
+      "service": "user-prod_calendar-radicale",
+      "mesh_name": "calendar.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "cal.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_chat-mattermost",
+      "mesh_name": "mattermost.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "chat.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-obs_cloud-spec",
+      "mesh_name": "c3-spec.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "cloud.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/spec",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_contacts-radicale",
+      "mesh_name": "contacts.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "contacts.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-sec_crowdsec",
+      "mesh_name": "crowdsec.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "crowdsec.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-obs_dbgate",
+      "mesh_name": "dbgate.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "db.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-dat_gitea",
+      "mesh_name": "gitea.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "git.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_code-server",
+      "mesh_name": "code-server.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "ide.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_tools-stalwart",
+      "mesh_name": "stalwart.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "jmap.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "infra-ai_languagetool",
+      "block": "primary",
+      "host": "languagetool.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_tools-maddy",
+      "mesh_name": "maddy.mesh.diegonmarcos.com",
+      "block": "mail_hub",
+      "host": "mail.diegonmarcos.com",
+      "type": "static",
+      "base_path": "/maddy",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_tools-stalwart",
+      "mesh_name": "stalwart.mesh.diegonmarcos.com",
+      "block": "mail_hub",
+      "host": "mail.diegonmarcos.com",
+      "base_path": "/stalwart",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_tools-maddy",
+      "mesh_name": "maddy.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mail.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_matrix-continuwuity",
+      "mesh_name": "matrix-continuwuity.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "matrix.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": false
+    },
+    {
+      "service": "infra-api_cloud-infra-mcp",
+      "mesh_name": "c3-infra-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/c3-infra-mcp",
+      "auth": "two_factor",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloud-services-mcp",
+      "mesh_name": "c3-services-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/c3-services-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-ops_c3bot-relay",
+      "mesh_name": "c3bot-relay.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/c3bot-relay",
+      "auth": "none",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "user-ai_cloud-cgc-pub-mcp",
+      "mesh_name": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloud-cgc-pub-mcp",
+      "streaming": true,
+      "wg_only": false
+    },
+    {
+      "service": "infra-api_cloud-drive-mcp",
+      "mesh_name": "drive-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloud-drive-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloud-superapp-mcp",
+      "mesh_name": "superapp-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloud-superapp-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloud-vault-mcp",
+      "mesh_name": "vault-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloud-vault-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-all-mcp",
+      "mesh_name": "cloudy-all-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-all-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-apps-communication-mcp",
+      "mesh_name": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-apps-communication-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloudy-apps-drive-mcp",
+      "mesh_name": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-apps-drive-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "user-data_cloudy-browser-headless",
+      "mesh_name": "cloudy-browser-headless.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/cloudy-browser-headless",
+      "auth": "none",
+      "streaming": false,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_google-personal-mcp",
+      "mesh_name": "g-personal-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/g-personal",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_google-workspace-mcp",
+      "mesh_name": "g-workspace-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/g-workspace",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloud-mail-mcp",
+      "mesh_name": "mail-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/mail-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-api_cloud-mattermost-mcp",
+      "mesh_name": "mattermost-mcp.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "mcp.diegonmarcos.com",
+      "type": "path",
+      "base_path": "/mattermost-mcp",
+      "streaming": true,
+      "wg_only": true
+    },
+    {
+      "service": "infra-net_wireguard-mesh",
+      "block": "primary",
+      "host": "mesh.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-comm_matrix-element",
+      "mesh_name": "matrix-element.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "messenger.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_cloud-notes-sync",
+      "mesh_name": "cloud-notes-sync.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "notes-sync.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_cloud-notes-web",
+      "mesh_name": "cloud-notes-web.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "notes.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-media_photoprism",
+      "mesh_name": "photoprism.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "photos.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "user-media_playlist-syncer",
+      "mesh_name": "playlist-syncer.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "playlist.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-sec_caddy",
+      "mesh_name": "caddy.mesh.diegonmarcos.com",
+      "block": "proxy_dashboard",
+      "host": "proxy.diegonmarcos.com",
+      "wg_only": true
+    },
+    {
+      "service": "infra-obs_ntfy",
+      "mesh_name": "ntfy.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "rss.diegonmarcos.com",
+      "auth": "ntfy-3tier",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_send",
+      "block": "primary",
+      "host": "send.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "user-prod_grist",
+      "mesh_name": "grist.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "sheets.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "user-vault_vaultwarden",
+      "block": "primary",
+      "host": "vault.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": true
+    },
+    {
+      "service": "infra-net_wireguard-mesh-ws-tunnel",
+      "block": "primary",
+      "host": "vpn.diegonmarcos.com",
+      "auth": "none",
+      "wg_only": false
+    },
+    {
+      "service": "user-comm_cloud-webmail",
+      "mesh_name": "webmail.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "webmail.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    },
+    {
+      "service": "infra-obs_dagu",
+      "mesh_name": "dagu.mesh.diegonmarcos.com",
+      "block": "primary",
+      "host": "workflows.diegonmarcos.com",
+      "auth": "two_factor",
+      "wg_only": true
+    }
+  ],
+  "mesh_names": [
+    {
+      "service": "bc-obs_alerts-api",
+      "dns": "alerts-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_auth-broker",
+      "dns": "auth-broker.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_authelia",
+      "dns": "authelia.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-infra-mcp",
+      "dns": "c3-infra-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_c3-public-api",
+      "dns": "c3-public-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-services-mcp",
+      "dns": "c3-services-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_cloud-spec",
+      "dns": "c3-spec.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ops_c3bot-relay",
+      "dns": "c3bot-relay.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_caddy-public",
+      "dns": "caddy-public.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_caddy",
+      "dns": "caddy.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_calendar-radicale",
+      "dns": "calendar.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-fin_capital-stack-finterm-api",
+      "dns": "capital-stack-finterm-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-fin_capital-stack-finterminal-web",
+      "dns": "capital-stack-finterminal-web.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloud-cgc-pub-mcp",
+      "dns": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-me-api",
+      "dns": "cloud-me-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_cloud-notes-sync",
+      "dns": "cloud-notes-sync.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_cloud-notes-web",
+      "dns": "cloud-notes-web.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloudy-ai-agents-api",
+      "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ai_cloudy-ai-api",
+      "dns": "cloudy-ai-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ai_cloudy-ai-embeddings-api",
+      "dns": "cloudy-ai-embeddings-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloudy-ai-memory-api",
+      "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_cloudy-ai-tokens-api",
+      "dns": "cloudy-ai-tokens-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-all-api",
+      "dns": "cloudy-all-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-all-mcp",
+      "dns": "cloudy-all-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-apps-communication-mcp",
+      "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-apps-drive-mcp",
+      "dns": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-data_cloudy-browser-headless",
+      "dns": "cloudy-browser-headless.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-data_cloudy-browser-scrapper-api",
+      "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-c3-api",
+      "dns": "cloudy-c3-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-drive-git-proxy-api",
+      "dns": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_code-server",
+      "dns": "code-server.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_contacts-radicale",
+      "dns": "contacts.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_crowdsec",
+      "dns": "crowdsec.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_dagu",
+      "dns": "dagu.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_dbgate",
+      "dns": "dbgate.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-drive-mcp",
+      "dns": "drive-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_etherpad",
+      "dns": "etherpad.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_filebrowser",
+      "dns": "filebrowser.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_google-personal-mcp",
+      "dns": "g-personal-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_google-workspace-mcp",
+      "dns": "g-workspace-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-dat_gitea",
+      "dns": "gitea.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_grist",
+      "dns": "grist.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_hedgedoc",
+      "dns": "hedgedoc.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_hermes-agent",
+      "dns": "hermes-agent.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_introspect-proxy",
+      "dns": "introspect-proxy.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-ai_jev-sidecar",
+      "dns": "jev-sidecar.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_tools-maddy",
+      "dns": "maddy.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-mail-mcp",
+      "dns": "mail-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_mail-puller",
+      "dns": "mail-puller.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_matomo",
+      "dns": "matomo.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_matrix-continuwuity",
+      "dns": "matrix-continuwuity.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_matrix-element",
+      "dns": "matrix-element.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_matrix-mautrix-whatsapp",
+      "dns": "matrix-mautrix-whatsapp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-mattermost-mcp",
+      "dns": "mattermost-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_chat-mattermost",
+      "dns": "mattermost.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_mcp-oauth",
+      "dns": "mcp-oauth.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_cloudy-ai-claude-api",
+      "dns": "my-ai-claude-api.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_ntfy",
+      "dns": "ntfy.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-ai_openclaw",
+      "dns": "openclaw.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_openobserve",
+      "dns": "openobserve.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-media_photoprism",
+      "dns": "photoprism.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-media_playlist-syncer",
+      "dns": "playlist-syncer.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-db_redis",
+      "dns": "redis.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-prod_revealmd",
+      "dns": "revealmd.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_tools-stalwart",
+      "dns": "stalwart.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_steel-browser",
+      "dns": "steel-browser.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-superapp-mcp",
+      "dns": "superapp-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-obs_umami",
+      "dns": "umami.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-api_cloud-vault-mcp",
+      "dns": "vault-mcp.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "user-comm_cloud-webmail",
+      "dns": "webmail.mesh.diegonmarcos.com"
+    },
+    {
+      "service": "infra-sec_zap",
+      "dns": "zap.mesh.diegonmarcos.com"
+    }
+  ]
+}

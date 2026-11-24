@@ -1,0 +1,1276 @@
+{
+  "_generated_from": "cloud-u-containers */build.json + _shared/public-route-allowlist.json (gen-c3-datasets.mjs); no secrets by construction",
+  "dataset": "c3-mcp-apis",
+  "count": 31,
+  "services": [
+    {
+      "service": "infra-api_c3-public-api",
+      "name": "c3-public-api",
+      "description": "C3 Public API — single public-edge listener on oci-analytics. Consolidates http-to-smtp-proxy-api (Bearer-gated /mail/*) and c3-analytics-api passthrough (public /analytics/*). Replaces split listeners across gcp-proxy + oci-analytics so gcp-proxy becomes a pure wg0 spoke.",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3-public-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/pub",
+      "ports": {
+        "app": 8087
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "c3-public-api",
+          "dns": "c3-public-api.mesh.diegonmarcos.com",
+          "port": 8087,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/pub",
+          "auth": "two_factor",
+          "public_paths": [
+            "/pub/health",
+            "/pub/ready",
+            "/pub/analytics/*"
+          ],
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "health": "/pub/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/pub",
+        "endpoint_count": 7,
+        "display_name": "C3 Public API",
+        "auth": "mixed"
+      }
+    },
+    {
+      "service": "infra-api_cloud-drive-mcp",
+      "name": "cloud-drive-mcp",
+      "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "drive-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3109
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-drive-mcp",
+          "dns": "drive-mcp.mesh.diegonmarcos.com",
+          "port": 3109,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloud-drive-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 1,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Drive MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloud-infra-mcp",
+      "name": "cloud-infra-mcp",
+      "description": "C3 MCP Server — Cloud Control Center MCP transport (stdio + HTTP)",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3-infra-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com/c3-infra-mcp",
+      "ports": {
+        "app": 3100
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-infra-mcp",
+          "dns": "c3-infra-mcp.mesh.diegonmarcos.com",
+          "port": 3100,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/c3-infra-mcp",
+          "auth": "two_factor",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/mcp",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 182,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "C3 Infra MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloud-mail-mcp",
+      "name": "cloud-mail-mcp",
+      "description": "Mail MCP server — IMAP/SMTP/Admin via Stalwart REST API",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "mail-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3103
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-mail-mcp",
+          "dns": "mail-mcp.mesh.diegonmarcos.com",
+          "port": 3103,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/mail-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 28,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Mail MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloud-mattermost-mcp",
+      "name": "cloud-mattermost-mcp",
+      "description": "Mattermost MCP server — chat tools via HTTP transport",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "mattermost-mcp.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3102
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-mattermost-mcp",
+          "dns": "mattermost-mcp.mesh.diegonmarcos.com",
+          "port": 3102,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/mattermost-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 10,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Mattermost MCP",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-api_cloud-me-api",
+      "name": "cloud-me-api",
+      "description": "Cloud Me API: read-only, authenticated read path to the owner's private cloud-me-* repos. The service holds one READ-ONLY deploy key per repo server-side, keeps a shallow clone of each declared repo, and serves declared JSON datasets (and filtered config files) to fleet apps, so no app holds a GitHub credential (#1079). First consumer: the cloud-webapps c3-* sites (#1063).",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-analytics",
+      "dns": "cloud-me-api.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 8124
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-me-api",
+          "dns": "cloud-me-api.mesh.diegonmarcos.com",
+          "port": 8124,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "health": "/me/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/me",
+        "endpoint_count": 6,
+        "display_name": "Cloud Me API",
+        "auth": "mixed"
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/me/health",
+          "auth": "none"
+        },
+        {
+          "method": "GET",
+          "path": "/me/endpoints",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/me/repos",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/me/config/:name",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/me/repos/:repo/file",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/me/autocomplete",
+          "auth": "authelia"
+        }
+      ]
+    },
+    {
+      "service": "infra-api_cloud-services-mcp",
+      "name": "cloud-services-mcp",
+      "description": "C3 Services MCP Server — service API gateway MCP transport (stdio + HTTP)",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3-services-mcp.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3101
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-services-mcp",
+          "dns": "c3-services-mcp.mesh.diegonmarcos.com",
+          "port": 3101,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/c3-services-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 127,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "C3 Services MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloud-superapp-mcp",
+      "name": "cloud-superapp-mcp",
+      "description": "MCP + HTTP faces over the Android constellation's on-device debug API (libs:devtools AppDebugServer, behind the SuperApp mesh gateway), reached over ssh. lib-api/lib-mcp shared, one module per app under mcps-apps/, one server process.",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "superapp-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3113
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-superapp-mcp",
+          "dns": "superapp-mcp.mesh.diegonmarcos.com",
+          "port": 3113,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloud-superapp-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 6,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Cloud SuperApp MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloud-vault-mcp",
+      "name": "cloud-vault-mcp",
+      "description": "MCP server — READ-ONLY personal data access (vault metadata, identity, comms, media, finance, health)",
+      "category": "data",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "vault-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3111
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-vault-mcp",
+          "dns": "vault-mcp.mesh.diegonmarcos.com",
+          "port": 3111,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloud-vault-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 17,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Cloud Vault MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-all-api",
+      "name": "cloudy-all-api",
+      "description": "C3 Services REST API — service API gateway Fastify API",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-all-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/c3-services-api",
+      "ports": {
+        "app": 8082
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-all-api",
+          "dns": "cloudy-all-api.mesh.diegonmarcos.com",
+          "port": 8082,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-all-api",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/c3-services-api/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "openapi",
+        "base_path": "/cloudy-all-api",
+        "endpoint_count": 25,
+        "display_name": "C3 Services API Gateway",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-all-mcp",
+      "name": "cloudy-all-mcp",
+      "description": "Fleet MCP router: list_servers, list_tools(server), call(server, tool, args)",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-all-mcp.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3112
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-all-mcp",
+          "dns": "cloudy-all-mcp.mesh.diegonmarcos.com",
+          "port": 3112,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-all-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 3,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Cloudy All MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-apps-communication-mcp",
+      "name": "cloudy-apps-communication-mcp",
+      "description": "Mail MCP server — IMAP/SMTP/Admin via Stalwart REST API",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3103
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-apps-communication-mcp",
+          "dns": "cloudy-apps-communication-mcp.mesh.diegonmarcos.com",
+          "port": 3103,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-apps-communication-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 29,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Mail MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-apps-drive-mcp",
+      "name": "cloudy-apps-drive-mcp",
+      "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3109
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-apps-drive-mcp",
+          "dns": "cloudy-apps-drive-mcp.mesh.diegonmarcos.com",
+          "port": 3109,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-apps-drive-mcp",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 1,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Drive MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-c3-api",
+      "name": "cloudy-c3-api",
+      "description": "C3 REST API — Cloud Control Center Fastify API",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-c3-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/c3-infra-api",
+      "ports": {
+        "app": 8081
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-c3-api",
+          "dns": "cloudy-c3-api.mesh.diegonmarcos.com",
+          "port": 8081,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-c3-api",
+          "auth": "two_factor",
+          "public_paths": [
+            "/c3-infra-api/docs/json",
+            "/c3-infra-api/public/logs",
+            "/c3-infra-api/public/events/*"
+          ],
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/c3-infra-api/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "openapi",
+        "base_path": "/cloudy-c3-api",
+        "endpoint_count": 100,
+        "display_name": "C3 Cloud Control Center API",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-api_cloudy-drive-git-proxy-api",
+      "name": "cloudy-drive-git-proxy-api",
+      "description": "Git Proxy API — Authelia-fronted read path to GitHub so the phone holds NO GitHub credential (#647, route 3 of #646's fallback chain). The caller authenticates to US with the Authelia bearer it already has; this service holds the GitHub token server-side and streams the result back.",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-analytics",
+      "dns": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/git",
+      "ports": {
+        "app": 8123
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-drive-git-proxy-api",
+          "dns": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
+          "port": 8123,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/git",
+          "auth": "two_factor",
+          "public_paths": [
+            "/git/health"
+          ],
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/git/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/git",
+        "endpoint_count": 9,
+        "display_name": "Git Proxy API",
+        "auth": "mixed"
+      },
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/git/health",
+          "auth": "none"
+        },
+        {
+          "method": "GET",
+          "path": "/git/endpoints",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/repos",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/repos/:owner/:repo/tarball",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/clone/:owner/:repo/info/refs",
+          "auth": "authelia"
+        },
+        {
+          "method": "POST",
+          "path": "/git/clone/:owner/:repo/git-upload-pack",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/repos/:owner/:repo/commits",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/repos/:owner/:repo/runs",
+          "auth": "authelia"
+        },
+        {
+          "method": "GET",
+          "path": "/git/releases/:owner/:repo/:tag/assets/:name",
+          "auth": "mesh"
+        }
+      ]
+    },
+    {
+      "service": "infra-api_cloudy-mail-http-to-smtp-api",
+      "name": "cloudy-mail-http-to-smtp-api",
+      "description": "HTTP-to-SMTP bridge sidecar of Caddy on gcp-proxy. CF Worker POSTs JSON email payloads to this container (because GCP blocks outbound TCP/25); container speaks SMTP over WG to maddy:25 + stalwart:2025 on oci-mail. Public path: api.diegonmarcos.com/http-to-smtp-proxy-api/ [DECOMMISSIONED 2026-05-21]",
+      "category": "app",
+      "enabled": false,
+      "host": "gcp-proxy",
+      "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/http-to-smtp-proxy-api",
+      "ports": {
+        "app": 8090
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-mail-http-to-smtp-api",
+          "dns": "cloudy-mail-http-to-smtp-api.mesh.diegonmarcos.com",
+          "port": 8090,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-mail-http-to-smtp-api",
+          "auth": "bearer",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/cloudy-mail-http-to-smtp-api",
+        "endpoint_count": 1,
+        "display_name": "HTTP-to-SMTP Proxy API",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-api_google-personal-mcp",
+      "name": "google-personal-mcp",
+      "description": "Google Personal Account MCP server — Gmail (IMAP/SMTP via App Password) for personal Google accounts, multi-account",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "g-personal-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3106
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "google-personal-mcp",
+          "dns": "g-personal-mcp.mesh.diegonmarcos.com",
+          "port": 3106,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/g-personal",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 9,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Google Personal MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-api_google-workspace-mcp",
+      "name": "google-workspace-mcp",
+      "description": "Google Workspace MCP server — Gmail, Calendar, Drive, Docs, Sheets via HTTP transport",
+      "category": "app",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "g-workspace-mcp.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com",
+      "ports": {
+        "app": 3104
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "google-workspace-mcp",
+          "dns": "g-workspace-mcp.mesh.diegonmarcos.com",
+          "port": 3104,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/g-workspace",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 114,
+        "resources_count": 0,
+        "prompts_count": 0,
+        "display_name": "Google Workspace MCP",
+        "auth": "oidc"
+      }
+    },
+    {
+      "service": "infra-cloud_google-apps-script-personal",
+      "name": "google-apps-script-personal",
+      "description": "Google Apps Script – Google Personal — serverless Apps Script project backing the google-personal-mcp integration (Gmail for personal Google accounts, multi-account). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+      "category": "app",
+      "enabled": true,
+      "host": "local",
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-cloud_google-apps-script-workspace",
+      "name": "google-apps-script-workspace",
+      "description": "Google Apps Script – Google Workspace — serverless Apps Script project backing the google-workspace-mcp integration (Gmail, Calendar, Drive, Docs, Sheets, Forms, Slides, Chat, Tasks, Contacts, Search, Apps Script via OAuth 2.0/2.1). Runs on Google's Apps Script runtime (V8/JavaScript) — no container is shipped.",
+      "category": "app",
+      "enabled": true,
+      "host": "local",
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-ops_c3bot-relay",
+      "name": "c3bot-relay",
+      "description": "c3bot-relay (#1579): Telegram <-> c3 relay on the c3-bot (Bot A, ONE token). Primary ingestion is webhook mode via the public c3-pub route /c3bot-webhook (secret_token checked). While the webhook is unhealthy the relay calls deleteWebhook and polls Bot A with getUpdates, then setWebhook again when the route recovers (never both at once, so no 409). Deduped by chat+message_id+date. Inbound events fan out over WebSocket (/ws), SSE (/events, Last-Event-ID resume) and long-poll (/poll, cursor). Outbound via POST /send or a WS send frame, sent as Bot A. Zero npm dependencies. API bearer-gated, mesh-only; only the webhook path is public.",
+      "category": "sec",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3bot-relay.mesh.diegonmarcos.com",
+      "domain": "mcp.diegonmarcos.com/c3bot-relay",
+      "ports": {
+        "app": 3119
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "c3bot-relay",
+          "dns": "c3bot-relay.mesh.diegonmarcos.com",
+          "port": 3119,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/c3bot-relay",
+          "auth": "none",
+          "streaming": true,
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "rest",
+        "base_path": "/c3bot-relay",
+        "display_name": "c3bot Telegram relay",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "user-ai_cloud-cgc-pub-mcp",
+      "name": "cloud-cgc-pub-mcp",
+      "description": "Cloud CGC Pub MCP — Code Graph Context: infra knowledge, specs, docs, semantic code search",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3105,
+        "pvt": 3107
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-cgc-pub-mcp",
+          "dns": "cloud-cgc-pub-mcp.mesh.diegonmarcos.com",
+          "port": 3105,
+          "protocol": "http",
+          "mesh_route": true
+        },
+        {
+          "key": "pvt",
+          "container_name": "cloud-cgc-pvt-mcp",
+          "dns": null,
+          "port": 3107,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "mcp.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloud-cgc-pub-mcp",
+          "streaming": true,
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "mcp": {
+        "transport": "streamable-http",
+        "endpoint_path": "/mcp",
+        "tools_count": 16,
+        "resources_count": 2,
+        "prompts_count": 0,
+        "display_name": "Cloud CGC Pub MCP",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "user-ai_cloud-me-cgc-pvt-graph-api",
+      "name": "cloud-me-cgc-pvt-graph-api",
+      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
+      "category": "data",
+      "enabled": true,
+      "host": "oci-apps",
+      "ports": {
+        "app": 8001
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-me-cgc-pvt-graph-api",
+          "port": 8001,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-ai_cloudy-ai-agents-api",
+      "name": "cloudy-ai-agents-api",
+      "description": "my-ai API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by OpenRouter (no Claude subscription, no metered Anthropic key), with a vendored Headroom (Apache-2.0) compression hop and a savings dashboard. Sibling of claude-superset-api; the agent face for this stack is goose (my-ai wraps goose, claude-superset keeps claude-cli). Internal WG-only sidecar, never public.",
+      "category": "agi",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3217,
+        "ollama": 12436,
+        "headroom": 8890,
+        "goosed": 3227,
+        "_goosed_doc": "goosed = goose agent ACP/REST+SSE server (goose serve, X-Secret-Key auth, WireGuard-only)"
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-agi-goose",
+          "dns": "cloudy-ai-agents-api.mesh.diegonmarcos.com",
+          "port": 3217,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-ai_cloudy-ai-claude-api",
+      "name": "cloudy-ai-claude-api",
+      "description": "Claude superset API on oci-apps — one polyglot container: OpenAI /v1 + Ollama /api + Anthropic /v1/messages mimic backed by the subscription `claude` CLI (no metered key), with a vendored Headroom (Apache-2.0) compression hop and a savings dashboard. Successor to kg-bridge; usable as a local/remote fallback. Internal WG-only sidecar, never public.",
+      "category": "agi",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "my-ai-claude-api.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3117,
+        "ollama": 11436,
+        "headroom": 8788,
+        "proxy": 8789
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-agi-claude",
+          "dns": "my-ai-claude-api.mesh.diegonmarcos.com",
+          "port": 3117,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-ai_cloudy-ai-memory-api",
+      "name": "cloudy-ai-memory-api",
+      "description": "Central SQLite store of all Claude Code session transcripts — push/list/fetch so a session started on one device can be resumed from any other. WG-only sidecar on oci-apps; Node 22 built-in node:sqlite (phone-portable, no native deps).",
+      "category": "agi",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3108
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-ai-memory-api",
+          "dns": "cloudy-ai-memory-api.mesh.diegonmarcos.com",
+          "port": 3108,
+          "protocol": "http",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-ai_cloudy-cgc-pub-graph-api",
+      "name": "cloudy-cgc-pub-graph-api",
+      "description": "SurrealDB Hybrid Knowledge Graph - Infrastructure topology + vector search",
+      "category": "data",
+      "enabled": true,
+      "host": "oci-apps",
+      "ports": {
+        "app": 8002
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-cgc-pub-graph-api",
+          "port": 8002,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "user-data_cloudy-browser-scrapper-api",
+      "name": "cloudy-browser-scrapper-api",
+      "description": "Unified scrapers API (Instagram / Pinterest / LinkedIn / generic crawl) — retires crawlee-cloud. Lean single-container FastAPI, on-demand, flat-JSON output.",
+      "category": "data",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/scrappers",
+      "ports": {
+        "app": 3020
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloudy-browser-scrapper-api",
+          "dns": "cloudy-browser-scrapper-api.mesh.diegonmarcos.com",
+          "port": 3020,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/cloudy-browser-scrapper-api",
+          "auth": "two_factor",
+          "public_paths": [
+            "/scrappers/health",
+            "/scrappers/openapi.json"
+          ],
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "openapi",
+        "base_path": "/cloudy-browser-scrapper-api",
+        "display_name": "Scrapers API",
+        "auth": "two_factor"
+      }
+    },
+    {
+      "service": "user-fin_capital-stack-finterm-api",
+      "name": "capital-stack-finterm-api",
+      "description": "Fincept Terminal backend (capital-stack-finterminal-api) — REST + WebSocket over DataHub, 35 data connectors, 7 analytics, 17 brokers, 6 investor personas, MCP tools",
+      "category": "fin",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "capital-stack-finterm-api.mesh.diegonmarcos.com",
+      "domain": "api.diegonmarcos.com/capital-stack-finterminal-api",
+      "ports": {
+        "app": 8340
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "capital-stack-finterm-api",
+          "dns": "capital-stack-finterm-api.mesh.diegonmarcos.com",
+          "port": 8340,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "api.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/capital-stack-finterm-api",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/capital-stack-finterminal-api/health",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/capital-stack-finterm-api",
+        "display_name": "Fincept Terminal (Rust)",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "user-fin_capital-stack-finterminal-web",
+      "name": "capital-stack-finterminal-web",
+      "description": "Capital-Stack-FinTerminal web (#1351, design 3.5): the FinTerm pages of the SvelteKit webapps site served as static files behind the shared c3-pvt gate (Authelia 2FA session or fleet bearer) at c3-pvt.diegonmarcos.com/capital-stack-finterminal-web/. Same origin as c3-pvt.diegonmarcos.com/capital-stack-finterm-api (renamed in #1450; the pinned bundle may still carry the pre-rename mesh name, which is rewritten to the same route), so the page reads the /v1 API with the gate's session: no CORS, no token in the page. Built by cloudy-h-webapps-mob (ghcr.io/diegonmarcos/capital-stack-finterminal-web).",
+      "category": "fin",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "capital-stack-finterminal-web.mesh.diegonmarcos.com",
+      "domain": null,
+      "ports": {
+        "app": 8341
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "capital-stack-finterminal-web",
+          "dns": "capital-stack-finterminal-web.mesh.diegonmarcos.com",
+          "port": 8341,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "health": "/healthz",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "no-api"
+      }
+    },
+    {
+      "service": "user-news_capital-stack-news-gdelt-api",
+      "name": "capital-stack-news-gdelt-api",
+      "description": "GDELT News Aggregator — Fastify API with SQLite cache",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "ports": {
+        "app": 3019
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "capital-stack-news-gdelt-api",
+          "port": 3019,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)",
+      "health": "/health"
+    }
+  ]
+}

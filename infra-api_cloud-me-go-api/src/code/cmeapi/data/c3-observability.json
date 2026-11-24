@@ -1,0 +1,380 @@
+{
+  "_generated_from": "cloud-u-containers */build.json + _shared/public-route-allowlist.json (gen-c3-datasets.mjs); no secrets by construction",
+  "dataset": "c3-observability",
+  "count": 10,
+  "services": [
+    {
+      "service": "bc-obs_alerts-api",
+      "name": "alerts-api",
+      "description": "Security Alert Aggregation API",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-analytics",
+      "dns": "alerts-api.mesh.diegonmarcos.com",
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-obs_cloud-spec",
+      "name": "cloud-spec",
+      "description": "Unified Cloud Documentation Portal",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "c3-spec.mesh.diegonmarcos.com",
+      "ports": {
+        "app": 3080
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "cloud-spec",
+          "dns": "c3-spec.mesh.diegonmarcos.com",
+          "port": 3080,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "cloud.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/spec",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-obs_configs-sync",
+      "name": "configs-sync",
+      "description": "configs-sync engine (#1148): the fleet's configs pipeline as its own container. On a schedule it checks out cloud-u-containers (the declared inputs) and cloud-t-infra (the derive code, 1_cloud-configs), regenerates the consolidated JSON, the per-app build-*.json and the C3 containers-declared.json, runs the containers guard, and commits the result to the public data repo cloud_db_infra-ops-obsv_configs-sync. c3-infra-api and cloud-infra-mcp serve those files from the data repo. CANONICAL: the derivation of containers-declared.json lives HERE (src/code/containers-declared.mjs); the consolidated and per-app derivation stays in cloud-t-infra 1_cloud-configs, which this engine runs. cloud-t-infra keeps generating into its own dist/ as a thin wrapper until this engine is live.",
+      "category": "obs",
+      "enabled": true,
+      "host": "oci-apps",
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "configs-sync",
+          "protocol": "none",
+          "mesh_route": false
+        }
+      ],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-obs_dagu",
+      "name": "dagu",
+      "description": "Dagu - Lightweight DAG-based workflow scheduler",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "dagu.mesh.diegonmarcos.com",
+      "domain": "workflows.diegonmarcos.com",
+      "ports": {
+        "app": 8070
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "dagu",
+          "dns": "dagu.mesh.diegonmarcos.com",
+          "port": 8070,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "workflows.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/api/v1",
+        "display_name": "Dagu Workflow Scheduler",
+        "auth": "none"
+      }
+    },
+    {
+      "service": "infra-obs_dbgate",
+      "name": "dbgate",
+      "description": "DBGate - Universal database manager for all cloud databases",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "dbgate.mesh.diegonmarcos.com",
+      "domain": "db.diegonmarcos.com",
+      "ports": {
+        "app": 8086
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "dbgate",
+          "dns": "dbgate.mesh.diegonmarcos.com",
+          "port": 8086,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "db.diegonmarcos.com",
+          "auth": "two_factor",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      }
+    },
+    {
+      "service": "infra-obs_matomo",
+      "name": "matomo",
+      "description": "Matomo hybrid analytics (oci-apps)",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "matomo.mesh.diegonmarcos.com",
+      "domain": "analytics.diegonmarcos.com/matomo",
+      "ports": {
+        "app": 8080
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "matomo-hybrid",
+          "dns": "matomo.mesh.diegonmarcos.com",
+          "port": 8080,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "analytics.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/matomo",
+          "auth": "two_factor",
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/?module=API",
+        "display_name": "Matomo Reporting API",
+        "auth": "api-key"
+      }
+    },
+    {
+      "service": "infra-obs_ntfy",
+      "name": "ntfy",
+      "description": "Push notification server",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "ntfy.mesh.diegonmarcos.com",
+      "domain": "rss.diegonmarcos.com",
+      "ports": {
+        "app": 8090,
+        "rss_gateway": 8091
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "ntfy",
+          "dns": "ntfy.mesh.diegonmarcos.com",
+          "port": 8090,
+          "protocol": "http",
+          "mesh_route": true
+        },
+        {
+          "key": "syslog-bridge",
+          "container_name": "syslog-bridge",
+          "dns": null,
+          "port": null,
+          "mesh_route": false
+        },
+        {
+          "key": "rss-gateway",
+          "container_name": "capital-stack-news-rss-api",
+          "dns": null,
+          "port": 8091,
+          "protocol": "http",
+          "mesh_route": false
+        },
+        {
+          "key": "github-rss",
+          "container_name": "capital-stack-news-github-rss-api",
+          "dns": null,
+          "port": null,
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "rss.diegonmarcos.com",
+          "auth": "ntfy-3tier",
+          "wg_only": true
+        }
+      ],
+      "exposure": "wg-only (mesh)",
+      "health": "/",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/v1",
+        "display_name": "ntfy Push Notifications",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-obs_openobserve",
+      "name": "openobserve",
+      "description": "OpenObserve - single-binary observability platform (logs + traces + metrics + RUM). Replaces LGTM stack.",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "openobserve.mesh.diegonmarcos.com",
+      "domain": "analytics.diegonmarcos.com/openobserve",
+      "ports": {
+        "app": 5080
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "openobserve",
+          "dns": "openobserve.mesh.diegonmarcos.com",
+          "port": 5080,
+          "protocol": "http",
+          "mesh_route": true
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "analytics.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/openobserve",
+          "auth": "two_factor",
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "health": "/healthz",
+      "monitoring": {
+        "tls_check": true,
+        "dns_check": true,
+        "endpoint_check": true
+      },
+      "api": {
+        "type": "openapi",
+        "base_path": "/api",
+        "display_name": "OpenObserve HTTP API",
+        "auth": "bearer"
+      }
+    },
+    {
+      "service": "infra-obs_reports",
+      "name": "reports",
+      "description": "Health/security/mail report runner — Rust workspace (5 binaries: cloud-health-full-daily master + 4 derives) packaged into a multi-arch GHCR image. Invoked ad hoc (GHA workflow_dispatch/schedule, Dagu DAGs) — not a standing service, no VM deploy target. Report OUTPUT (dist/ JSON+MD) publishes to the cloud-data repo, not here — see src/entrypoint.sh REPORTS_DIR / reports-common::find_cloud_data_file.",
+      "category": "tools",
+      "enabled": true,
+      "containers": [],
+      "routes": [],
+      "exposure": "wg-only (mesh)"
+    },
+    {
+      "service": "infra-obs_umami",
+      "name": "umami",
+      "description": "Umami Analytics - lightweight privacy-focused web analytics",
+      "category": "tools",
+      "enabled": true,
+      "host": "oci-apps",
+      "dns": "umami.mesh.diegonmarcos.com",
+      "domain": "analytics.diegonmarcos.com/umami",
+      "ports": {
+        "app": 3006,
+        "db": 5442
+      },
+      "containers": [
+        {
+          "key": "app",
+          "container_name": "umami",
+          "dns": "umami.mesh.diegonmarcos.com",
+          "port": 3006,
+          "protocol": "http",
+          "mesh_route": true
+        },
+        {
+          "key": "db",
+          "container_name": "umami-db",
+          "dns": "umami-db.mesh.diegonmarcos.com",
+          "port": 5442,
+          "protocol": "tcp",
+          "mesh_route": false
+        },
+        {
+          "key": "setup",
+          "container_name": "umami-setup",
+          "dns": "umami-setup.mesh.diegonmarcos.com",
+          "port": null,
+          "mesh_route": false
+        }
+      ],
+      "routes": [
+        {
+          "block": "primary",
+          "host": "analytics.diegonmarcos.com",
+          "type": "path",
+          "base_path": "/umami",
+          "auth": "two_factor",
+          "public_paths": [
+            "/umami/script.js",
+            "/umami/api/send"
+          ],
+          "wg_only": false
+        }
+      ],
+      "exposure": "public (allowlisted)",
+      "api": {
+        "type": "custom-rest",
+        "base_path": "/umami",
+        "display_name": "Umami Analytics API",
+        "auth": "bearer"
+      }
+    }
+  ]
+}
