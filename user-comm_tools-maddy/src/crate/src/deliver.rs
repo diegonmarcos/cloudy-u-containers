@@ -237,6 +237,10 @@ fn lc(s: &str) -> String {
 /// jq `get_hdr`: first line matching `^NAME:` (NAME is used as a regex, case-insensitive), value without the
 /// `name:` prefix and the whitespace after it. No continuation handling.
 fn get_hdr_jq(headers: &str, name: &str) -> Res<String> {
+    // jq: "" | split("\n") is [], so no line is ever tested and an invalid name regex is never compiled.
+    if headers.is_empty() {
+        return Ok(String::new());
+    }
     let re = match Regex::new(&format!("(?i)^{}:", name)) {
         Ok(r) => r,
         Err(e) => return err(format!("invalid header name regex {name:?}: {e}")),
@@ -662,6 +666,17 @@ mod tests {
             {"when": {"type": "header_contains", "header": "X-Dup", "values": ["first"]}, "folder": "First"}
         ]});
         assert_eq!(evaluate(&rules, &ctx("a@b.c"), None).unwrap(), "First");
+    }
+
+    #[test]
+    fn empty_header_block_never_compiles_the_name_regex() {
+        let rules = json!({"schema_version": 2, "delivery_strategy": "split", "routing_default": "D", "rules": [
+            {"when": {"type": "header_exists", "header": "X-(Bad"}, "folder": "Bad"}]});
+        let mut c = ctx("a@b.c");
+        c.headers = String::new();
+        assert_eq!(evaluate(&rules, &c, None).unwrap(), "D");
+        c.headers = "From: a@b".into();
+        assert!(evaluate(&rules, &c, None).is_err());
     }
 
     #[test]
