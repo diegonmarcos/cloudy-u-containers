@@ -262,6 +262,11 @@ func (s *side) do(t *testing.T, st step, vars map[string]string) resp {
 	out := resp{status: r.StatusCode, body: string(b)}
 	for _, h := range compared {
 		for _, v := range r.Header.Values(h) {
+			if h == "Allow" { // werkzeug builds it from a set: the order changes with PYTHONHASHSEED, the members do not
+				ms := strings.Split(v, ", ")
+				sort.Strings(ms)
+				v = strings.Join(ms, ", ")
+			}
 			out.hdr = append(out.hdr, h+": "+v)
 		}
 	}
