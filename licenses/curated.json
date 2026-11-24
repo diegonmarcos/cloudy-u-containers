@@ -243,6 +243,9 @@
   "infra-sec_introspect-proxy-go": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-ops_c3-execd": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "licenses": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
@@ -690,6 +693,14 @@
   "golang.org/x/sync": {
    "licence": "BSD-3-Clause",
    "note": "LICENSE in the module (v0.10.0)."
+  },
+  "golang.org/x/crypto": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v0.31.0); used unmodified as a library (ssh client)."
+  },
+  "golang.org/x/sys": {
+   "licence": "BSD-3-Clause",
+   "note": "LICENSE in the module (v0.28.0); used unmodified as a library."
   },
   "github.com/modelcontextprotocol/go-sdk": {
    "licence": "Apache-2.0 AND MIT",

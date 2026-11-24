@@ -1,0 +1,82 @@
+{
+  "name": "c3-execd",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Net-Routing & Security"
+  },
+  "description": "Go sidecar for cloud-infra-mcp / cloudy-c3-api / superapp-mcp: loopback exec with timeouts, pooled native SSH (x/crypto/ssh), policy-gated Docker unix-socket client and an audit log. Shadow stage: runs beside the Node helpers (shared/libs/exec.ts, ssh.ts), nothing calls it until switch-over (ticket #1875)",
+  "ports": {
+    "app": 4187
+  },
+  "bind_host": "127.0.0.1",
+  "category": "ops",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/c3-execd",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "c3-execd",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "amd64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o c3-execd ./cmd/c3-execd",
+      "binary": "c3-execd",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Multi-stage: compiled in golang:1.24-bookworm on the arch-matched runner, shipped as one static binary on distroless static (no shell, no libc, non-root 65532). No apt/apk line: the base has neither."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "c3-execd",
+      "image": "ghcr.io/diegonmarcos/c3-execd:latest",
+      "port": 4187,
+      "port_env": null,
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [
+        "/opt/ssh-keys/c3-infra-api:/root/.ssh:ro",
+        "/var/run/docker.sock:/var/run/docker.sock"
+      ],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "64M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 4,
+    "display_name": "c3-execd (Go exec/ssh/docker sidecar, shadow)",
+    "description": "POST /v1/exec, /v1/ssh, /v1/docker, GET /health on loopback; allowlisted commands, pooled ssh sessions, allowlisted docker engine calls, audit line per call.",
+    "auth": "none"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 -race ./...",
+      "cwd": "src/code"
+    }
+  },
+  "_doc_addressing": "Loopback only (127.0.0.1:4187, network_mode host on oci-apps beside cloudy-c3-api): no mesh name, no Caddy route, no Hickory row. Shadow stage: the Node tools still use spawnSync/ssh; the TS shadow hook (shared/libs/execd-shadow.ts, off unless C3_EXECD_URL is set) replays read-only calls here and logs match/mismatch."
+}

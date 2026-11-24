@@ -3,6 +3,7 @@ import { resolveVmId, getVmSshAlias } from "./config.js";
 import { audit } from "./audit.js";
 import { remoteShellWrap } from "./shell-quote.js";
 import { sshArgv, vmMeshAddress } from "./ssh-argv.js";
+import { shadowSsh } from "./execd-shadow.js";
 
 // ── SSH via alias ──────────────────────────────────────────────────
 // All connection logic (host, user, key, ProxyJump, mux) lives in
@@ -41,6 +42,8 @@ export function sshExec(
   const result = exec("ssh", sshArgs, { timeout: effectiveTimeout });
 
   audit("ssh", `${alias}: "${command.slice(0, 120)}"`, `exit ${result.exitCode}`);
+  // #1875 shadow: replay read-only calls on the Go sidecar (no-op unless C3_EXECD_URL is set).
+  void shadowSsh(alias, command, effectiveTimeout, result);
   return result;
 }
 
@@ -60,6 +63,7 @@ export async function sshExecAsync(
   const result = await execAsync("ssh", sshArgs, { timeout: effectiveTimeout });
 
   audit("ssh", `${alias}: "${command.slice(0, 120)}"`, `exit ${result.exitCode}`);
+  void shadowSsh(alias, command, effectiveTimeout, result);
   return result;
 }
 

@@ -18,11 +18,11 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 117,
+   "LicenseRef-NoLicenseGranted": 118,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 63,
+   "LicenseRef-NoLicenseGranted": 64,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -52,7 +52,7 @@
    "MIT": 1
   },
   "go": {
-   "BSD-3-Clause": 5,
+   "BSD-3-Clause": 6,
    "MIT": 4,
    "Apache-2.0 AND MIT": 1,
    "ISC": 1,
@@ -1100,7 +1100,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "crates.io 1.22.0",
+   "licence_source": "crates.io 1.22.1",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:axum": {
@@ -1216,7 +1216,7 @@
    "version": "1",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 1.5.5",
+   "licence_source": "crates.io 1.5.6",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:criterion": {
@@ -1445,7 +1445,7 @@
    "version": "0.24",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "crates.io 0.26.3",
+   "licence_source": "crates.io 0.26.4",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "cargo:http": {
@@ -2729,6 +2729,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-ops_c3-execd": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-ops_c3bot-relay": {
    "kind": "dir",
    "declared_in": [
@@ -3429,6 +3437,8 @@
    "declared_in": [
     "infra-api_cloudy-all-mcp-go/build.json",
     "infra-api_cloudy-all-mcp-go/src/build.json",
+    "infra-ops_c3-execd/build.json",
+    "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
     "infra-ops_c3bot-relay-go/dist/code/arm64/Dockerfile",
     "infra-ops_c3bot-relay-go/src/build.json",
@@ -3473,6 +3483,18 @@
     "infra-sec_auth-broker/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/auth-broker-binaries:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/c3-execd": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-ops_c3-execd/build.json",
+    "infra-ops_c3-execd/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/c3-execd:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -4288,6 +4310,8 @@
     "infra-api_cloudy-all-mcp-go/src/build.json",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
+    "infra-ops_c3-execd/build.json",
+    "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
     "infra-ops_c3bot-relay-go/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
@@ -4828,6 +4852,7 @@
     "infra-obs_openobserve/src/flake.nix",
     "infra-obs_umami/src/flake.nix",
     "infra-ops_agents-tmp-reaper/src/flake.nix",
+    "infra-ops_c3-execd/src/flake.nix",
     "infra-ops_c3bot-relay-go/src/flake.nix",
     "infra-ops_c3bot-relay/src/flake.nix",
     "infra-ops_disk-janitor/src/flake.nix",
@@ -4980,6 +5005,18 @@
    "note": "LICENSE in the module (v3.0.2); used unmodified as a library.",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
+  "go:golang.org/x/crypto": {
+   "kind": "go",
+   "declared_in": [
+    "infra-ops_c3-execd/src/code/go.mod"
+   ],
+   "version": "v0.31.0",
+   "scope": "shipped",
+   "licence": "BSD-3-Clause",
+   "licence_source": "licenses/curated.json::go_licences[golang.org/x/crypto]",
+   "note": "LICENSE in the module (v0.31.0); used unmodified as a library (ssh client).",
+   "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
+  },
   "go:golang.org/x/oauth2": {
    "kind": "go",
    "declared_in": [
@@ -5008,7 +5045,8 @@
   "go:golang.org/x/sys": {
    "kind": "go",
    "declared_in": [
-    "infra-api_cloudy-all-mcp-go/src/code/go.mod"
+    "infra-api_cloudy-all-mcp-go/src/code/go.mod",
+    "infra-ops_c3-execd/src/code/go.mod"
    ],
    "version": "v0.41.0",
    "scope": "indirect",
@@ -5546,7 +5584,7 @@
    "version": "^22.0.0",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (26.6.6)",
+   "licence_source": "registry.npmjs.org latest (26.6.7)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:@types/nodemailer": {
@@ -5595,7 +5633,7 @@
    "version": "^19.2.7",
    "scope": "dev",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (19.3.0)",
+   "licence_source": "registry.npmjs.org latest (19.3.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5907,7 +5945,7 @@
    "version": "^1.8.0",
    "scope": "shipped",
    "licence": "ISC",
-   "licence_source": "registry.npmjs.org latest (1.78.0)",
+   "licence_source": "registry.npmjs.org latest (1.79.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -5944,7 +5982,7 @@
    "version": "^4.13.3",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "registry.npmjs.org latest (4.16.0)",
+   "licence_source": "registry.npmjs.org latest (4.16.1)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "cloud-webmail"
   },
@@ -6283,7 +6321,7 @@
    "version": "4.144.0",
    "scope": "shipped",
    "licence": "MIT OR Apache-2.0",
-   "licence_source": "registry.npmjs.org latest (4.167.0)",
+   "licence_source": "registry.npmjs.org latest (4.168.0)",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "npm:yaml": {
@@ -6388,7 +6426,7 @@
    "version": "anthropic>=0.18.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 2.13.0 license",
+   "licence_source": "pypi.org 2.14.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:any-llm-sdk": {
@@ -6400,7 +6438,7 @@
    "version": "any-llm-sdk>=1.0.0; python_version >= '3.11'",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.53.1 license",
+   "licence_source": "pypi.org 1.54.0 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:ast-grep-cli": {
@@ -6424,7 +6462,7 @@
    "version": "boto3>=1.28.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 1.44.10 license",
+   "licence_source": "pypi.org 1.44.11 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:click": {
@@ -6726,7 +6764,7 @@
    "version": "litellm>=1.86.2,<2.0; python_version < '3.14'",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 1.110.2 license_expression",
+   "licence_source": "pypi.org 1.110.3 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:lm-eval": {
@@ -6847,7 +6885,7 @@
    "version": "openai>=2.14.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 3.58.0 license_expression",
+   "licence_source": "pypi.org 3.59.0 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:opentelemetry-api": {
@@ -7241,7 +7279,7 @@
    "version": "tomlkit>=0.13.3",
    "scope": "shipped",
    "licence": "MIT",
-   "licence_source": "pypi.org 0.15.2 license_expression",
+   "licence_source": "pypi.org 0.15.3 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)",
    "within_upstream_module": "google-workspace-mcp"
   },
@@ -7281,7 +7319,7 @@
    "version": "transformers==4.49.0",
    "scope": "shipped",
    "licence": "Apache-2.0",
-   "licence_source": "pypi.org 5.24.0 license",
+   "licence_source": "pypi.org 5.24.1 license",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:tree-sitter-language-pack": {
@@ -7366,7 +7404,7 @@
    "version": "yt-dlp==2025.10.22",
    "scope": "shipped",
    "licence": "Unlicense",
-   "licence_source": "pypi.org 2026.10.26 license_expression",
+   "licence_source": "pypi.org 2026.11.23 license_expression",
    "transitive": "not resolved (needs a package-manager resolution; see script docstring)"
   },
   "pypi:zstandard": {

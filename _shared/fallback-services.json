@@ -518,6 +518,15 @@
       "bearer": false
     },
     {
+      "slug": "c3-execd",
+      "dir": "infra-ops_c3-execd",
+      "description": "Go loopback sidecar for the Node fleet tools: exec with timeouts, pooled native SSH, policy-gated Docker unix-socket client, audit log; shadow stage, nothing calls it until switch-over (ticket #1875)",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "disk-janitor",
       "dir": "infra-ops_disk-janitor",
       "description": "oci-apps disk janitor (#811) — declared, scheduled cleanup so agents and ships never hit disk-full: unused images older than N hours (keeping every image a container references and the newest K per repository), build cache, ANONYMOUS dangli",

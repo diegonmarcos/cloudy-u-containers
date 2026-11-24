@@ -86,6 +86,10 @@
     "fleet-data": {
       "cmd": "node test-fleet-data.ts",
       "cwd": "src"
+    },
+    "execd-shadow": {
+      "cmd": "node test-execd-shadow.ts",
+      "cwd": "src"
     }
   },
   "monitoring": {
