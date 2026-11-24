@@ -185,3 +185,65 @@ export async function health(peers: Peer[], d: Deps): Promise<Health[]> {
       last: { mcp: lastOf(p.id, "mcp"), api: lastOf(p.id, "api"), sshd: lastOf(p.id, "sshd") }, gaps: routeGaps(p) };
   }));
 }
+
+// #phone-mesh-first infra_peers device tools, mesh first: for a phone peer, run the phone's OWN MCP tool of the same name over the mesh
+// (mesh-route callPeer, MCP tools/call on its :8004 with the fleet bearer), and fall back to the SSH doors only when the mesh
+// route is unavailable (refused, timeout, no bearer, 5xx). A refused bearer (401) is reported, never silently retried over ssh.
+// Pure and injectable (no SDK, no network of its own), so the dependency-free tester runs it.
+
+export type PhoneRoute = "mesh" | "ssh" | "auto";
+export type PhoneServed = { route: "mesh" | "ssh"; text: string; note?: string };
+
+export const BEARER_REFUSED = "bearer refused (phone token differs from vault)";
+
+/** What the mesh route's failure means: the phone ANSWERED (so no ssh fallback), or the route is unavailable. */
+export type MeshFailure = { kind: "refused" | "answered" | "unavailable"; message: string };
+
+export function classifyMeshError(msg: string): MeshFailure {
+  if (/HTTP 401\b/.test(msg)) return { kind: "refused", message: BEARER_REFUSED };
+  if (/HTTP 403\b/.test(msg)) return { kind: "refused", message: "bearer refused by the phone (HTTP 403)" };
+  // the phone's MCP answered: a tool error, a JSON-RPC error or another 4xx is its answer, not a missing route
+  if (/the peer's tool failed|mcp -?\d+:|HTTP 4\d\d\b/.test(msg)) return { kind: "answered", message: msg };
+  return { kind: "unavailable", message: msg };
+}
+
+/** The phone's mesh peer by its alias (samsung-a37), or null when the phone is not a declared mesh peer (or is `local`). */
+export function meshPeerOf(peers: Peer[], alias: string): Peer | null {
+  try { const p = findPeer(peers, alias); return p.kind === "phone" ? p : null; } catch { return null; }
+}
+
+export interface RouteIn {
+  alias: string;
+  tool: string;
+  args: Record<string, unknown>;
+  route?: PhoneRoute;
+  peers: Peer[];
+  deps: Deps;
+  /** The existing SSH-door implementation of this tool. */
+  ssh(): Promise<string>;
+}
+
+/** Run one phone tool by the requested route. Throws with the reason when no allowed route served it. */
+export async function runOnPhone(i: RouteIn): Promise<PhoneServed> {
+  const route = i.route ?? "auto";
+  if (route === "ssh") return { route: "ssh", text: await i.ssh() };
+  const peer = meshPeerOf(i.peers, i.alias);
+  let why: string;
+  if (!peer) why = `${i.alias} is not a declared mesh phone peer`;
+  else {
+    try {
+      const r = await callPeer(peer, i.tool, i.args, i.deps, "mcp");
+      return { route: "mesh", text: r.text };
+    } catch (e) {
+      const raw = String((e as Error).message ?? e);
+      const f = classifyMeshError(raw);
+      const msg = f.message.split(i.deps.token || "\u0000").join("***");
+      if (f.kind === "refused") throw new Error(`mesh route to ${i.alias}: ${msg}; not falling back to ssh (fix the phone's fleet token, or pass route=ssh)`);
+      if (f.kind === "answered") throw new Error(`mesh route to ${i.alias} answered with an error: ${msg}`);
+      why = msg;
+    }
+  }
+  if (route === "mesh") throw new Error(`mesh route to ${i.alias} unavailable (route=mesh, ssh not tried): ${why}`);
+  const text = await i.ssh();
+  return { route: "ssh", text, note: `mesh unavailable: ${why.slice(0, 300)}` };
+}

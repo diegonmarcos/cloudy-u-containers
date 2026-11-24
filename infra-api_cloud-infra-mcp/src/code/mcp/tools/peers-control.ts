@@ -10,8 +10,10 @@
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { App, PHONES, PORT_DEVCONTROL, call, currentPhone, dialOrder, get, onPhone, pinPhone, scan } from "../peers/device.js";
+import { App, PHONES, phoneAlias, PORT_DEVCONTROL, call, currentPhone, dialOrder, get, onPhone, pinPhone, scan } from "../peers/device.js";
 import { loadModules, type AppModule } from "../peers/registry.js";
+import { runOnPhone, type PhoneRoute } from "../peers/mesh-route.js";
+import { meshPeers, realDeps } from "./mesh-peers.js";
 import { PKG_RE, ROUTE_RE, checkShell, inputArgsOk, label, logcatFullCmd, resolveApp, stamp } from "../peers/core.js";
 
 /** Last sweep per phone alias. */
@@ -63,6 +65,11 @@ const PHONE_ARG = z
   .optional()
   .describe(`Which phone to dial: ${PHONES.join(", ")} (alias, or its id e.g. samsung-a37). Omit for the phone seen online most recently.`);
 
+const ROUTE_ARG = z
+  .enum(["mesh", "ssh", "auto"])
+  .optional()
+  .describe("mesh = the phone's own MCP over the mesh only (never ssh); ssh = the SSH doors only; auto (default) = mesh first, ssh only when the mesh route is unavailable. A refused bearer (401) is reported, not retried over ssh.");
+
 type Out = { content: { type: "text"; text: string }[] };
 
 /** server.tool with a `phone` argument added, the handler run bound to that
@@ -72,17 +79,32 @@ function phoneTool(server: McpServer) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (name: string, desc: string, shape: Record<string, z.ZodTypeAny>, handler: (a: any) => Promise<Out>, fanOut = false) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    server.tool(name, desc, { ...shape, phone: PHONE_ARG }, (async (args: any) => {
-      const { phone, ...rest } = args ?? {};
+    server.tool(name, desc, { ...shape, phone: PHONE_ARG, route: ROUTE_ARG }, (async (args: any) => {
+      const { phone, route, ...rest } = args ?? {};
+      // one phone, by the requested route: the phone's own tool over the mesh first, this handler (the ssh doors) as the fallback
+      const one = async (p: string | null, anyPhone = false) => {
+        const alias = p ? phoneAlias(p) : null;
+        const sshRun = async () => { const r = await onPhone(anyPhone ? null : alias, () => handler(rest)); return { phone: r.phone, value: r.value }; };
+        if (route === "ssh" || !alias) { const r = await sshRun(); return { phone: r.phone, route: "ssh", text: r.value.content.map((c) => c.text).join("\n"), note: "" }; }
+        let ssh = null as Awaited<ReturnType<typeof sshRun>> | null;
+        const s = await runOnPhone({ alias, tool: name, args: rest, route, peers: meshPeers(), deps: realDeps(), ssh: async () => { ssh = await sshRun(); return ssh.value.content.map((c) => c.text).join("\n"); } });
+        return { phone: (ssh as Awaited<ReturnType<typeof sshRun>> | null)?.phone ?? alias, route: s.route, text: s.text, note: s.note ?? "" };
+      };
+      const fmt = (r: { phone: string | null; route: string; text: string; note: string }, p: string) =>
+        `[phone: ${r.phone ?? p}] [route: ${r.route}]${r.note ? ` [${r.note}]` : ""}\n${r.text || "(empty response)"}`;
       if (!phone && fanOut) {
         const parts = await Promise.all(PHONES.map(async (p) => {
-          try { const r = await onPhone(p, () => handler(rest)); return stamp(r.phone ?? p, r.value).content[0].text; }
+          try { return fmt(await one(p), p); }
           catch (e) { return `[phone: ${p}]\nunreachable: ${(e as Error).message}`; }
         }));
         return text(parts.join("\n\n"));
       }
-      const r = await onPhone(phone ?? null, () => handler(rest));
-      return stamp(r.phone, r.value);
+      if (!phone) { // unbound: the phone seen online most recently, as before, but mesh first when it is known
+        const first = dialOrder(null)[0];
+        if (route === "ssh" || !first) { const r = await onPhone(null, () => handler(rest)); return stamp(r.phone, r.value); }
+        return text(fmt(await one(first, true), first));
+      }
+      return text(fmt(await one(phone), phone));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any);
 }
