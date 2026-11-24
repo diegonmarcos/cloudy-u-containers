@@ -1,0 +1,165 @@
+{
+  "name": "c3-public-go-api",
+  "taxonomy": {
+    "group": "Infra Apps",
+    "category": "Ops-API-MCP"
+  },
+  "description": "Go port of c3-public-api (public API: analytics passthrough, Bearer-gated mail bridge with the delivery ledger, SuperApp config artifact, Profile > Connect with mailed one-time codes), shadow stage: runs next to the Node container on its own port, outside every request path (ticket #1882).",
+  "ports": {
+    "app": 8097
+  },
+  "bind_host": "10.0.0.6",
+  "category": "app",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/c3-public-go-api",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "c3-public-go-api",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o c3-public-api ./cmd/c3-public-api",
+      "binary": "c3-public-api",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Same multi-stage template as c3bot-relay-go (#1873): compiled in golang on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static nonroot."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "c3-public-go-api",
+      "image": "ghcr.io/diegonmarcos/c3-public-go-api:latest",
+      "port": 8097,
+      "port_env": "PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "96M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/pub",
+    "endpoint_count": 5,
+    "display_name": "C3 Public API (Go, shadow)",
+    "description": "Same contract as c3-public-api: /health, /ready, /analytics/<slug>, /mail/http-to-smtp, /superapp/config/:user, /profile/connect/{start,fetch}.",
+    "auth": "mixed"
+  },
+  "mail": {
+    "_doc": "JSON-in -> SMTP-out: replicates the aa-sui_tools-http-to-smtp-proxy-api Rust binary contract so the CF Worker does not need any change. Delivery to Maddy:25 (MX-style, plain SMTP over WG); Maddy's dual-write relays every local delivery to Stalwart:2025, so no shadow leg here (2026-08-18: shadow removed — it duplicated every message).",
+    "primary": {
+      "service": "maddy",
+      "via": "smtp_mx"
+    },
+    "targets": {
+      "maddy": {
+        "service": "maddy",
+        "via": "smtp_mx"
+      },
+      "maddy-direct": {
+        "service": "maddy",
+        "via": "smtp_mx_direct"
+      },
+      "stalwart": {
+        "service": "stalwart",
+        "via": "smtp_shadow"
+      }
+    },
+    "_doc_targets": "#1811 parallel fan-out. The CF Worker picks one target per request with the X-Mail-Target header and calls this bridge once per store, in parallel: maddy-direct (maddy stores only, no Stalwart mirror) and stalwart (Stalwart SMTP ingest :2025). No header = maddy = the primary above (maddy:25, which still mirrors to Stalwart), so an older Worker keeps working unchanged. Never send one message to both maddy (mirroring) and stalwart: that duplicates it in Stalwart.",
+    "helo_domain": "c3-public-api.diegonmarcos.com",
+    "default_user_env": "SMTP_USER"
+  },
+  "profile_connect": {
+    "_doc": "Superapp Configs>Profile>Connect (#566). POST /profile/connect/start mails a one-time code to mail_to over the same maddy:25 delivery as /mail/http-to-smtp; POST /profile/connect/fetch {code} returns {schema, bundle} read AS IS from the read-only bind mount of cloud-vault E0_configs/<bundle_file>. Bearer (Caddy mkProtected + in-app X-Auth-User check) AND the mailed code are both required. #589: the bundle is plaintext in the vault (private repo); no age key, no sops on this VM — a sops-encrypted file on the mount is refused (bundle_unreadable), because it is exactly the file the phone cannot read (#585).",
+    "mail_to": "me@diegonmarcos.com",
+    "mail_from": "superapp-connect@diegonmarcos.com",
+    "code_ttl_s": 600,
+    "resend_cooldown_s": 60,
+    "max_attempts": 5,
+    "_doc_bundle": "The bundle dir on oci-analytics is deploy.host_sync.profile_bundle.host_dir (cloud-vault Shared/configs/: was configs/, then E0_configs/ until vault 6c0aab8 renamed the sections; cloud-infra host-sync-declaration.test.sh #7 checks every vault_dir/file against the vault checkout, so the next rename goes red in CI instead of on the ship): the ONE declaration compose.nix mounts read-only at bundle_mount and the engine fills. bundle_file and schema_file name the files inside that mount; test-profile-connect.ts F5 pins that host_sync ships exactly them.",
+    "bundle_mount": "/profile-bundle",
+    "bundle_file": "profile-secrets.json",
+    "schema_file": "schema.json"
+  },
+  "limits": {
+    "_doc_request_timeout_ms": "Caps nodemailer connectionTimeout + greetingTimeout + socketTimeout for the Maddy:25 delivery (warm completes <3s). 15000ms headroom retained from the removed Stalwart shadow leg (2026-08-18: shadow removed — Maddy's dual-write already relays every delivery to Stalwart:2025).",
+    "max_body_bytes": 1048576,
+    "max_ingest_lines": 5000,
+    "rate_per_ip_per_min": 60,
+    "rate_per_sid_per_min": 1000,
+    "request_timeout_ms": 15000,
+    "_doc_smtp_timeout_ms": "#1819: the SMTP session's own connection/greeting/socket timeouts, decoupled from the HTTP answer (request_timeout_ms). oci-mail under swap and CPU steal accepted messages after the 15 s answer deadline; the old shared timeout aborted the session, answered 500, and each Worker retry opened a new session, storing the mail 2-3 times. Now the session keeps running up to this long, the answer is 504 pending, and a retry joins it (shared/delivery-ledger.ts).",
+    "smtp_timeout_ms": 120000,
+    "_doc_dedupe_ttl_ms": "#1819: how long a delivered (target, Message-ID, rcpt) is remembered, so a late Worker retry is answered delivered without a second send. 30 min covers the Worker's inline try plus its background retries many times over.",
+    "dedupe_ttl_ms": 1800000
+  },
+  "backends": {
+    "matomo": {
+      "service": "matomo",
+      "rewrite_path": "/matomo.php",
+      "description": "Matomo Tracking API",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    "umami": {
+      "service": "umami",
+      "rewrite_path": "/api/send",
+      "description": "Umami /api/send",
+      "methods": [
+        "POST"
+      ]
+    },
+    "openobserve": {
+      "service": "openobserve",
+      "rewrite_path": "/openobserve/api/default/default/_json",
+      "description": "OpenObserve _json bulk ingest",
+      "methods": [
+        "POST"
+      ],
+      "auth_header_env": "OPENOBSERVE_AUTHORIZATION"
+    }
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -timeout 9m -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the Node service (api/index.ts under tsx, npm ci in CI); the Go port; each with its own fake analytics backends and fake SMTP store; the same ordered request list (health/ready/HEAD, Fastify 404 shapes, CORS, rate limit with the exhausted-client allow-list, analytics passthrough incl. body parsing, the mail bridge: auth gate, body shapes, targets, dedupe, failure, pending/join, Profile > Connect code flow, SuperApp config) must give identical status, headers and raw bodies, and the fakes must have seen identical backend requests and SMTP messages."
+    },
+    "parity-mutation": {
+      "cmd": "o=$(mktemp); PARITY_MUTATE=1 PARITY_REQUIRE=1 go test -count=1 -timeout 9m -tags parity -run TestParity ./parity/ >\"$o\" 2>&1; grep -q 'requests differ' \"$o\"",
+      "cwd": "src/code",
+      "_doc": "Mutation proof: the Go port's rate limit is one lower; the harness must report differing requests."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1882). The live Node c3-public-api (container c3-public-api, oci-apps 10.0.0.6:8087) is untouched. No env_file (the vault mapping of OPENOBSERVE_AUTHORIZATION for this service name belongs to the switch-over: the openobserve passthrough carries the caller's Authorization until then) and no baked SuperApp artifact (the Node image gets build-cloud-superapp-<user>.json through a CI-resolved symlink; the Go image needs the service-shipped Dockerfile flavour for that, a switch-over prerequisite): /superapp/config answers 404 for every user until then, as the Node service does for an absent artifact. The profile bundle is mounted read-only from the same host dir the Node service uses. Binds the oci-apps WG IP on port 8097."
+}
