@@ -1,7 +1,7 @@
 // Contract test for the #1875 shadow hook: only read-only commands replay, a divergence is
 // reported, errors never throw, and with no URL nothing is sent. Mutation checks at the end.
 import assert from "node:assert/strict";
-import { isShadowSafe, shadowDiff, shadowSsh, shadowStats, type ShadowResult } from "./code/shared/libs/execd-shadow.ts";
+import { execdToken, isShadowSafe, shadowDiff, shadowSsh, shadowStats, type ShadowResult } from "./code/shared/libs/execd-shadow.ts";
 
 const ok = (stdout = ""): ShadowResult => ({ stdout, stderr: "", exitCode: 0, ok: true, timedOut: false });
 
@@ -44,6 +44,12 @@ await shadowSsh("oci-apps", "echo ok", 1000, ok("ok\n"), { fetch: fakeFetch(ok("
 assert.equal(calls.length, n, "no URL, no replay");
 assert.deepEqual(shadowStats, { replayed: 4, match: 1, mismatch: 1, error: 2 });
 assert.match(calls[0], /\/v1\/ssh \{"alias":"oci-apps","command":"echo ok","timeout_ms":1000\}/);
+
+assert.equal(execdToken({ C3_EXECD_TOKEN: " t1 " }), "t1");
+assert.equal(execdToken({ C3_EXECD_TOKEN_FILE: "/x" }, () => "filetok\n"), "filetok");
+assert.equal(execdToken({ C3_EXECD_TOKEN_FILE: "/x" }, () => { throw new Error("ENOENT"); }), "");
+assert.equal(execdToken({}), "");
+assert.equal(execdToken({ C3_EXECD_TOKEN: "env", C3_EXECD_TOKEN_FILE: "/x" }, () => "file"), "env", "env wins over file");
 
 // Mutation proof: a gate that admits mutating commands is caught by the lists above.
 const mutantSafe = (c: string) => /^docker /.test(c);

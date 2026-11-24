@@ -40,12 +40,17 @@ in
         CF_API_EMAIL = "\${CF_API_EMAIL}";
         PATH = "/usr/local/nix-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
         REPO_SYNC = "off";
+        # #1875 shadow: replay read-only ssh calls on the c3-execd sidecar (loopback, host network).
+        # Off if the sidecar is down: the replay logs an ERROR line and the legacy answer is returned.
+        C3_EXECD_URL = "http://127.0.0.1:4187";
+        C3_EXECD_TOKEN_FILE = "/run/c3-execd/token";
       };
       volumes = [
         "/opt/ssh-keys/c3-infra-api:/root/.ssh:ro" # #1450: the host state dir keeps its old name
         "/nix/store:/nix/store:ro"
         "/home/ubuntu/.nix-profile/bin:/usr/local/nix-bin:ro"
         "~/.config/gcloud:/root/.config/gcloud"
+        "/run/c3-execd:/run/c3-execd:ro" # #1875: the sidecar's generated token lives here
         "octocode_repos:/root/git"
         "c3_public_logs:/app/public/logs"
         # Personal data (names/emails/phones), one file per install id. A named

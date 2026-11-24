@@ -29,6 +29,7 @@ in
         HOME = "/root";
         SSH_CONFIG = "/root/.ssh/config";
         DOCKER_SOCK = "/var/run/docker.sock";
+        EXECD_TOKEN_FILE = "/run/c3-execd/token"; # generated on first start, 0600; callers mount the dir read-only
       };
       volumes = app.volumes;
       healthcheck = {

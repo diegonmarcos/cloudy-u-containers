@@ -6,6 +6,8 @@
 // idempotent are replayed (a replayed `docker restart` would restart twice); the legacy
 // result is always what the caller gets. With C3_EXECD_URL unset nothing happens.
 
+import { readFileSync } from "node:fs";
+
 export interface ShadowResult { stdout: string; stderr: string; exitCode: number; ok: boolean; timedOut: boolean }
 
 // Whole-command allowlist. Anchored, no shell metacharacters beyond what each pattern names.
@@ -36,6 +38,16 @@ export function shadowDiff(command: string, legacy: ShadowResult, sidecar: Shado
   return d;
 }
 
+/** C3_EXECD_TOKEN, else the content of the file C3_EXECD_TOKEN_FILE names (the sidecar writes it; the
+ * directory is mounted read-only into this container), else "". Read per call: the sidecar may regenerate it. */
+export function execdToken(env: Record<string, string | undefined> = process.env, read: (p: string) => string = (p) => readFileSync(p, "utf-8")): string {
+  if (env.C3_EXECD_TOKEN) return env.C3_EXECD_TOKEN.trim();
+  if (env.C3_EXECD_TOKEN_FILE) {
+    try { return read(env.C3_EXECD_TOKEN_FILE).trim(); } catch { return ""; }
+  }
+  return "";
+}
+
 export const shadowStats = { replayed: 0, match: 0, mismatch: 0, error: 0 };
 
 export function shadowLine(alias: string, command: string, diffs: string[]): string {
@@ -63,7 +75,7 @@ export function shadowSsh(
   shadowStats.replayed++;
   return f(`${url}/v1/ssh`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-execd-token": opts.token ?? process.env.C3_EXECD_TOKEN ?? "" },
+    headers: { "content-type": "application/json", "x-execd-token": opts.token ?? execdToken() },
     body: JSON.stringify({ alias, command, timeout_ms: timeoutMs }),
     signal: ac.signal,
   })

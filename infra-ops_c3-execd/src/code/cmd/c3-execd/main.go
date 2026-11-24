@@ -53,10 +53,15 @@ func main() {
 		fmt.Fprintln(os.Stderr, "ssh config:", err, "- ssh aliases unavailable")
 		cfg = execd.ParseSSHConfig("")
 	}
+	token, err := execd.DefaultToken()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "auth:", err)
+		os.Exit(2)
+	}
 	pool := execd.NewPool(cfg, home)
 	defer pool.Close()
 	s := &execd.Server{
-		Token: os.Getenv("EXECD_TOKEN"),
+		Token: token,
 		Pool:  pool,
 		Dock:  execd.NewDocker(env("DOCKER_SOCK", "/var/run/docker.sock")),
 		Audit: execd.NewAuditor(os.Stderr),
