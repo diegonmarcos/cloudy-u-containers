@@ -11,7 +11,7 @@ hosts = 0.0.0.0:5232
 
 [auth]
 type = imap
-imap_host = 10.0.0.3:2993
+imap_host = 10.0.0.6:2993
 imap_security = tls
 
 [storage]
