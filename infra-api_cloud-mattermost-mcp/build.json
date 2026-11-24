@@ -8,7 +8,8 @@
   "upstream_image": "ghcr.io/diegonmarcos/cloud-mattermost-mcp:latest",
   "build": {
     "include_cloud_data": "true",
-    "headers_enforced": true
+    "headers_enforced": true,
+    "ship_hold": "Superseded by cloudy-apps-communication-mcp (#1450, tool-parity proven live in #1796: identical mattermost tool schema and methods). Retired by #1796: the container is stopped and must not be shipped again. Config, dist, routes and DNS aliases stay (the merged MCP carries the old names as aliases)."
   },
   "docker": {
     "image": "cloud-mattermost-mcp",
