@@ -1,0 +1,85 @@
+{
+  "name": "chat-mattermost-go",
+  "taxonomy": {
+    "group": "Cloud Apps",
+    "category": "Inboxes"
+  },
+  "description": "Go port of the Mattermost ntfy bridge and C3 command bot (ntfy-bridge.py in chat-mattermost: bootstrap, ntfy to channel bridge, /c3 slash command, C3 bot over websocket), shadow stage: follows the ntfy stream and serves the /c3 handler read-only on its own port, holds no Mattermost credential and posts nothing, outside every request path (ticket #1880)",
+  "ports": {
+    "c3_shadow": 8897
+  },
+  "bind_host": "10.0.0.6",
+  "category": "app",
+  "deploy": {
+    "host": "oci-apps",
+    "remote_path": "/opt/containers/chat-mattermost-go",
+    "compose_flags": "--build"
+  },
+  "compose": {
+    "custom": true
+  },
+  "docker": {
+    "image": "chat-mattermost-go",
+    "dockerfile": "Dockerfile",
+    "registry": "ghcr.io/diegonmarcos",
+    "arch": "arm64",
+    "native_build": {
+      "type": "binary",
+      "app_dir": "code",
+      "builder_image": "golang:1.24-bookworm",
+      "cmd": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o mm-bridge ./cmd/mm-bridge",
+      "binary": "mm-bridge",
+      "base_image": "gcr.io/distroless/static-debian12:nonroot",
+      "_doc": "Multi-stage: compiled in golang:1.24-bookworm on the arch-matched runner (oci-apps is arm64), shipped as one static binary on distroless static (no shell, no libc, non-root 65532, CA bundle included). Same template as infra-ops_c3bot-relay-go."
+    }
+  },
+  "proxy": {
+    "app_hub": false
+  },
+  "containers": {
+    "app": {
+      "container_name": "mattermost-bots-go",
+      "image": "ghcr.io/diegonmarcos/chat-mattermost-go:latest",
+      "port": 8897,
+      "port_env": "C3_PORT",
+      "public": false,
+      "proxy": null,
+      "healthcheck": "/health",
+      "monitoring": null,
+      "volumes": [],
+      "env_file": false,
+      "depends_on": [],
+      "resources": null,
+      "read_only": true,
+      "protocol": "http"
+    }
+  },
+  "resources": {
+    "mem_limit": "48M",
+    "mem_reservation": "8M"
+  },
+  "build": {
+    "headers_enforced": true
+  },
+  "api": {
+    "type": "custom-rest",
+    "base_path": "/",
+    "endpoint_count": 3,
+    "display_name": "Mattermost bridge (Go, shadow)",
+    "description": "Same slash contract as the Python bridge: POST /c3 (form) and POST /c3/action (JSON button callbacks), plus GET /health. Shadow stage: read-only C3 calls, dry-run webhook.",
+    "auth": "none"
+  },
+  "tests": {
+    "unit": {
+      "cmd": "go test -count=1 ./...",
+      "cwd": "src/code"
+    },
+    "parity-compare": {
+      "cmd": "PARITY_REQUIRE=1 go test -count=1 -tags parity -v -run TestParity ./parity/",
+      "cwd": "src/code",
+      "_doc": "Reference = the original ntfy-bridge.py (user-comm_chat-mattermost/src/code, unmodified, CPython 3.11) driven through parity/ref.py against identical servers: the whole bootstrap request transcript against a stateful fake Mattermost (fresh and established scenarios), the /c3 slash and button handler over HTTP, the ntfy stream bridge and the pure helpers must be identical. See parity/parity_test.go."
+    }
+  },
+  "_doc_shadow": "Shadow stage (#1880). The live Python bridge (container mattermost-bots of chat-mattermost) is untouched. This container has no env_file and no secret: MM_BRIDGE_SHADOW=1 makes it skip every Mattermost call (no login, no channel, category, webhook, bot or icon write), refuse every non-GET C3 API call locally (so the /c3 handler on its own port cannot wake, sleep, reset, start, stop or restart anything) and turn the webhook post into a counted local no-op. It follows the same ntfy topics, so its logs show every message the live bridge also bridges. Switch-over (credentials, Mattermost bootstrap, the slash command URL pointed at this container) is a separate step after the shadow has run clean.",
+  "_doc_addressing": "No mesh name, no Caddy route and no client wiring on purpose during the shadow stage: only the container itself and operators on the mesh dial 10.0.0.6:8897."
+}

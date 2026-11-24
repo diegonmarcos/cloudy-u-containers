@@ -408,6 +408,9 @@
   },
   "infra-ai_jev-sidecar-go": {
    "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "user-comm_chat-mattermost-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
   }
  },
  "assets": {

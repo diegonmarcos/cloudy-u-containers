@@ -1,0 +1,47 @@
+name: mm-bridge-go tests (unit + parity against ntfy-bridge.py)
+
+# #1880. Own workflow and concurrency group (see ntfy-go-tests.yml for why). The reference is the original Python bridge
+# on CPython 3.11, the interpreter of its python:3.12-slim-class container family; requests, websocket-client and Pillow
+# are what its requirements-bridge.txt installs.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'user-comm_chat-mattermost-go/**'
+      - 'user-comm_chat-mattermost/src/code/ntfy-bridge.py'
+      - '.github/workflows/mm-bridge-go-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mm-bridge-go-tests
+  cancel-in-progress: false
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: user-comm_chat-mattermost-go/src/code
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: python reference dependencies
+        run: pip install --quiet -r ../../../user-comm_chat-mattermost/src/code/requirements-bridge.txt
+      - name: gofmt clean
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: go vet
+        run: go vet ./... && go vet -tags parity ./...
+      - name: unit tests
+        run: go test -count=1 ./...
+      - name: parity tests (original ntfy-bridge.py as reference)
+        run: PARITY_REQUIRE=1 go test -count=1 -tags parity -v -run TestParity ./parity/
