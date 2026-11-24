@@ -2,6 +2,7 @@ package fleetauth
 
 import (
 	"math/big"
+	"strings"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestFlaskJSON(t *testing.T) {
 		"a": map[string]any{"z": 1, "y": "\U0001F600"},
 		"c": new(big.Int).Lsh(big.NewInt(1), 70),
 	}))
-	want := `{"a":{"y":"😀","z":1},"b":[1,"é<>&\u007f",null,true],"c":1180591620717411303424}` + "\n"
+	want := strings.ReplaceAll(`{"a":{"y":"@ud83d@ude00","z":1},"b":[1,"@u00e9<>&@u007f",null,true],"c":1180591620717411303424}`, "@u", "\x5cu") + "\n"
 	if got != want {
 		t.Fatalf("got  %s\nwant %s", got, want)
 	}

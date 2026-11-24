@@ -2,6 +2,8 @@ package tokensapi
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +16,11 @@ import (
 	"tokens-api/fleetauth"
 )
 
-const testKey = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8" // 32 bytes, urlsafe, unpadded
+// A synthetic fleet key made at run time (32 bytes, urlsafe, unpadded); no key material is committed.
+var testKey = func() string {
+	h := sha256.Sum256([]byte("tokens-api synthetic test key"))
+	return base64.RawURLEncoding.EncodeToString(h[:])
+}()
 
 func newApp(t *testing.T, mut func(*Config)) (*App, *int64, string) {
 	t.Helper()

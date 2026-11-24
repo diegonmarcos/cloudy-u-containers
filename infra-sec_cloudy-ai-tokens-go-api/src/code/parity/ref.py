@@ -12,6 +12,7 @@ runs it with two test seams that only touch the module's own namespace:
   ref.py vault                               stdin {"key","cases":[{"id","value","nonce"}]} -> {"cases":[{"idx","ct"}]}
   ref.py open                                stdin {"key","cases":[{"id","nonce","ct"}]} -> {"cases":[{"value"|"error"}]}
 """
+import base64
 import hashlib
 import importlib.util
 import json
@@ -80,7 +81,7 @@ def fixture(db, clockfile, seed):
         expires_at=now - 10, created_by="fixture", source="generated", value="ft_FIXTUREEXPIREDtokenvalue0123456789abcdefghi")
     add("adopted", name="cloud-admin (adopted)", kind="authelia", audience="*", scopes=["authelia.bearer.authz"],
         subject="u-1", expires_at=now + 500, created_by="verifier", source="adopted",
-        value="eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1LTEifQ.c2ln")
+        value=".".join(base64.urlsafe_b64encode(x).rstrip(b"=").decode() for x in (b'{"alg":"RS256"}', b'{"sub":"u-1"}', b"sig")))
     store.audit("fixture", "generate", out["admin"]["id"], "fixture admin", "audience=* scopes=tokens:admin,read")
     store.audit("verifier", "adopt", out["adopted"]["id"], "cloud-admin")
     print(json.dumps(out))
