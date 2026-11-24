@@ -239,7 +239,7 @@ func TestParityDigest(t *testing.T) {
 	r := rand.New(rand.NewSource(7))
 	var cases []map[string]any
 	for i := 0; i < 300; i++ {
-		var recs []map[string]any
+		recs := []map[string]any{}
 		for j := r.Intn(40); j > 0; j-- {
 			rec := map[string]any{"service": []string{"maddy", "caddy", "gitea", "ntfy", "stalwart", "photoprism"}[r.Intn(6)]}
 			if r.Intn(12) > 0 {

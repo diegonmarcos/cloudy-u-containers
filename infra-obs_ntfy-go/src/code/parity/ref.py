@@ -19,6 +19,9 @@ def load(fname, name):
 
 
 def main():
+    # The sidecar modules print diagnostics to stdout; the JSON answer goes to the real stdout, their chatter to stderr.
+    real_out = sys.stdout
+    sys.stdout = sys.stderr
     cmd = sys.argv[1]
     req = json.load(sys.stdin) if cmd != "rss-serve" else json.loads(sys.argv[2])
     if cmd == "broker":
@@ -27,24 +30,24 @@ def main():
         for st in req["steps"]:
             actions, state = nb.decide(st["event"], req["policy"], state, st["now"])
             out.append({"actions": actions, "state": state})
-        json.dump(out, sys.stdout)
+        json.dump(out, real_out)
     elif cmd == "digest":
         nd = load("notify-digest.py", "nd")
-        json.dump([nd.summarize(c["records"], c["now"], c["weekly"]) for c in req["cases"]], sys.stdout)
+        json.dump([nd.summarize(c["records"], c["now"], c["weekly"]) for c in req["cases"]], real_out)
     elif cmd == "history":
         nd = load("notify-digest.py", "nd")
-        json.dump(nd.read_history(req["path"], req["since"]), sys.stdout)
+        json.dump(nd.read_history(req["path"], req["since"]), real_out)
     elif cmd == "scanner":
         ts = load("topic-scanner.py", "ts")
         ts.DB_PATH = req["db"]
         t = ts.scan_topics()
-        json.dump({"topics": t, "dumped": json.dumps({"topics": t, "updated": "U"})}, sys.stdout)
+        json.dump({"topics": t, "dumped": json.dumps({"topics": t, "updated": "U"})}, real_out)
     elif cmd == "ghrss":
         g = load("github-rss-to-ntfy.py", "g")
         out = {"classify": [list(g.classify_event(t)) for t in req["titles"]],
                "strip": [g.strip_html(t) for t in req["html"]],
                "parse": [g.parse_atom_feed(x) for x in req["feeds"]]}
-        json.dump(out, sys.stdout)
+        json.dump(out, real_out)
     elif cmd == "syslog":
         s = load("syslog-to-ntfy.py", "s")
         out = []
@@ -59,7 +62,7 @@ def main():
             rule = ad.get("rule", "Unknown")
             path = ad.get("path", "")
             out.append({"title": f"🔴 Sauron Alert: {rule}", "message": f"VM: {vm}\nPath: {path}\nTime: {ts}"})
-        json.dump(out, sys.stdout, ensure_ascii=False)
+        json.dump(out, real_out, ensure_ascii=False)
     elif cmd == "rss-serve":
         from http.server import HTTPServer
         r = load("rss-gateway.py", "r")
@@ -67,7 +70,7 @@ def main():
         r.CHANNELS_CONFIG = req["channels"]
         r.NTFY_INTERNAL = req["ntfy"]
         srv = HTTPServer(("127.0.0.1", req["port"]), r.Handler)
-        print("ready", flush=True)
+        print("ready", file=real_out, flush=True)
         srv.serve_forever()
     else:
         raise SystemExit("unknown command " + cmd)

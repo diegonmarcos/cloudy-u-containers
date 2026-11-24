@@ -28,6 +28,10 @@ jobs:
         working-directory: infra-obs_ntfy-go/src/code
     steps:
       - uses: actions/checkout@v4
+      # The sidecars run on python:3.11-slim: the reference must be that interpreter (3.13 changed the http.server error page).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
       - uses: actions/setup-go@v5
         with:
           go-version: '1.24'
