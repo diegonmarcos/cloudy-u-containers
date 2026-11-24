@@ -522,6 +522,10 @@ func corpus() []step {
 				var id string
 				var ct []byte
 				if err := db.QueryRow("SELECT id, ct FROM tokens WHERE name LIKE 'Zo%'").Scan(&id, &ct); err != nil {
+					db.Close()
+					if err == sql.ErrNoRows { // a skewed side may not have created it: the step then differs by itself
+						continue
+					}
 					t.Fatal(err)
 				}
 				ct[0] ^= 0xff

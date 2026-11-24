@@ -98,11 +98,11 @@ func (u splitURL) hostname() string {
 	if h == "" {
 		return ""
 	}
-	name, sep, zone := strings.Cut(h, "%")
-	if sep == "" {
+	name, zone, found := strings.Cut(h, "%")
+	if !found {
 		return strings.ToLower(name)
 	}
-	return strings.ToLower(name) + sep + zone
+	return strings.ToLower(name) + "%" + zone
 }
 
 // portOK is SplitResult.port not raising: digits only, 0..65535.
