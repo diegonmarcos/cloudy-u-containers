@@ -61,6 +61,8 @@ func (s *Server) id(prefix string) string {
 }
 
 func (s *Server) seed() {
+	// Lists must serialise as [] (never null), like the real server.
+	s.users, s.teams, s.channels, s.hooks, s.commands, s.bots = []obj{}, []obj{}, []obj{}, []obj{}, []obj{}, []obj{}
 	if s.scenario != "established" {
 		return
 	}
