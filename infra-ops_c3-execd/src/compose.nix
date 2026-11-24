@@ -27,6 +27,9 @@ in
       command = [ bin "-listen" bind ];
       environment = {
         HOME = "/root";
+        # The distroless image has no sh/bash/gh/gcloud: exec resolves them from the host nix profile,
+        # mounted read-only exactly as cloudy-c3-api does (volumes in build.json).
+        PATH = "/usr/local/nix-bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
         SSH_CONFIG = "/root/.ssh/config";
         DOCKER_SOCK = "/var/run/docker.sock";
         EXECD_TOKEN_FILE = "/run/c3-execd/token"; # generated on first start, 0600; callers mount the dir read-only
