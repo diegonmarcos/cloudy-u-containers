@@ -1,0 +1,21 @@
+name: JWKS pin guard (#1872)
+
+# introspect-proxy (Python + Go) fetch the JWKS from authelia's pinned auth-net
+# IP; this fails the push if either JWKS_URL drifts from that pin.
+on:
+  push:
+    branches: [main]
+    paths: ['infra-sec_authelia/src/compose.nix', 'infra-sec_introspect-proxy/src/compose.nix', 'infra-sec_introspect-proxy-go/src/compose.nix', '.github/guards/jwks-pin-guard.sh', '.github/workflows/jwks-pin-guard.yml']
+  pull_request:
+    paths: ['infra-sec_authelia/src/compose.nix', 'infra-sec_introspect-proxy/src/compose.nix', 'infra-sec_introspect-proxy-go/src/compose.nix', '.github/guards/jwks-pin-guard.sh']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/guards/jwks-pin-guard.sh
