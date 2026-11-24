@@ -175,7 +175,7 @@ func (s *Server) rateLimit(w http.ResponseWriter, r *http.Request) bool {
 	h.Set("X-RateLimit-Reset", strconv.Itoa(secs))
 	if count > max {
 		h.Set("Retry-After", strconv.Itoa(secs))
-		s.sendJSON(w, r, 429, obj("statusCode", 429, "error", "Too Many Requests", "message", "Rate limit exceeded, retry in 1 minute"))
+		s.errorHandler(w, r, 429, "Rate limit exceeded, retry in 1 minute")
 		return false
 	}
 	return true
@@ -255,7 +255,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handler = func() { s.sendJSON(w, r, 200, obj("status", "ok")) }
 	case path == "/ready" && get:
 		handler = func() { s.sendJSON(w, r, 200, obj("status", "ready")) }
-	case strings.HasPrefix(path, "/superapp/config/") && get && !strings.Contains(path[len("/superapp/config/"):], "/") && len(path) > len("/superapp/config/"):
+	case strings.HasPrefix(path, "/superapp/config/") && get && !strings.Contains(path[len("/superapp/config/"):], "/"):
 		handler = func() { s.superapp(w, r, path[len("/superapp/config/"):]) }
 	case path == "/profile/connect/start" && method == http.MethodPost:
 		handler = func() { s.profileStart(w, r) }
