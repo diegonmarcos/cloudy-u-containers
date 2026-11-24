@@ -1,0 +1,1507 @@
+{
+ "bearer": [
+  {
+   "header": null,
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": null,
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": null,
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "token abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "token abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "token abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "bearer abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "bearer abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Basic abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Basic abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Basic abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer ",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer ",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer ",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer    ",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer    ",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer    ",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer aa bb",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer aa bb",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer aa bb",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \tabc\t",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \tabc\t",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \tabc\t",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u00a0abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u00a0abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u00a0abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \ufeffabc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \ufeffabc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \ufeffabc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u0085abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u0085abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer \u0085abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc\u00e9",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc\u00e9",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc\u00e9",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer a\u0001b",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer a\u0001b",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer a\u0001b",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer  abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer  abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer  abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "BearerX abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "BearerX abc",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "BearerX abc",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer",
+   "verify": "reject",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer",
+   "verify": "jwks_down",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "cloud-drive"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": [
+     "some.other.scope"
+    ],
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": "cloud-drive other",
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": "other cloud-drive",
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "https://auth.diegonmarcos.com",
+    "scp": "other  cloud-drive",
+    "sub": "diego"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "x",
+    "scope": "cloud-drive y"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "x",
+    "scope": "y"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "iss": "x"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "scp": [
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "scp": [],
+    "scope": "cloud-drive"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {
+    "scp": {
+     "a": 1
+    },
+    "scope": "cloud-drive"
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "",
+   "claims": {
+    "scp": [
+     "cloud-drive"
+    ]
+   }
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "",
+   "claims": {}
+  },
+  {
+   "header": "Bearer abc",
+   "verify": "accept",
+   "scope": "cloud-drive",
+   "claims": {}
+  }
+ ],
+ "session": [
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "diego",
+   "users": []
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "guest",
+   "users": []
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": null,
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "reject",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": null,
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": null,
+   "verify": "down",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": null,
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "diego",
+   "users": []
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "guest",
+   "users": []
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "",
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "reject",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "",
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "",
+   "verify": "down",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "",
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "diego",
+   "users": []
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "diego",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "guest",
+   "users": []
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "guest",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "accept",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "reject",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "reject",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego"
+   ]
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "down",
+   "user": "",
+   "users": []
+  },
+  {
+   "cookie": "authelia_session=x",
+   "verify": "down",
+   "user": "",
+   "users": [
+    "diego",
+    "other"
+   ]
+  }
+ ],
+ "scopes": [
+  {
+   "scp": [
+    "a",
+    "b"
+   ]
+  },
+  {
+   "scp": "a b"
+  },
+  {
+   "scope": "a b"
+  },
+  null,
+  {},
+  {
+   "scp": "a b",
+   "scope": "c"
+  },
+  {
+   "scp": []
+  },
+  {
+   "scp": 5,
+   "scope": "z"
+  },
+  {
+   "scp": ""
+  },
+  {
+   "scp": "a  b"
+  }
+ ],
+ "mesh": [
+  {
+   "addr": "10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "::ffff:10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "::FFFF:10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "FD0C:1D00::5",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.1.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "fd0c:1d01::5",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "203.0.113.9",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "garbage",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.256",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1.2",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00:0:0:ffff:ffff:ffff:ffff",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00:0:1::5",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "::ffff:a00:7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "::1",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.255",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.0",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "[fd0c:1d00::5]",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5%eth0",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "x-forwarded-for": "1.2.3.4"
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "x-forwarded-host": "1.2.3.4"
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "x-real-ip": "1.2.3.4"
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "forwarded": "1.2.3.4"
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "via": "1.2.3.4"
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.1",
+   "headers": {
+    "via": ""
+   },
+   "cidrs": [
+    "10.0.0.0/24",
+    "fd0c:1d00::/64"
+   ]
+  },
+  {
+   "addr": "10.0.0.7",
+   "headers": {},
+   "cidrs": []
+  },
+  {
+   "addr": "10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "nonsense"
+   ]
+  },
+  {
+   "addr": "10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.7"
+   ]
+  },
+  {
+   "addr": "10.0.0.7",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.7/32"
+   ]
+  },
+  {
+   "addr": "10.0.0.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.7/32"
+   ]
+  },
+  {
+   "addr": "10.0.0.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/0"
+   ]
+  },
+  {
+   "addr": "10.0.0.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/33"
+   ]
+  },
+  {
+   "addr": "10.0.0.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/25"
+   ]
+  },
+  {
+   "addr": "10.0.0.200",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/25"
+   ]
+  },
+  {
+   "addr": "10.0.0.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/23"
+   ]
+  },
+  {
+   "addr": "10.0.1.8",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/23"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "::/0"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "fd0c:1d00::/129"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "fd0c:1d00::5"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "fd0c:1d00::/120"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "fd0c:1d00::6/128"
+   ]
+  },
+  {
+   "addr": "fd0c:1d00::5",
+   "headers": {},
+   "cidrs": [
+    "10.0.0.0/24"
+   ]
+  },
+  {
+   "addr": "10.0.0.5",
+   "headers": {},
+   "cidrs": [
+    "fd0c:1d00::/64"
+   ]
+  }
+ ]
+}
