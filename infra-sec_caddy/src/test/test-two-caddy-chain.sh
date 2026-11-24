@@ -4,7 +4,8 @@
 #   hub (infra-sec_caddy, layer4 :443) -> hub :8443 TLS (HTTP server),
 # with both committed Caddyfiles (or the ones given), each Caddy in its own network namespace so the
 # front edge really reaches the hub from 10.1.0.1 (its wg-public address) and the hub really is 10.1.0.2.
-# Only what cannot run on a CI runner is changed: ACME (global acme_dns) -> local_certs, secret / log /
+# Only what cannot run on a CI runner is changed: ACME (global acme_dns, per-site DNS-01 tls blocks) -> the
+# local CA, secret / log /
 # GeoIP paths -> temp files; the hub gets ONE extra site (pt-guard.diegonmarcos.com, an SNI the front edge
 # does not terminate, so it takes the passthrough route) that answers 200 with {client_ip}.
 # Asserts, from an off-mesh client 198.51.100.7:
@@ -63,6 +64,14 @@ def block_end(t, k):                                                    # k = in
 def prep(t, who):
     h = "  acme_dns cloudflare {env.CF_API_TOKEN} {"; i = t.index(h)   # global ACME -> local CA (no network)
     t = t[:i] + "  local_certs\n  skip_install_trust" + t[block_end(t, i + len(h) - 1):]
+    out, pos = [], 0                                                    # per-site DNS-01 issuers -> internal
+    for m in re.finditer(r"(?m)^([ \t]*)tls \{", t):                     # (a managed wildcard covers its subdomains)
+        if m.start() < pos: continue
+        e = block_end(t, m.end() - 1)
+        if "dns cloudflare" in t[m.start():e]:
+            out.append(t[pos:m.start()] + m.group(1) + "tls internal"); pos = e
+    t = "".join(out) + t[pos:]
+    assert not re.search(r"(?m)^[ \t]*[^#\s].*dns cloudflare", t), f"{who}: a DNS-01 issuer left"
     t = t.replace("/run/secrets/", f"{W}/secrets/").replace("/var/log/caddy", f"{W}/{who}-log")
     return re.sub(r"db_path \S+", f"db_path {geo}", t)
 hub = prep(open(hubf).read(), "hub")
