@@ -6,14 +6,21 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { LOG_METHODS, logsPath, phoneGet } from "./phone-api-core.js";
+import { LOG_METHODS, logsPath, phoneGet, defaultPhoneUrl } from "./phone-api-core.js";
+import { meshPeers } from "./mesh-peers.js";
 
 const text = (t: string) => ({ content: [{ type: "text" as const, text: t }] });
 const errText = (t: string) => ({ content: [{ type: "text" as const, text: `Error: ${t}` }], isError: true as const });
 
 export function registerPhoneApiTools(server: McpServer, env: NodeJS.ProcessEnv = process.env) {
+  // PHONE_MESH_URL wins; otherwise the phone's mesh origin from the peer registry (the same route infra_peers uses), so these
+  // tools work with only the delivered SUPERAPP_FLEET_TOKEN in the container. phoneBase still refuses anything not on the mesh.
+  const meshUrl = () => {
+    if ((env.PHONE_MESH_URL ?? "").trim()) return env.PHONE_MESH_URL;
+    try { return defaultPhoneUrl(meshPeers()); } catch { return undefined; }
+  };
   const get = async (path: string) => {
-    const r = await phoneGet(path, env);
+    const r = await phoneGet(path, { ...env, PHONE_MESH_URL: meshUrl() });
     return r.ok ? text(r.value) : errText(r.error);
   };
 

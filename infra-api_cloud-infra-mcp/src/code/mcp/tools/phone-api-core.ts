@@ -14,6 +14,22 @@ export type LogMethod = (typeof LOG_METHODS)[number];
 export interface PhoneEnv {
   PHONE_MESH_URL?: string; // e.g. http://<phone-mesh-name-or-ip>:8004 (mesh only)
   PHONE_FLEET_TOKEN?: string; // the fleet bearer, from the sops-managed environment; never printed
+  SUPERAPP_FLEET_TOKEN?: string; // the same fleet bearer under the name the container actually carries (mesh-route.ts fleetBearer); used when PHONE_FLEET_TOKEN is unset
+}
+
+/** The fleet bearer: PHONE_FLEET_TOKEN, else SUPERAPP_FLEET_TOKEN (the vault key the container is delivered). An unexpanded ${VAR} counts as unset. */
+export function phoneToken(env: PhoneEnv): string {
+  for (const v of [env.PHONE_FLEET_TOKEN, env.SUPERAPP_FLEET_TOKEN]) {
+    const raw = (v ?? "").trim();
+    if (raw && !/^\$\{[A-Za-z_][A-Za-z0-9_-]*\}$/.test(raw)) return raw;
+  }
+  return "";
+}
+
+/** When PHONE_MESH_URL is not set: the mesh origin the peer registry (mesh-peers.json) declares for a phone, preferring `prefer`. Pure: the caller passes the peers. */
+export function defaultPhoneUrl(peers: Array<{ id: string; kind: string; mcp?: { url?: string } }>, prefer = "samsung-a37"): string | undefined {
+  const phones = peers.filter((p) => p.kind === "phone" && p.mcp?.url);
+  return (phones.find((p) => p.id === prefer) ?? phones[0])?.mcp?.url;
 }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -65,8 +81,8 @@ export type FetchLike = (url: string, init: { headers: Record<string, string>; s
 export async function phoneGet(path: string, env: PhoneEnv, fetchImpl: FetchLike = fetch as unknown as FetchLike, timeoutMs = 15_000): Promise<Result<string>> {
   const base = phoneBase(env);
   if (!base.ok) return base;
-  const token = (env.PHONE_FLEET_TOKEN ?? "").trim();
-  if (!token) return { ok: false, error: "PHONE_FLEET_TOKEN is not set (the fleet bearer): refusing to call the phone without it" };
+  const token = phoneToken(env);
+  if (!token) return { ok: false, error: "no fleet bearer (PHONE_FLEET_TOKEN or SUPERAPP_FLEET_TOKEN): refusing to call the phone without it" };
   const redact = (s: string) => s.split(token).join("***");
   try {
     const r = await fetchImpl(base.value + path, { headers: { authorization: `Bearer ${token}`, accept: "application/json" }, signal: AbortSignal.timeout(timeoutMs) });

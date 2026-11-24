@@ -1,7 +1,7 @@
 // Tests the phone mesh-endpoint client (#1490): mesh-only base URL, bearer handling, request paths, error mapping.
 // Run: npx tsx test-phone-api.mts   (no network, no SDK: the fetch is a stub)
 import assert from "node:assert/strict";
-import { phoneBase, appName, logsPath, phoneGet, type FetchLike, type PhoneEnv } from "./mcp/tools/phone-api-core.ts";
+import { phoneBase, appName, logsPath, phoneGet, phoneToken, defaultPhoneUrl, type FetchLike, type PhoneEnv } from "./mcp/tools/phone-api-core.ts";
 
 let n = 0;
 const t = async (name: string, fn: () => Promise<void> | void) => { await fn(); n++; console.log(`ok - ${name}`); };
@@ -65,6 +65,26 @@ await t("apps logs: <app> is one path segment, the query is clamped, the method 
 await t("an app name with a reserved character is encoded, never a second path segment", () => {
   const r = logsPath({ app: "a_b-c.d" });
   assert.ok(r.ok && r.value === "/ipc/a_b-c.d/logs");
+});
+
+
+await t("the bearer falls back to SUPERAPP_FLEET_TOKEN (the name the container carries) and PHONE_FLEET_TOKEN wins", async () => {
+  assert.equal(phoneToken({ SUPERAPP_FLEET_TOKEN: "sa" }), "sa");
+  assert.equal(phoneToken({ PHONE_FLEET_TOKEN: "ph", SUPERAPP_FLEET_TOKEN: "sa" }), "ph");
+  assert.equal(phoneToken({ PHONE_FLEET_TOKEN: "${PHONE_FLEET_TOKEN}", SUPERAPP_FLEET_TOKEN: "sa" }), "sa");
+  assert.equal(phoneToken({}), "");
+  const seen: { url?: string; headers?: Record<string, string> } = {};
+  const r = await phoneGet("/endpoints/mesh", { PHONE_MESH_URL: "http://10.0.0.10:8004", SUPERAPP_FLEET_TOKEN: TOKEN }, stub(200, "{}", seen));
+  assert.equal(r.ok, true);
+  assert.equal(seen.headers?.authorization, `Bearer ${TOKEN}`);
+});
+
+await t("with no PHONE_MESH_URL the phone origin comes from the peer registry, preferring samsung-a37, phones only", () => {
+  const peers = [{ id: "gcp-proxy", kind: "vm", mcp: { url: "http://10.0.0.1:8004" } }, { id: "termux", kind: "phone", mcp: { url: "http://10.0.0.9:8004" } }, { id: "samsung-a37", kind: "phone", mcp: { url: "http://10.0.0.10:8004" } }];
+  assert.equal(defaultPhoneUrl(peers), "http://10.0.0.10:8004");
+  assert.equal(defaultPhoneUrl(peers, "termux"), "http://10.0.0.9:8004");
+  assert.equal(defaultPhoneUrl([peers[0]]), undefined);
+  assert.equal(phoneBase({ PHONE_MESH_URL: defaultPhoneUrl(peers) }).ok, true);
 });
 
 console.log(`${n} tests passed`);
