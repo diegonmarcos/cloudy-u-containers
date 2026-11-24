@@ -24,7 +24,7 @@ SVC="$(cd "$HERE/../../.." && pwd)"
 CADDY_HUB="${CADDY_HUB:-${CADDY:?set CADDY or CADDY_HUB}}"; CADDY_EDGE="${CADDY_EDGE:-${CADDY:-$CADDY_HUB}}"
 HUB_CADDYFILE="${HUB_CADDYFILE:-$SVC/infra-sec_caddy/dist/configs/Caddyfile}"
 EDGE_CADDYFILE="${EDGE_CADDYFILE:-$SVC/infra-sec_caddy-public/dist/configs/Caddyfile}"
-GEO_DB_FILE="${GEO_DB_FILE:?set GEO_DB_FILE to the edge's country database}"
+GEO_DB_FILE="${GEO_DB_FILE:?set GEO_DB_FILE to the country database of the edge}"
 NS="c2c$$"; CL="${NS}cl"; FE="${NS}fe"; HB="${NS}hb"
 W="$(mktemp -d)"; chmod 755 "$W"
 cleanup(){
@@ -54,15 +54,15 @@ openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 
 python3 -I - "$HUB_CADDYFILE" "$EDGE_CADDYFILE" "$W" "$GEO_DB_FILE" <<'PY'
 import re, sys
 hubf, edgef, W, geo = sys.argv[1:]
-def block_end(t, i):
-    k = t.index("{", i); d = 0
+def block_end(t, k):                                                    # k = index of the opening brace
+    d = 0
     for j in range(k, len(t)):
         d += (t[j] == "{") - (t[j] == "}")
         if d == 0: return j + 1
     raise AssertionError("unbalanced braces")
 def prep(t, who):
-    i = t.index("  acme_dns cloudflare {env.CF_API_TOKEN} {")           # global ACME -> local CA (no network)
-    t = t[:i] + "  local_certs\n  skip_install_trust" + t[block_end(t, i):]
+    h = "  acme_dns cloudflare {env.CF_API_TOKEN} {"; i = t.index(h)   # global ACME -> local CA (no network)
+    t = t[:i] + "  local_certs\n  skip_install_trust" + t[block_end(t, i + len(h) - 1):]
     t = t.replace("/run/secrets/", f"{W}/secrets/").replace("/var/log/caddy", f"{W}/{who}-log")
     return re.sub(r"db_path \S+", f"db_path {geo}", t)
 hub = prep(open(hubf).read(), "hub")
