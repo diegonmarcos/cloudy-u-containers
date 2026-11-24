@@ -378,6 +378,14 @@
         key    {remote_host}
         events 100
         window 1m
+        match {
+          not vars ea_cred 1
+        }
+      }
+      zone backstop {
+        key    {remote_host}
+        events 6000
+        window 1m
       }
     }
   }
@@ -387,6 +395,14 @@
       zone mcp {
         key    {remote_host}
         events 600
+        window 1m
+        match {
+          not vars ea_cred 1
+        }
+      }
+      zone backstop {
+        key    {remote_host}
+        events 6000
         window 1m
       }
     }
@@ -398,10 +414,45 @@
         key    {remote_host}
         events 600
         window 1m
+        match {
+          not vars ea_cred 1
+        }
+      }
+      zone backstop {
+        key    {remote_host}
+        events 6000
+        window 1m
       }
     }
   }
 
+
+  # #1896: authenticated requests, invoked by the edge gate AFTER its forward_auth passed. Keyed on
+  # the identity the auth service returned; the credential itself is never a key.
+  &(edge_rl_authed) {
+    rate_limit {
+      zone authed {
+        key    {http.request.header.X-Auth-Subject}|{http.request.header.X-Auth-User}|{http.request.header.Remote-User}|{http.request.header.X-Auth-Request-Email}
+        events 1000
+        window 1m
+        match {
+          not host mcp.diegonmarcos.com
+          not path_regexp ^/[^/]+-mcp(/|$)
+        }
+      }
+      zone authed_mcp {
+        key    {http.request.header.X-Auth-Subject}|{http.request.header.X-Auth-User}|{http.request.header.Remote-User}|{http.request.header.X-Auth-Request-Email}
+        events 6000
+        window 1m
+        match {
+          host mcp.diegonmarcos.com
+        }
+        match {
+          path_regexp ^/[^/]+-mcp(/|$)
+        }
+      }
+    }
+  }
     (block_bots) {
     @bad_bots header_regexp User-Agent "(?i)(sqlmap|nikto|masscan|nmap|zgrab|scrapy|dirbuster|gobuster|nuclei|wfuzz|havij|acunetix|nessus|openvas)"
     respond @bad_bots 403
@@ -537,6 +588,7 @@
         header Cf-Access-Jwt-Assertion *
         not header Cookie *authelia_session=*
       }
+      not header Cookie *authelia_session=*
       not path {args[:]}
       not {
         method OPTIONS
@@ -555,6 +607,20 @@
       uri /auth
       header_up Authorization {http.request.header.X-Fleet-Authorization}
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     # Never forward the fleet token to an upstream; Authorization passes untouched.
     request_header -X-Fleet-Authorization
@@ -566,6 +632,20 @@
       method GET
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     forward_auth @ea_session 172.18.0.3:9091 {
       # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
@@ -593,6 +673,20 @@ forward_auth @ea_broker 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
 # Order of the chain: Authelia session, else broker cookie (above), else Cloudflare Access JWT.
 # The JWT is verified by the broker (signature, issuer, audience, expiry, owner email only).
@@ -613,7 +707,66 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/cf-auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
+    # #1896: a request carrying the Authelia session cookie (and no Bearer): the same Authelia call
+    # as @ea_session, but a refused cookie is counted (ea_denied).
+    @ea_session_ck {
+      header Cookie *authelia_session=*
+      not header Authorization Bearer*
+      not header X-Fleet-Authorization Bearer*
+      not path {args[:]}
+      not {
+        method OPTIONS
+        header Access-Control-Request-Method *
+      }
+    }
+    forward_auth @ea_session_ck 172.18.0.3:9091 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      uri /api/authz/forward-auth
+      header_up X-Forwarded-Uri {http.request.orig_uri}
+      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
+    }
+    # #1896: mark every credential branch (vars sorts before rate_limit and forward_auth). A marked
+    # request that reaches `invoke` (sorted after forward_auth) passed its forward_auth, so the named
+    # route only ever sees authenticated requests.
+    vars @ea_fleet ea_cred 1
+    vars @ea_bearer ea_cred 1
+    vars @ea_session_ck ea_cred 1
+    vars @ea_broker ea_cred 1
+    vars @ea_cfaccess ea_cred 1
+    @ea_authed vars ea_cred 1
+    invoke @ea_authed edge_rl_authed
   }
   # edge_auth_offmesh: same gate, enforced only against NON-mesh sources (mesh peers are trusted by the WG gate).
   (edge_auth_offmesh) {
@@ -652,6 +805,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
         header Cf-Access-Jwt-Assertion *
         not header Cookie *authelia_session=*
       }
+      not header Cookie *authelia_session=*
       not path {args[:]}
       not {
         method OPTIONS
@@ -671,6 +825,20 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       uri /auth
       header_up Authorization {http.request.header.X-Fleet-Authorization}
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     # Never forward the fleet token to an upstream; Authorization passes untouched.
     request_header -X-Fleet-Authorization
@@ -682,6 +850,20 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       method GET
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     forward_auth @ea_session 172.18.0.3:9091 {
       # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
@@ -710,6 +892,20 @@ forward_auth @ea_broker 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
 # Order of the chain: Authelia session, else broker cookie (above), else Cloudflare Access JWT.
 # The JWT is verified by the broker (signature, issuer, audience, expiry, owner email only).
@@ -731,7 +927,67 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/cf-auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
+    # #1896: a request carrying the Authelia session cookie (and no Bearer): the same Authelia call
+    # as @ea_session, but a refused cookie is counted (ea_denied).
+    @ea_session_ck {
+      header Cookie *authelia_session=*
+      not header Authorization Bearer*
+      not header X-Fleet-Authorization Bearer*
+      not path {args[:]}
+      not {
+        method OPTIONS
+        header Access-Control-Request-Method *
+      }
+      not remote_ip 10.0.0.0/24 fd0c:1d00::/64
+    }
+    forward_auth @ea_session_ck 172.18.0.3:9091 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      uri /api/authz/forward-auth
+      header_up X-Forwarded-Uri {http.request.orig_uri}
+      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
+    }
+    # #1896: mark every credential branch (vars sorts before rate_limit and forward_auth). A marked
+    # request that reaches `invoke` (sorted after forward_auth) passed its forward_auth, so the named
+    # route only ever sees authenticated requests.
+    vars @ea_fleet ea_cred 1
+    vars @ea_bearer ea_cred 1
+    vars @ea_session_ck ea_cred 1
+    vars @ea_broker ea_cred 1
+    vars @ea_cfaccess ea_cred 1
+    @ea_authed vars ea_cred 1
+    invoke @ea_authed edge_rl_authed
   }
   # edge_auth_ws: enforced for every source EXCEPT `Upgrade: websocket` requests (wstunnel on vpn.).
   (edge_auth_ws) {
@@ -770,6 +1026,7 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
         header Cf-Access-Jwt-Assertion *
         not header Cookie *authelia_session=*
       }
+      not header Cookie *authelia_session=*
       not path {args[:]}
       not {
         method OPTIONS
@@ -789,6 +1046,20 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       uri /auth
       header_up Authorization {http.request.header.X-Fleet-Authorization}
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     # Never forward the fleet token to an upstream; Authorization passes untouched.
     request_header -X-Fleet-Authorization
@@ -800,6 +1071,20 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
       method GET
       uri /auth
       copy_headers X-Auth-User X-Auth-Subject X-Auth-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
     }
     forward_auth @ea_session 172.18.0.3:9091 {
       # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
@@ -828,6 +1113,20 @@ forward_auth @ea_broker 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
 # Order of the chain: Authelia session, else broker cookie (above), else Cloudflare Access JWT.
 # The JWT is verified by the broker (signature, issuer, audience, expiry, owner email only).
@@ -849,7 +1148,67 @@ forward_auth @ea_cfaccess 10.0.0.6:4180 {
   header_up -Upgrade
   uri /oauth2/google/cf-auth
   copy_headers X-Auth-Request-Email
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
 }
+    # #1896: a request carrying the Authelia session cookie (and no Bearer): the same Authelia call
+    # as @ea_session, but a refused cookie is counted (ea_denied).
+    @ea_session_ck {
+      header Cookie *authelia_session=*
+      not header Authorization Bearer*
+      not header X-Fleet-Authorization Bearer*
+      not path {args[:]}
+      not {
+        method OPTIONS
+        header Access-Control-Request-Method *
+      }
+      not header Upgrade websocket
+    }
+    forward_auth @ea_session_ck 172.18.0.3:9091 {
+      # A websocket upgrade must not reach the auth subrequest: an introspect/authelia
+      # backend that gets Connection: Upgrade never answers and the edge hangs.
+      header_up -Connection
+      header_up -Upgrade
+      uri /api/authz/forward-auth
+      header_up X-Forwarded-Uri {http.request.orig_uri}
+      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+      # #1896: a credential the auth service refuses counts in the strict per-IP zone.
+      @ea_denied status 3xx 4xx 5xx
+      handle_response @ea_denied {
+        rate_limit {
+          zone denied {
+            key    {remote_host}
+            events 100
+            window 1m
+          }
+        }
+        # copy_response writes the auth service's status, headers and body as-is (a separate header
+        # copy duplicated every header and the body was lost behind a doubled Content-Length).
+        copy_response
+      }
+    }
+    # #1896: mark every credential branch (vars sorts before rate_limit and forward_auth). A marked
+    # request that reaches `invoke` (sorted after forward_auth) passed its forward_auth, so the named
+    # route only ever sees authenticated requests.
+    vars @ea_fleet ea_cred 1
+    vars @ea_bearer ea_cred 1
+    vars @ea_session_ck ea_cred 1
+    vars @ea_broker ea_cred 1
+    vars @ea_cfaccess ea_cred 1
+    @ea_authed vars ea_cred 1
+    invoke @ea_authed edge_rl_authed
   }
 
   # ════════════════════════════════════════════════════════════
