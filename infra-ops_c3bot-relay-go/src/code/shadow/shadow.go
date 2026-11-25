@@ -81,7 +81,7 @@ func Check(ctx context.Context, base, token, whSecret string) (int, []string) {
 	c, j := do("GET", "/poll?after=0&wait=0", auth, nil)
 	cursor, _ := j["cursor"].(float64)
 	chk("poll empty", c == 200)
-	c, _ = do("POST", "/telegram/webhook", wh, map[string]any{"update_id": 1, "message": map[string]any{"message_id": time.Now().Unix(), "date": time.Now().Unix(), "chat": map[string]any{"id": 1}, "from": map[string]any{"id": 1}, "text": sid}})
+	c, _ = do("POST", "/telegram/webhook", wh, map[string]any{"update_id": time.Now().UnixNano() / 1000, "message": map[string]any{"message_id": time.Now().Unix(), "date": time.Now().Unix(), "chat": map[string]any{"id": 1}, "from": map[string]any{"id": 1}, "text": sid}})
 	chk("webhook ingest", c == 200)
 	c, j = do("GET", fmt.Sprintf("/poll?after=%d&wait=2", int64(cursor)), auth, nil)
 	evs, _ := j["events"].([]any)
