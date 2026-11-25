@@ -29,7 +29,7 @@ let
 
   wgIp      = "10.0.0.6";           # oci-apps wg0 — the only exposed listener
   steelPort = toString buildJson.ports.app;  # 3000 inside the container
-  meshPort  = toString buildJson.ports.app;  # published mesh port (10.0.0.6:3000)
+  meshPort  = "3010";  # published mesh port (10.0.0.6:3010); 3000 is held on the host by a host-network next-server (umami), so the in-container 3000 maps to 3010
 
   caddyEntry = ''
     if [ -z "$STEEL_API_KEY" ]; then

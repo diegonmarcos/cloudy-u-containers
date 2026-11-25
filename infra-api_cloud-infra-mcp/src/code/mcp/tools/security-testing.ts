@@ -11,7 +11,7 @@ import { rawHttpRequest } from "../../shared/libs/http.js";
 import { getConfig } from "../../shared/libs/config.js";
 
 // Backends reached over the oci-apps WireGuard address (mesh-only, private).
-const STEEL_BASE = process.env.STEEL_BASE_URL ?? "http://10.0.0.6:3000";
+const STEEL_BASE = process.env.STEEL_BASE_URL ?? "http://10.0.0.6:3010";
 const ZAP_BASE = process.env.ZAP_BASE_URL ?? "http://10.0.0.6:8086";
 const steelKey = () => process.env.STEEL_API_KEY ?? "";
 const zapKey = () => process.env.ZAP_API_KEY ?? "";
