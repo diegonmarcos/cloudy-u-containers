@@ -48,6 +48,11 @@ in
       init = true;
       user = "zap";
       env_file = [ ".secrets" ];
+      # The Ship render (vault overlaid) auto-adds these two mounts; declared so the public render matches it (no dist drift).
+      volumes = [
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
+      ];
       environment = {
         TZ = buildJson.timezone;
       };

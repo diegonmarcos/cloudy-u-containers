@@ -47,6 +47,11 @@ in
       networks = [ "steelnet" ];
       init = true;
       env_file = [ ".secrets" ];
+      # The Ship render (vault overlaid) auto-adds these two mounts; declared so the public render matches it (no dist drift).
+      volumes = [
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
+      ];
       environment = {
         TZ   = buildJson.timezone;
         # Steel listens on 3000 inside the container; never published.
@@ -80,7 +85,11 @@ in
       entrypoint = [ "/bin/sh" "-c" ];
       command = [ caddyEntry ];
       ports = [ "${wgIp}:${meshPort}:3000" ];
-      volumes = [ "./configs/steel-auth.Caddyfile:/etc/caddy/Caddyfile:ro" ];
+      volumes = [
+        "./configs/steel-auth.Caddyfile:/etc/caddy/Caddyfile:ro"
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
+      ];
       # service_started, not service_healthy: the proxy should come up as soon
       # as Steel is running; it does not need Steel's healthcheck to pass first
       # (the reverse_proxy simply 502s until Steel answers).
