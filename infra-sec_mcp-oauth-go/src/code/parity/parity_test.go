@@ -479,7 +479,7 @@ func corpus() []step {
 		g("pr metadata prefixed", "/svc-a/.well-known/oauth-protected-resource", 200),
 		g("pr bad name", "/.well-known/oauth-protected-resource/Bad_Name", 404),
 		g("pr bad second part", "/.well-known/oauth-protected-resource/svc-a/Bad", 404),
-		g("pr trailing newline", "/.well-known/oauth-protected-resource/svc%0A", 200),
+		g("pr trailing newline is not a path-converter character", "/.well-known/oauth-protected-resource/svc%0A", 404),
 		g("pr prefixed newline", "/svc%0A/.well-known/oauth-protected-resource", 200),
 		g("pr empty", "/.well-known/oauth-protected-resource/", 404),
 		g("unknown", "/nope", 404),
