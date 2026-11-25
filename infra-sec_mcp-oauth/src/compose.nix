@@ -52,6 +52,8 @@ in
         retries      = 3;
         start_period = "60s";
       };
+      # #1898: memswap_limit == mem_limit = no swap for this container (swap-in stalls the edge).
+      memswap_limit = buildJson.resources.mem_limit;
       deploy.resources =
            (if buildJson.resources ? mem_limit       then { limits       = { memory = buildJson.resources.mem_limit; };       } else {})
         // (if buildJson.resources ? mem_reservation then { reservations = { memory = buildJson.resources.mem_reservation; }; } else {});

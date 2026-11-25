@@ -48,6 +48,11 @@ in
         "caddy_data:/data"
         "caddy_config:/config"
       ];
+      # #1898: swap-capped at the same figure as the memory limit (memswap_limit == memory means
+      # NO swap for this container: a swapped-out caddy refaults at HDD speed and stalls the edge),
+      # and shielded from the kernel OOM killer (-900, same tier as sshd/wg, see _shared/oom-priority.json).
+      memswap_limit = "192M";
+      oom_score_adj = -900;
       deploy.resources = {
         limits       = { memory = "192M"; };
         reservations = { memory = "96M"; };

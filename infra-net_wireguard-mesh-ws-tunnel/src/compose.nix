@@ -22,6 +22,8 @@ in
         TZ = buildJson.timezone or "Europe/Madrid";
       };
       restart = "unless-stopped";
+      # #1898: the mesh transport for the hub; shield from the kernel OOM killer (same tier as sshd/wg).
+      oom_score_adj = -900;
       deploy = {
         # mem_limit is optional in build.json — reading it unconditionally
         # fails eval with "attribute 'mem_limit' missing".

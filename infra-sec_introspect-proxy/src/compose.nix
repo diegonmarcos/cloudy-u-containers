@@ -94,6 +94,8 @@ in
         # mem_limit/mem_reservation are optional in build.json (only
         # mem_reservation is declared fleet-wide today). Reading them
         # unconditionally fails eval with "attribute ... missing".
+      # #1898: memswap_limit == mem_limit = no swap for this container (swap-in stalls the edge).
+      memswap_limit = buildJson.resources.mem_limit;
       deploy.resources =
            (if buildJson.resources ? mem_limit       then { limits       = { memory = buildJson.resources.mem_limit; };       } else {})
         // (if buildJson.resources ? mem_reservation then { reservations = { memory = buildJson.resources.mem_reservation; }; } else {});

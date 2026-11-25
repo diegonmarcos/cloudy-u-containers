@@ -1,0 +1,30 @@
+name: gcp-proxy memory guard
+
+# #1898: the 944 MB hub must never run a container without a memory limit; the auth plane has no swap
+# (memswap_limit == memory), caddy and the ws tunnel carry oom_score_adj -900, postlite-* are capped.
+# Reads the RENDERED dists. Runs after every render-dist run (its GITHUB_TOKEN push does not trigger push workflows).
+on:
+  push:
+    branches: [main]
+    paths: ['*/build.json', '*/dist/**', '*/src/compose.nix', '*/src/flake.nix', '_shared/test/gcp-proxy-memory-guard.sh', '.github/workflows/gcp-proxy-memory-guard.yml']
+  workflow_run:
+    workflows: ["render-dist (re-render one service's committed dist/ in CI and push it)"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gcp-proxy-memory-guard
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - run: sh _shared/test/gcp-proxy-memory-guard.sh
