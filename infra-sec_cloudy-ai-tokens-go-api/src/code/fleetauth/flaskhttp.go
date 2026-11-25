@@ -137,10 +137,12 @@ func (ru *rule) match(path string) (map[string]string, bool) {
 	args := map[string]string{}
 	for i, s := range ru.segs {
 		if strings.HasPrefix(s, "<path:") {
-			if i >= len(parts) || strings.Join(parts[i:], "/") == "" || parts[i] == "" {
+			rest := strings.Join(parts[min(i, len(parts)):], "/")
+			// werkzeug's path converter is [^/].*?: a newline is only allowed as the first character
+			if i >= len(parts) || rest == "" || parts[i] == "" || strings.Contains(rest[1:], "\n") {
 				return nil, false
 			}
-			args[strings.TrimSuffix(s[len("<path:"):], ">")] = strings.Join(parts[i:], "/")
+			args[strings.TrimSuffix(s[len("<path:"):], ">")] = rest
 			return args, true
 		}
 		if i >= len(parts) {
