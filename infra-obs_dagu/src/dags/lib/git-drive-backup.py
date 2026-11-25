@@ -139,7 +139,7 @@ def cmd_repo(name, zpath, tdir, sha, mout):
     stats = {"same": 0, "uploaded": 0, "deleted": 0}
     jobs = []
     sync_dir(tdir, rid, stats, jobs)
-    with ThreadPoolExecutor(8) as ex:
+    with ThreadPoolExecutor(16) as ex:
         list(ex.map(run_job, jobs))
     json.dump({"repo": name, "sha": sha, "size": os.path.getsize(zpath),
                "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}, open(mout, "w"))
