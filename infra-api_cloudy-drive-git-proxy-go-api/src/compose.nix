@@ -27,7 +27,7 @@ in
       };
       healthcheck = {
         # distroless: no shell or curl; the binary probes itself.
-        test = [ "CMD" bin "-healthcheck" "http://${bind}/git/health" ];
+        test = [ "CMD" bin "-healthcheck" "http://${bind}/health" ]; # prefix-stripped path, like the Node twin
         interval     = "30s";
         timeout      = "10s";
         retries      = 3;
