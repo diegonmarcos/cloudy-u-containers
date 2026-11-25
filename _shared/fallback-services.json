@@ -76,6 +76,15 @@
       "bearer": true
     },
     {
+      "slug": "c3-public-go-api",
+      "dir": "infra-api_c3-public-go-api",
+      "description": "Go port of c3-public-api (public API: analytics passthrough, Bearer-gated mail bridge with the delivery ledger, SuperApp config artifact, Profile > Connect with mailed one-time codes), shadow stage: runs next to the Node container on its ow",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
       "slug": "cloud-drive-mcp",
       "dir": "infra-api_cloud-drive-mcp",
       "description": "Drive MCP server — one facade over every storage unit: repos, files, photos, sync, scrapes, S3 and conversion",
@@ -120,6 +129,15 @@
       "dir": "infra-api_cloud-me-api",
       "description": "Cloud Me API: read-only, authenticated read path to the owner's private cloud-me-* repos. The service holds one READ-ONLY deploy key per repo server-side, keeps a shallow clone of each declared repo, and serves declared JSON datasets (and f",
       "mesh": "cloud-me-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloud-me-go-api",
+      "dir": "infra-api_cloud-me-go-api",
+      "description": "Go port of cloud-me-api (read-only, authenticated read path to the owner's private cloud-me-* repos: git deploy-key sync, file gate, builtin fleet datasets, autocomplete rows), shadow stage: runs next to the Node container on its own port, ",
+      "mesh": null,
       "hosts": [],
       "signin": false,
       "bearer": true
@@ -218,6 +236,15 @@
       "dir": "infra-api_cloudy-drive-git-proxy-api",
       "description": "Git Proxy API — Authelia-fronted read path to GitHub so the phone holds NO GitHub credential (#647, route 3 of #646's fallback chain). The caller authenticates to US with the Authelia bearer it already has; this service holds the GitHub tok",
       "mesh": "cloudy-drive-git-proxy-api.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
+      "slug": "cloudy-drive-git-proxy-go-api",
+      "dir": "infra-api_cloudy-drive-git-proxy-go-api",
+      "description": "Go port of cloudy-drive-git-proxy-api (Authelia-fronted read path to GitHub: repos, tarball, git clone/fetch, commits/runs feeds, mesh release-asset mirror), shadow stage: runs next to the Node container on its own port, outside every reque",
+      "mesh": null,
       "hosts": [],
       "signin": false,
       "bearer": true
@@ -563,6 +590,15 @@
       "bearer": false
     },
     {
+      "slug": "auth-broker-go",
+      "dir": "infra-sec_auth-broker-go",
+      "description": "Go port of auth-broker (fleet sign-in: GitHub device flow, Google and GitHub web flow with PKCE S256 and a single-use browser-bound state, Cloudflare One / Access JWT verification, email one-time code, the shared HMAC-signed session cookie)",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
       "slug": "authelia",
       "dir": "infra-sec_authelia",
       "description": "SSO and 2FA authentication portal",
@@ -612,6 +648,15 @@
       "bearer": true
     },
     {
+      "slug": "cloudy-ai-tokens-go-api",
+      "dir": "infra-sec_cloudy-ai-tokens-go-api",
+      "description": "Go port of cloudy-ai-tokens-api (the fleet token engine: AES-256-GCM sealed token values, HMAC lookup index, verifier and owner API, audit trail), shadow stage: own sqlite file, own port, outside every request path (ticket #1877). Parity ha",
+      "mesh": null,
+      "hosts": [],
+      "signin": false,
+      "bearer": true
+    },
+    {
       "slug": "crowdsec",
       "dir": "infra-sec_crowdsec",
       "description": "CrowdSec behavioral IDS/IPS engine — DORMANT placeholder (Cloudflare-off fallback). Container runs but detects/remediates nothing: empty acquisition, online API (CAPI) disabled, no bouncers wired.",
@@ -645,6 +690,15 @@
       "dir": "infra-sec_mcp-oauth",
       "description": "MCP OAuth 2.1 authorization server for mcp.diegonmarcos.com (option 31.1, approved 2026-10-28): RFC 8414/9728 discovery, RFC 7591 DCR, /authorize behind Authelia, PKCE S256 /token, opaque tokens introspected by introspect-proxy",
       "mesh": "mcp-oauth.mesh.diegonmarcos.com",
+      "hosts": [],
+      "signin": false,
+      "bearer": false
+    },
+    {
+      "slug": "mcp-oauth-go",
+      "dir": "infra-sec_mcp-oauth-go",
+      "description": "Go port of mcp-oauth (MCP OAuth 2.1 authorization server: RFC 8414/9728 discovery, RFC 7591 registration, PKCE S256 authorization code with signed consent form, refresh rotation, RFC 7662 introspection), shadow stage: own sqlite file, own p",
+      "mesh": null,
       "hosts": [],
       "signin": false,
       "bearer": false

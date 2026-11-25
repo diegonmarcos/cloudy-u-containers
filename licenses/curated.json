@@ -243,6 +243,15 @@
   "infra-sec_introspect-proxy-go": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
+  "infra-sec_cloudy-ai-tokens-go-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-sec_mcp-oauth-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-sec_auth-broker-go": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
   "infra-ops_c3-execd": {
    "licence": "LicenseRef-NoLicenseGranted"
   },
