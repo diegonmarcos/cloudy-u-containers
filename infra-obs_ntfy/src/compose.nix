@@ -109,7 +109,9 @@ in
       ];
       # Bind to WG IP so Caddy (gcp-proxy) can reach the gateway over the mesh;
       # same pattern as the main ntfy app container.
-      ports = [ "${svc.ntfy.ip}:${toString buildJson.ports.rss_gateway}:${toString buildJson.ports.rss_gateway}" ];
+      # #1878 cutover: the Go gateway (infra-obs_ntfy-go) now owns host :8091 (the Caddy /feed upstream); this
+      # legacy Python gateway stays declared for rollback and republishes on :8092 (container still listens on 8091).
+      ports = [ "${svc.ntfy.ip}:${toString (buildJson.ports.rss_gateway_legacy_host or buildJson.ports.rss_gateway)}:${toString buildJson.ports.rss_gateway}" ];
       depends_on.ntfy = { condition = "service_started"; };
       deploy.resources = {
         # No memory ceiling: build.json declares no limits.memory. A cgroup memory.max

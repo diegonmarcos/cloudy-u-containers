@@ -38,7 +38,8 @@
   },
   "ports": {
     "app": 8090,
-    "rss_gateway": 8091
+    "rss_gateway": 8091,
+    "rss_gateway_legacy_host": 8092
   },
   "timezone": "Europe/Paris",
   "_topics_comment": "Source of truth for ntfy topics. Consumed by: (a) bc-obs_ntfy/src/code/topic-scanner.py (its own runtime topic list), (b) 9_others/src/engine/parsers/ntfy.ts (publishes configs.ntfy.topics \u2014 incl. path/title \u2014 into _cloud-data-consolidated.json), (c) 9_others/src/engine/cloud-data-config-derive.ts (emits topics into build-mattermost.json AND the RSS taxonomy build-ntfy-rss-channels.json consumed by the Cloud Mail SUPER RSS READER). 'path' = parent folder in the Cloud Mail feed tree (leaf = the topic itself, display = 'title'); topics sharing a 'path' become siblings under that folder, so e.g. the three dev_* topics form a nested CICD/GH group. Adding a topic = edit this array + rebuild.",
