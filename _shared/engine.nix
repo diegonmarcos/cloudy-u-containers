@@ -286,7 +286,8 @@ let
   # a token-less agent fails at the LAST step rather than the first — it
   # edits, commits, and only then discovers it can never push, having
   # already written into a tree the other agents share. The helper reads
-  # GH_TOKEN from the environment, which each container's own sops secrets
+  # GH_FLEET_TOKEN (#359: the fine-grained token, preferred) or, until the
+  # owner has minted it, GH_TOKEN from the environment, which each container's own sops secrets
   # supply; `$$` is compose's escape, so what reaches the container is the
   # literal `${GH_TOKEN}` for git's shell to expand when the helper runs.
   gitTreeGitEnv =
@@ -318,7 +319,7 @@ let
           then {
             GIT_CONFIG_KEY_1   = "credential.helper";
             GIT_CONFIG_VALUE_1 =
-              "!f() { echo username=x-access-token; echo \"password=$\${GH_TOKEN}\"; }; f";
+              "!f() { echo username=x-access-token; echo \"password=$\${GH_FLEET_TOKEN:-$\${GH_TOKEN}}\"; }; f";
           }
           else {});
 

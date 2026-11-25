@@ -17,10 +17,15 @@ let
   # Same name the engine's credential.helper reads and the containers' sops
   # files declare. cloud-infra 9_others/agent-credential-policy.json .env_var.
   var = "GH_TOKEN";
+  # #359: the fine-grained replacement (contents:rw, workflows:rw, actions:r, metadata:r on the fleet
+  # repos). The credential helper prefers it over `var`. The owner pastes it into each holder's
+  # src/secrets.yaml (sops) as GH_FLEET_TOKEN, then deletes the GH_TOKEN key (#439) and the
+  # classic PAT is revoked.
+  fleetVar = "GH_FLEET_TOKEN";
   declared = agentSpec.services or null;
 in
 {
-  inherit var;
+  inherit var fleetVar;
 
   isAgent = name: declared == null || builtins.elem name declared;
 

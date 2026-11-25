@@ -11,7 +11,10 @@
 # shell, which still holds the token, and writes those files once. The seal is
 # untouched: nothing is put back into hermes's environment.
 set -eu
-: "${GH_TOKEN:?GH_TOKEN absent — run this from the exec shell, not a hermes tool shell}"
+# #359: the fine-grained GH_FLEET_TOKEN wins; the classic GH_TOKEN is only the fallback until the
+# owner has minted it and removed GH_TOKEN from this container's sops secrets (#439).
+GH_TOKEN="${GH_FLEET_TOKEN:-${GH_TOKEN:-}}"
+: "${GH_TOKEN:?GH_FLEET_TOKEN/GH_TOKEN absent — run this from the exec shell, not a hermes tool shell}"
 
 mkdir -p "$HOME/.config/gh"
 # Both spellings on purpose: gh < 2.40 reads the flat host keys, gh >= 2.40 reads

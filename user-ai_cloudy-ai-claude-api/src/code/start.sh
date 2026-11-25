@@ -85,7 +85,7 @@ refresh_npm_globals
 # ── Git identity + agent workspace ───────────────────────────────────────
 # The token is delivered by the .secrets env_file (sops -> GH_TOKEN), never
 # baked into the image. It is handed to git by a credential helper that reads
-# $GH_TOKEN at call time, so the token never lands in .git/config or on the
+# $GH_FLEET_TOKEN (fine-grained, #359) else $GH_TOKEN at call time, so the token never lands in .git/config or on the
 # persistent volume.
 # NEVER let workspace setup kill the container: this script runs under
 # `set -e`, so an unguarded `git` call in an image without git exits PID1 and
@@ -96,7 +96,7 @@ if command -v git >/dev/null 2>&1; then
   git config --global user.name  "Diego" || true
   git config --global user.email "me@diegonmarcos.com" || true
   git config --global credential.helper \
-    '!f() { echo username=x-access-token; echo "password=${GH_TOKEN}"; }; f' || true
+    '!f() { echo username=x-access-token; echo "password=${GH_FLEET_TOKEN:-${GH_TOKEN}}"; }; f' || true
   git config --global --add safe.directory '*' || true
   # cloud-infra's .gitmodules pins git@github.com: (SSH) for a_solutions and
   # I_cloud. This container has no SSH key, so --recurse-submodules fails
