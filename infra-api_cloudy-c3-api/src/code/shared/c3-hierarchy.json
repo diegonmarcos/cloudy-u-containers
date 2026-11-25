@@ -91,6 +91,18 @@
        "mcp": [
         "browser.*"
        ]
+      },
+      {
+       "id": "api_endpoints",
+       "label": "C3 Endpoints",
+       "api": [],
+       "mcp": []
+      },
+      {
+       "id": "api_mcp",
+       "label": "C3 MCP",
+       "api": [],
+       "mcp": []
       }
      ]
     },
@@ -389,6 +401,26 @@
      "label": "Mail",
      "children": [
       {
+       "id": "tables",
+       "label": "Tables",
+       "api": [
+        "/mail/*"
+       ],
+       "mcp": []
+      },
+      {
+       "id": "topology_inbound",
+       "label": "Topology-Inbound",
+       "api": [],
+       "mcp": []
+      },
+      {
+       "id": "topology_outbound",
+       "label": "Topology-Outbound",
+       "api": [],
+       "mcp": []
+      },
+      {
        "id": "map",
        "label": "Mail",
        "api": [],
@@ -619,6 +651,20 @@
    "label": "Configs",
    "children": [
     {
+     "id": "build",
+     "label": "Build",
+     "api": [],
+     "mcp": []
+    },
+    {
+     "id": "plugins",
+     "label": "Plugins",
+     "api": [],
+     "mcp": [
+      "plugin.*"
+     ]
+    },
+    {
      "id": "general",
      "label": "General",
      "api": [
@@ -637,20 +683,6 @@
      "label": "About",
      "api": [],
      "mcp": []
-    },
-    {
-     "id": "build",
-     "label": "Build",
-     "api": [],
-     "mcp": []
-    },
-    {
-     "id": "plugins",
-     "label": "Plugins",
-     "api": [],
-     "mcp": [
-      "plugin.*"
-     ]
     }
    ]
   }
