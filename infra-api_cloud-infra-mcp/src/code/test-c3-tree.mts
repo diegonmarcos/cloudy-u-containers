@@ -11,7 +11,7 @@ let n = 0;
 const t = (name: string, fn: () => void) => { fn(); n++; console.log(`ok - ${name}`); };
 
 /** The pin: change it together with ac_cloud-c3/data/c3_hierarchy.json (the app's generator), in the same release. */
-const HIERARCHY_SHA256 = "cf6a9dbb0727b2be4e7a99c2b7e37e4c037f48191136c0e698c22aa75aa9221b";
+const HIERARCHY_SHA256 = "4a4e0896351aa80c8d07ea503fe67025e5963412da8e0fbed4c4d1aa3512fc3d";
 
 /** The tool names of every register*Tools in mcp/tools (meta.ts is the retired stdio server's, not in the registry). */
 function toolNames(): string[] {
