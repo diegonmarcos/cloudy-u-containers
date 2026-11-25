@@ -169,15 +169,15 @@ func (a *App) redirectAllowed(uri fleetauth.Value) bool {
 	if uri.K != fleetauth.Str || fleetauth.CPLen(uri.S) > 512 {
 		return false
 	}
-	u, err := pyURLSplit(uri.S)
-	if err != nil || !u.portOK() {
+	u, err := fleetauth.PyURLSplit(uri.S)
+	if err != nil || !u.PortOK() {
 		return false
 	}
-	if u.fragment != "" {
+	if u.Fragment != "" {
 		return false
 	}
-	if u.scheme == "http" {
-		switch u.hostname() {
+	if u.Scheme == "http" {
+		switch u.Hostname() {
 		case "localhost", "127.0.0.1", "::1":
 			return true
 		}
@@ -481,7 +481,7 @@ func (a *App) authorizeGet(r *http.Request, _ map[string]string) *fleetauth.Repl
 	if res == "" {
 		res = a.cfg.Issuer
 	}
-	su, err := pyURLSplit(a.cfg.AuthorizeBase)
+	su, err := fleetauth.PyURLSplit(a.cfg.AuthorizeBase)
 	if err != nil {
 		panic(err)
 	}
@@ -492,7 +492,7 @@ func (a *App) authorizeGet(r *http.Request, _ map[string]string) *fleetauth.Repl
 <p><b>` + pyEscape(f.clientName) + `</b> wants access to <code>` + pyEscape(res) + `</code>
 as <b>` + pyEscape(f.sub) + `</b> (scope: ` + pyEscape(f.scope) + `).</p>
 <p>It will be redirected to <code>` + pyEscape(f.redirectURI) + `</code>.</p>
-<form method="post" action="` + pyEscape(su.path) + `/authorize">` + hidden + `<input type="hidden" name="sig" value="` + sig + `">
+<form method="post" action="` + pyEscape(su.Path) + `/authorize">` + hidden + `<input type="hidden" name="sig" value="` + sig + `">
 <button name="decision" value="approve">Approve</button><button name="decision" value="deny">Deny</button></form>
 </body></html>`
 	return fleetauth.HTMLReply(200, page).

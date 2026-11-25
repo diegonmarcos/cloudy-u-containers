@@ -1,4 +1,4 @@
-package mcpoauth
+package fleetauth
 
 import (
 	"errors"
@@ -6,28 +6,27 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"mcp-oauth/fleetauth"
 )
 
-var errValue = errors.New("ValueError")
+// ErrURLValue is the ValueError urllib.parse raises for a malformed URL.
+var ErrURLValue = errors.New("ValueError")
 
-type splitURL struct {
-	scheme, netloc, path, fragment string
+// SplitURL is urllib.parse.SplitResult (path and query are not percent-decoded).
+type SplitURL struct {
+	Scheme, Netloc, Path, Query, Fragment string
 }
 
 const schemeChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-."
 
 var versionedHost = regexp.MustCompile(`^v[a-fA-F0-9]+\..+$`)
 
-// pyURLSplit is urllib.parse.urlsplit (CPython 3.11.4+) for what redirect validation reads: scheme, netloc,
-// fragment. A malformed bracketed host is the ValueError Python raises.
-func pyURLSplit(raw string) (splitURL, error) {
+// PyURLSplit is urllib.parse.urlsplit (CPython 3.11.4+). A malformed bracketed host is the ValueError Python raises.
+func PyURLSplit(raw string) (SplitURL, error) {
 	url := strings.TrimLeftFunc(raw, func(r rune) bool { return r <= 0x20 })
 	for _, b := range []string{"\t", "\r", "\n"} {
 		url = strings.ReplaceAll(url, b, "")
 	}
-	var u splitURL
+	var u SplitURL
 	if i := strings.IndexByte(url, ':'); i > 0 {
 		c := url[0]
 		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') {
@@ -39,7 +38,7 @@ func pyURLSplit(raw string) (splitURL, error) {
 				}
 			}
 			if ok {
-				u.scheme, url = strings.ToLower(url[:i]), url[i+1:]
+				u.Scheme, url = strings.ToLower(url[:i]), url[i+1:]
 			}
 		}
 	}
@@ -50,36 +49,37 @@ func pyURLSplit(raw string) (splitURL, error) {
 				delim = w + 2
 			}
 		}
-		u.netloc, url = url[2:delim], url[delim:]
-		open, closeB := strings.Contains(u.netloc, "["), strings.Contains(u.netloc, "]")
+		u.Netloc, url = url[2:delim], url[delim:]
+		open, closeB := strings.Contains(u.Netloc, "["), strings.Contains(u.Netloc, "]")
 		if open != closeB {
-			return u, errValue
+			return u, ErrURLValue
 		}
 		if open {
-			host, _, _ := strings.Cut(u.netloc[strings.Index(u.netloc, "[")+1:], "]")
+			host, _, _ := strings.Cut(u.Netloc[strings.Index(u.Netloc, "[")+1:], "]")
 			if strings.HasPrefix(host, "v") {
 				if !versionedHost.MatchString(host) {
-					return u, errValue
+					return u, ErrURLValue
 				}
 			} else if ip, err := netip.ParseAddr(host); err != nil || ip.Is4() {
-				return u, errValue
+				return u, ErrURLValue
 			}
 		}
 	}
 	if i := strings.IndexByte(url, '#'); i >= 0 {
-		u.fragment = url[i+1:]
+		u.Fragment = url[i+1:]
 		url = url[:i]
 	}
 	if i := strings.IndexByte(url, '?'); i >= 0 {
+		u.Query = url[i+1:]
 		url = url[:i]
 	}
-	u.path = url
+	u.Path = url
 	return u, nil
 }
 
 // hostinfo is SplitResult._hostinfo: the host (original case) and the port text ("" for none).
-func (u splitURL) hostinfo() (host, port string) {
-	info := u.netloc
+func (u SplitURL) hostinfo() (host, port string) {
+	info := u.Netloc
 	if i := strings.LastIndex(info, "@"); i >= 0 {
 		info = info[i+1:]
 	}
@@ -92,8 +92,8 @@ func (u splitURL) hostinfo() (host, port string) {
 	return h, p
 }
 
-// hostname is SplitResult.hostname ("" when absent).
-func (u splitURL) hostname() string {
+// Hostname is SplitResult.hostname ("" when absent).
+func (u SplitURL) Hostname() string {
 	h, _ := u.hostinfo()
 	if h == "" {
 		return ""
@@ -105,13 +105,13 @@ func (u splitURL) hostname() string {
 	return strings.ToLower(name) + "%" + zone
 }
 
-// portOK is SplitResult.port not raising: digits only, 0..65535.
-func (u splitURL) portOK() bool {
+// PortOK is SplitResult.port not raising: digits only, 0..65535.
+func (u SplitURL) PortOK() bool {
 	_, p := u.hostinfo()
 	if p == "" {
 		return true
 	}
-	if !fleetauth.IsASCIIDigits(p) {
+	if !IsASCIIDigits(p) {
 		return false
 	}
 	n := 0

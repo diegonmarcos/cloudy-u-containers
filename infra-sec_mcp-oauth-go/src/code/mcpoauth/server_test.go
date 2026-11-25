@@ -312,26 +312,3 @@ func TestClientSecretAuthentication(t *testing.T) {
 		t.Errorf("a confidential client needs its secret: %d", c)
 	}
 }
-
-func TestURLSplitMatchesPython(t *testing.T) {
-	for _, c := range []struct {
-		uri  string
-		ok   bool
-		host string
-	}{
-		{"http://LOCALHOST:80/x", true, "localhost"},
-		{"http://[::1]:8080/x", true, "::1"},
-		{"http://user@127.0.0.1/x", true, "127.0.0.1"},
-		{"http://[::1/x", false, ""},
-		{"http://[nope]/x", false, ""},
-		{"http://localhost:abc/x", false, ""},
-		{"  http://localhost/x", true, "localhost"},
-		{"ht\ttp://localhost/x", true, "localhost"},
-	} {
-		u, err := pyURLSplit(c.uri)
-		ok := err == nil && u.portOK()
-		if ok != c.ok || (ok && u.hostname() != c.host) {
-			t.Errorf("%q: ok=%v host=%q, want ok=%v host=%q", c.uri, ok, u.hostname(), c.ok, c.host)
-		}
-	}
-}

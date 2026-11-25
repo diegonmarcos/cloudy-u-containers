@@ -351,6 +351,26 @@ func unhex(c byte) byte {
 	return c - '0'
 }
 
+// ParseQS is urllib.parse.parse_qs(s): values are lists in order, empty values and fields without = are dropped.
+func ParseQS(s string) (keys []string, vals map[string][]string) {
+	vals = map[string][]string{}
+	for _, part := range strings.Split(s, "&") {
+		if part == "" {
+			continue
+		}
+		k, v, ok := strings.Cut(part, "=")
+		if !ok || v == "" {
+			continue
+		}
+		k, v = unquotePlus(k), unquotePlus(v)
+		if _, seen := vals[k]; !seen {
+			keys = append(keys, k)
+		}
+		vals[k] = append(vals[k], v)
+	}
+	return keys, vals
+}
+
 // QueryForm is request.args.
 func QueryForm(r *http.Request) Form { return ParseQueryString(r.URL.RawQuery) }
 
