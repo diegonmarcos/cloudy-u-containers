@@ -18,11 +18,12 @@
    "CDLA-Permissive-2.0": 1
   },
   "dir": {
-   "LicenseRef-NoLicenseGranted": 122,
+   "LicenseRef-NoLicenseGranted": 125,
+   "NOASSERTION": 2,
    "AGPL-3.0-or-later OR LicenseRef-Fincept-Commercial": 1
   },
   "docker": {
-   "LicenseRef-NoLicenseGranted": 68,
+   "LicenseRef-NoLicenseGranted": 73,
    "Apache-2.0": 9,
    "MIT": 6,
    "AGPL-3.0-only": 5,
@@ -254,6 +255,7 @@
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloud-me-go-api/dist/code/amd64/Dockerfile",
     "infra-api_cloud-services-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloud-services-mcp/src/Dockerfile.native",
     "infra-api_cloud-services-mcp/src/code/Dockerfile",
@@ -400,6 +402,7 @@
     "infra-api_cloud-infra-mcp/src/Dockerfile.native",
     "infra-api_cloud-infra-mcp/src/code/Dockerfile",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloud-me-go-api/dist/code/amd64/Dockerfile",
     "infra-api_cloudy-c3-api/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-c3-api/src/Dockerfile.native",
     "infra-api_cloudy-c3-api/src/code/Dockerfile",
@@ -568,6 +571,7 @@
     "infra-api_cloud-mail-mcp/src/code/Dockerfile",
     "infra-api_cloud-mail-mcp/src/code/Dockerfile.native",
     "infra-api_cloud-me-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloud-me-go-api/dist/code/amd64/Dockerfile",
     "infra-api_cloud-superapp-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-apps-communication-mcp/src/code/Dockerfile",
@@ -2362,6 +2366,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-api_c3-public-go-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
   "dir:infra-api_c3-services-mcp-api": {
    "kind": "dir",
    "declared_in": [
@@ -2411,6 +2423,14 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-api_cloud-me-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloud-me-go-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2491,6 +2511,14 @@
    "licence_source": "licenses/curated.json::directories"
   },
   "dir:infra-api_cloudy-drive-git-proxy-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-api_cloudy-drive-git-proxy-go-api": {
    "kind": "dir",
    "declared_in": [
     "(tree)"
@@ -2826,6 +2854,14 @@
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
   },
+  "dir:infra-sec_cloudy-ai-tokens-go-api": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "NOASSERTION",
+   "licence_source": "MISSING from licenses/curated.json::directories"
+  },
   "dir:infra-sec_crowdsec": {
    "kind": "dir",
    "declared_in": [
@@ -2857,6 +2893,14 @@
    ],
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::directories"
+  },
+  "dir:infra-sec_mcp-oauth-go": {
+   "kind": "dir",
+   "declared_in": [
+    "(tree)"
+   ],
+   "licence": "NOASSERTION",
+   "licence_source": "MISSING from licenses/curated.json::directories"
   },
   "dir:infra-sec_steel-browser": {
    "kind": "dir",
@@ -3351,6 +3395,9 @@
   "docker:debian": {
    "kind": "docker",
    "declared_in": [
+    "infra-api_cloud-me-go-api/build.json",
+    "infra-api_cloud-me-go-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloud-me-go-api/src/build.json",
     "infra-api_cloudy-mail-http-to-smtp-api/build.json",
     "infra-api_cloudy-mail-http-to-smtp-api/dist/code/amd64/Dockerfile",
     "infra-api_cloudy-mail-http-to-smtp-api/src/build.json",
@@ -3471,23 +3518,38 @@
     "infra-ai_jev-sidecar-go/build.json",
     "infra-ai_jev-sidecar-go/dist/code/arm64/Dockerfile",
     "infra-ai_jev-sidecar-go/src/build.json",
+    "infra-api_c3-public-go-api/build.json",
+    "infra-api_c3-public-go-api/dist/code/arm64/Dockerfile",
+    "infra-api_c3-public-go-api/src/build.json",
     "infra-api_cloudy-all-go-mcp/build.json",
+    "infra-api_cloudy-all-go-mcp/dist/code/arm64/Dockerfile",
     "infra-api_cloudy-all-go-mcp/src/build.json",
+    "infra-api_cloudy-drive-git-proxy-go-api/build.json",
+    "infra-api_cloudy-drive-git-proxy-go-api/dist/code/amd64/Dockerfile",
+    "infra-api_cloudy-drive-git-proxy-go-api/src/build.json",
     "infra-obs_ntfy-go/build.json",
     "infra-obs_ntfy-go/dist/code/arm64/Dockerfile",
     "infra-obs_ntfy-go/src/build.json",
     "infra-ops_c3-execd/build.json",
-    "infra-ops_c3-execd/dist/code/amd64/Dockerfile",
+    "infra-ops_c3-execd/dist/code/arm64/Dockerfile",
     "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
     "infra-ops_c3bot-relay-go/dist/code/arm64/Dockerfile",
     "infra-ops_c3bot-relay-go/src/build.json",
+    "infra-sec_cloudy-ai-tokens-go-api/build.json",
+    "infra-sec_cloudy-ai-tokens-go-api/dist/code/arm64/Dockerfile",
+    "infra-sec_cloudy-ai-tokens-go-api/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
     "infra-sec_introspect-proxy-go/dist/code/amd64/Dockerfile",
     "infra-sec_introspect-proxy-go/src/build.json",
+    "infra-sec_mcp-oauth-go/build.json",
+    "infra-sec_mcp-oauth-go/dist/code/amd64/Dockerfile",
+    "infra-sec_mcp-oauth-go/src/build.json",
     "user-comm_chat-mattermost-go/build.json",
+    "user-comm_chat-mattermost-go/dist/code/arm64/Dockerfile",
     "user-comm_chat-mattermost-go/src/build.json",
     "user-news_capital-stack-news-gdelt-go-api/build.json",
+    "user-news_capital-stack-news-gdelt-go-api/dist/code/arm64/Dockerfile",
     "user-news_capital-stack-news-gdelt-go-api/src/build.json"
    ],
    "version": "gcr.io/distroless/static-debian12:nonroot",
@@ -3551,6 +3613,18 @@
     "infra-api_c3-public-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/c3-public-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/c3-public-go-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_c3-public-go-api/build.json",
+    "infra-api_c3-public-go-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/c3-public-go-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -3795,6 +3869,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/cloud-me-go-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloud-me-go-api/build.json",
+    "infra-api_cloud-me-go-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloud-me-go-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/cloud-notes-sync": {
    "kind": "docker",
    "declared_in": [
@@ -3926,6 +4012,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/cloudy-ai-tokens-go-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_cloudy-ai-tokens-go-api/build.json",
+    "infra-sec_cloudy-ai-tokens-go-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-ai-tokens-go-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/cloudy-all-api": {
    "kind": "docker",
    "declared_in": [
@@ -4040,6 +4138,18 @@
     "infra-api_cloudy-drive-git-proxy-api/src/build.json"
    ],
    "version": "ghcr.io/diegonmarcos/cloudy-drive-git-proxy-api:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
+  "docker:ghcr.io/diegonmarcos/cloudy-drive-git-proxy-go-api": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-api_cloudy-drive-git-proxy-go-api/build.json",
+    "infra-api_cloudy-drive-git-proxy-go-api/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/cloudy-drive-git-proxy-go-api:latest",
    "scope": "runtime",
    "licence": "LicenseRef-NoLicenseGranted",
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
@@ -4235,6 +4345,18 @@
    "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
    "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
   },
+  "docker:ghcr.io/diegonmarcos/mcp-oauth-go": {
+   "kind": "docker",
+   "declared_in": [
+    "infra-sec_mcp-oauth-go/build.json",
+    "infra-sec_mcp-oauth-go/src/build.json"
+   ],
+   "version": "ghcr.io/diegonmarcos/mcp-oauth-go:latest",
+   "scope": "runtime",
+   "licence": "LicenseRef-NoLicenseGranted",
+   "licence_source": "licenses/curated.json::docker_licences[ghcr.io/diegonmarcos/]",
+   "note": "Image built by this fleet. The licence is that of the packaging (own code); the software inside keeps its upstream licence - see the same service's upstream image / vendored-source entries."
+  },
   "docker:ghcr.io/diegonmarcos/ntfy-go": {
    "kind": "docker",
    "declared_in": [
@@ -4400,8 +4522,14 @@
    "declared_in": [
     "infra-ai_jev-sidecar-go/build.json",
     "infra-ai_jev-sidecar-go/src/build.json",
+    "infra-api_c3-public-go-api/build.json",
+    "infra-api_c3-public-go-api/src/build.json",
+    "infra-api_cloud-me-go-api/build.json",
+    "infra-api_cloud-me-go-api/src/build.json",
     "infra-api_cloudy-all-go-mcp/build.json",
     "infra-api_cloudy-all-go-mcp/src/build.json",
+    "infra-api_cloudy-drive-git-proxy-go-api/build.json",
+    "infra-api_cloudy-drive-git-proxy-go-api/src/build.json",
     "infra-db_postlite/dist/Dockerfile",
     "infra-db_postlite/src/Dockerfile",
     "infra-obs_ntfy-go/build.json",
@@ -4410,8 +4538,12 @@
     "infra-ops_c3-execd/src/build.json",
     "infra-ops_c3bot-relay-go/build.json",
     "infra-ops_c3bot-relay-go/src/build.json",
+    "infra-sec_cloudy-ai-tokens-go-api/build.json",
+    "infra-sec_cloudy-ai-tokens-go-api/src/build.json",
     "infra-sec_introspect-proxy-go/build.json",
     "infra-sec_introspect-proxy-go/src/build.json",
+    "infra-sec_mcp-oauth-go/build.json",
+    "infra-sec_mcp-oauth-go/src/build.json",
     "user-comm_chat-mattermost-go/build.json",
     "user-comm_chat-mattermost-go/src/build.json",
     "user-news_capital-stack-news-gdelt-go-api/build.json",
@@ -4914,11 +5046,13 @@
     "infra-ai_jev-sidecar/src/flake.nix",
     "infra-ai_languagetool/src/flake.nix",
     "infra-api_c3-public-api/src/flake.nix",
+    "infra-api_c3-public-go-api/src/flake.nix",
     "infra-api_cloud-drive-mcp/src/flake.nix",
     "infra-api_cloud-infra-mcp/src/flake.nix",
     "infra-api_cloud-mail-mcp/src/flake.nix",
     "infra-api_cloud-mattermost-mcp/src/flake.nix",
     "infra-api_cloud-me-api/src/flake.nix",
+    "infra-api_cloud-me-go-api/src/flake.nix",
     "infra-api_cloud-services-mcp/src/flake.nix",
     "infra-api_cloud-superapp-mcp/src/flake.nix",
     "infra-api_cloud-vault-mcp/src/flake.nix",
@@ -4929,6 +5063,7 @@
     "infra-api_cloudy-apps-drive-mcp/src/flake.nix",
     "infra-api_cloudy-c3-api/src/flake.nix",
     "infra-api_cloudy-drive-git-proxy-api/src/flake.nix",
+    "infra-api_cloudy-drive-git-proxy-go-api/src/flake.nix",
     "infra-api_cloudy-mail-http-to-smtp-api/src/flake.nix",
     "infra-api_google-personal-mcp/src/flake.nix",
     "infra-api_google-workspace-mcp/src/flake.nix",
@@ -4964,9 +5099,11 @@
     "infra-sec_caddy-public/src/flake.nix",
     "infra-sec_caddy/src/flake.nix",
     "infra-sec_cloudy-ai-tokens-api/src/flake.nix",
+    "infra-sec_cloudy-ai-tokens-go-api/src/flake.nix",
     "infra-sec_crowdsec/src/flake.nix",
     "infra-sec_introspect-proxy-go/src/flake.nix",
     "infra-sec_introspect-proxy/src/flake.nix",
+    "infra-sec_mcp-oauth-go/src/flake.nix",
     "infra-sec_mcp-oauth/src/flake.nix",
     "infra-sec_steel-browser/src/flake.nix",
     "infra-sec_zap/src/flake.nix",
@@ -5030,6 +5167,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.0.1",
@@ -5042,7 +5181,10 @@
   "go:github.com/golang-jwt/jwt/v5": {
    "kind": "go",
    "declared_in": [
-    "infra-sec_introspect-proxy-go/src/code/go.mod"
+    "_shared/go/fleetauth/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_introspect-proxy-go/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod"
    ],
    "version": "v5.2.2",
    "scope": "shipped",
@@ -5067,6 +5209,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.6.0",
@@ -5079,7 +5223,10 @@
   "go:github.com/hashicorp/golang-lru/v2": {
    "kind": "go",
    "declared_in": [
-    "infra-sec_introspect-proxy-go/src/code/go.mod"
+    "_shared/go/fleetauth/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_introspect-proxy-go/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod"
    ],
    "version": "v2.0.7",
    "scope": "shipped",
@@ -5092,6 +5239,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.0.20",
@@ -5117,6 +5266,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.1.9",
@@ -5130,6 +5281,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.0.0-20230129092748-24d4a6f8daec",
@@ -5214,11 +5367,14 @@
   "go:golang.org/x/sync": {
    "kind": "go",
    "declared_in": [
+    "_shared/go/fleetauth/go.mod",
     "infra-api_cloudy-all-go-mcp/src/code/go.mod",
-    "infra-sec_introspect-proxy-go/src/code/go.mod"
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_introspect-proxy-go/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod"
    ],
-   "version": "v0.20.0",
-   "scope": "indirect",
+   "version": "v0.10.0",
+   "scope": "shipped",
    "licence": "BSD-3-Clause",
    "licence_source": "licenses/curated.json::go_licences[golang.org/x/sync]",
    "note": "LICENSE in the module (v0.10.0).",
@@ -5230,6 +5386,8 @@
     "infra-api_cloudy-all-go-mcp/src/code/go.mod",
     "infra-obs_ntfy-go/src/code/go.mod",
     "infra-ops_c3-execd/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v0.41.0",
@@ -5255,6 +5413,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.55.3",
@@ -5268,6 +5428,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.6.0",
@@ -5281,6 +5443,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.8.0",
@@ -5294,6 +5458,8 @@
    "kind": "go",
    "declared_in": [
     "infra-obs_ntfy-go/src/code/go.mod",
+    "infra-sec_cloudy-ai-tokens-go-api/src/code/go.mod",
+    "infra-sec_mcp-oauth-go/src/code/go.mod",
     "user-news_capital-stack-news-gdelt-go-api/src/code/go.mod"
    ],
    "version": "v1.34.5",

@@ -411,6 +411,15 @@
   },
   "user-comm_chat-mattermost-go": {
    "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloudy-drive-git-proxy-go-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_cloud-me-go-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
+  },
+  "infra-api_c3-public-go-api": {
+   "licence": "LicenseRef-NoLicenseGranted"
   }
  },
  "assets": {
