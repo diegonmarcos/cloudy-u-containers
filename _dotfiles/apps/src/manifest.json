@@ -1,0 +1,13 @@
+{
+  "_doc": "GENERATED skeleton from _git-repos-master/0_claude-sot/bootstrap (deploy-all.sh writes it into a repo that has no _dotfiles/apps/src yet). Claude Code mirror only: .claude/ plus the project MCP registry. A repo that later adds editor dotfiles extends `targets` here.",
+  "targets": {
+    "claude": ".claude"
+  },
+  "never_manage": [
+    ".claude/settings.local.json",
+    ".claude/scheduled_tasks.lock"
+  ],
+  "root_targets": {
+    "mcp.json": ".mcp.json"
+  }
+}

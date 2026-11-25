@@ -1,0 +1,197 @@
+{
+  "_warning": "GENERATED — DO NOT EDIT. Derived by 1_cloud-configs/src/derive/derive-mcp-json.ts (writeProjectMcp) from the same inputs as dist/mcp.json.",
+  "_schema": "mcp-servers/v1",
+  "_doc": "Owner decision 31: mesh first (no auth), else public https://c3-pvt.diegonmarcos.com/<container>/mcp with Authorization: Bearer $FLEET_BEARER (fallback $AUTHELIA_BEARER_TOKEN). No OAuth/DCR. Set FLEET_BEARER in the Claude Code cloud environment secrets / your shell. Bridge: .claude/mcp-connect.mjs.",
+  "mcpServers": {
+    "cloud-cgc-pub-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-cgc-pub-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloud-cgc-pub-mcp/mcp"
+      ]
+    },
+    "cloud-cgc-pvt-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "http://10.0.0.6:3107/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloud-cgc-pvt-mcp/mcp"
+      ]
+    },
+    "cloud-drive-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-drive-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloud-drive-mcp/mcp"
+      ]
+    },
+    "cloud-infra-mcp": {
+      "type": "http",
+      "url": "https://c3-pvt.diegonmarcos.com/cloud-infra-mcp/mcp",
+      "headers": {
+        "Authorization": "Bearer ${AUTHELIA_BEARER_TOKEN:-}"
+      },
+      "headersHelper": "sh \"${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-auth-headers.sh\""
+    },
+    "cloud-mail-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-mail-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/mail-mcp/mcp"
+      ]
+    },
+    "cloud-mattermost-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-mattermost-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/mattermost-mcp/mcp"
+      ]
+    },
+    "cloud-me-cgc-pvt-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "http://10.0.0.6:3107/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloud-me-cgc-pvt-mcp/mcp"
+      ]
+    },
+    "cloud-services-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-services-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/c3-services-mcp/mcp"
+      ]
+    },
+    "cloud-superapp-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloud-superapp-mcp.mesh.diegonmarcos.com/mcp",
+        "--public",
+        "https://c3-pvt.diegonmarcos.com/cloud-superapp-mcp/mcp"
+      ]
+    },
+    "cloud-vault-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "http://10.0.0.6:3111/mcp"
+      ]
+    },
+    "cloudy-all-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloudy-all-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloudy-all-mcp/mcp"
+      ]
+    },
+    "cloudy-android-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloudy-android-mcp.mesh.diegonmarcos.com/mcp",
+        "--public",
+        "https://c3-pvt.diegonmarcos.com/cloudy-android-mcp/mcp"
+      ]
+    },
+    "cloudy-apps-communication-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloudy-apps-communication-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloudy-apps-communication-mcp/mcp"
+      ]
+    },
+    "cloudy-apps-drive-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "http://10.0.0.6:3109/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloudy-apps-drive-mcp/mcp"
+      ]
+    },
+    "cloudy-c3-mcp": {
+      "type": "http",
+      "url": "https://c3-pvt.diegonmarcos.com/cloudy-c3-mcp/mcp",
+      "headers": {
+        "Authorization": "Bearer ${AUTHELIA_BEARER_TOKEN:-}"
+      },
+      "headersHelper": "sh \"${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-auth-headers.sh\""
+    },
+    "cloudy-cgc-pub-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-cloudy-cgc-pub-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/cloudy-cgc-pub-mcp/mcp"
+      ]
+    },
+    "google-personal-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-google-personal-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/g-personal/mcp"
+      ]
+    },
+    "google-workspace-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/.claude/mcp-connect.mjs",
+        "--mesh",
+        "https://c3-google-workspace-mcp.app/mcp",
+        "--public",
+        "https://mcp.diegonmarcos.com/g-workspace/mcp"
+      ]
+    }
+  }
+}
