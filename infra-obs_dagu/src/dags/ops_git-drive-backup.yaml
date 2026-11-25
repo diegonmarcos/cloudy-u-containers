@@ -1,0 +1,21 @@
+# ops_git-drive-backup (#1920) - refresh the owner's Google Drive git backups.
+#   B10_Backup/E0_Git_zips/<repo>.zip + manifest.json (repo, sha, size, uploaded_at)
+#   B10_Backup/E0_Git/<repo>/...      (unzipped current tree, replaced by sync)
+# Repo list = SoT 0_registry/repos-github.json (all owner repos, public and private). Git path = the
+# fleet deploy key (/opt/ssh-keys/dagu), same as ops_git-sync. Drive path = the google-workspace-mcp
+# service account (domain-wide delegation) used from a sibling container ON oci-apps: the key never
+# leaves the VM and is never printed. One repo at a time, temp files deleted, stops below 700MB free.
+schedule: "30 3 * * *"
+env:
+  - SSH: ssh -i /home/dagu/.ssh/vault_id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR
+  - OCI_APPS: ubuntu@10.0.0.6
+  - LIB: /var/lib/dagu/dags/lib
+mail_on:
+  failure: true
+  success: false
+type: graph
+steps:
+  - name: backup
+    command: |
+      tar -C "$LIB" -c git-drive-backup.sh git-drive-backup.py \
+        | $SSH "$OCI_APPS" 'mkdir -p /var/tmp/git-drive-backup && tar -x -C /var/tmp/git-drive-backup && bash /var/tmp/git-drive-backup/git-drive-backup.sh'
