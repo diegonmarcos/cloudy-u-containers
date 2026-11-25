@@ -60,6 +60,9 @@ in
         "/home/ubuntu/.nix-profile/bin:/usr/local/nix-bin:ro"
         "~/.config/gcloud:/root/.config/gcloud"
         "octocode_repos:/root/git"
+        # The Ship render (vault overlaid) auto-adds these two mounts; declared so the public render matches it (no dist drift).
+        "./.secrets.d:/run/secrets:ro"
+        "./.secrets.json:/run/secrets.json:ro"
       ];
       healthcheck = {
         test = [
