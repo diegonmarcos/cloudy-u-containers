@@ -87,10 +87,13 @@ def rm(fid):
     retry(lambda: svc().files().delete(fileId=fid).execute())
 
 
-def sync_dir(local, remote_id, stats, jobs):
-    kids = children(remote_id)
+def list_task(t):
+    """One directory of the sync: list remote children, queue deletes and uploads, create missing
+    sub-folders, return the sub-directories to visit next. Directories of a level run in parallel."""
+    local, remote_id, stats = t
+    jobs, subs = [], []
     byname = {}
-    for k in kids:  # duplicates (Drive allows same name): keep first, delete the rest
+    for k in children(remote_id):  # duplicates (Drive allows same name): keep first, delete the rest
         if k["name"] in byname:
             jobs.append(("rm", k["id"], stats))
         else:
@@ -106,7 +109,7 @@ def sync_dir(local, remote_id, stats, jobs):
                 jobs.append(("rm", k["id"], stats)); k = None
             fid = k["id"] if k else retry(lambda: svc().files().create(
                 body={"name": e.name, "mimeType": FOLDER, "parents": [remote_id]}, fields="id").execute())["id"]
-            sync_dir(e.path, fid, stats, jobs)
+            subs.append((e.path, fid, stats))
         elif e.is_file():
             if k and k["mimeType"] == FOLDER:
                 jobs.append(("rm", k["id"], stats)); k = None
@@ -117,6 +120,17 @@ def sync_dir(local, remote_id, stats, jobs):
     for n, k in byname.items():
         if n not in names:
             jobs.append(("rm", k["id"], stats))
+    return subs, jobs
+
+
+def sync_tree(local, remote_id, stats, ex):
+    level = [(local, remote_id, stats)]
+    while level:
+        nxt, jobs = [], []
+        for subs, js in ex.map(list_task, level):
+            nxt += subs; jobs += js
+        list(ex.map(run_job, jobs))
+        level = nxt
 
 
 def run_job(j):
@@ -137,10 +151,8 @@ def cmd_repo(name, zpath, tdir, sha, mout):
         rm(extra["id"])
     rid = folder(tid, name)
     stats = {"same": 0, "uploaded": 0, "deleted": 0}
-    jobs = []
-    sync_dir(tdir, rid, stats, jobs)
-    with ThreadPoolExecutor(16) as ex:
-        list(ex.map(run_job, jobs))
+    with ThreadPoolExecutor(32) as ex:
+        sync_tree(tdir, rid, stats, ex)
     json.dump({"repo": name, "sha": sha, "size": os.path.getsize(zpath),
                "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}, open(mout, "w"))
     print("OK %s zip=%dB tree same=%d uploaded=%d deleted=%d" % (
