@@ -1,0 +1,11 @@
+# Declarative design
+- The repo is the source of truth; nothing lives only on a server; derived files come from the one emitter. Why: reproducible fleet. Guard: per-repo drift guards (obs_health_drift).
+- Never edit a generated copy (DO NOT EDIT header, byte copies from fleet_files); edit the source and regenerate, then sync. Why: the next generation silently overwrites the edit. Guard: byte-equal tests such as 9_others/test/repos-sot.test.sh.
+- dist is committed code, not build output. Why: deploys read it as is. Guard: none.
+- Same dotfiles in all repos, delivered by 0_registry/clone.sh --sync (0_registry/repos.json fleet_files). Why: one repo had drifted three times. Guard: 0_registry/repos-sot.js.
+- No docker or systemd auto-restart; lifecycle is the declarative ship pipeline. Why: restart loops hid failures. Guard: compose `restart: "no"` checks.
+- Never commit or edit submodule paths; edit the standalone clone. Why: submodule pointers get clobbered. Guard: none.
+- Mail sends use the external outbound route only. Why: the mail host IP has no sending reputation. Guard: mail health checks.
+- Cloudflare and Hickory DNS are wildcard-only, never per-host records. Why: Caddy is the routing SoT. Guard: fleet-addressing guard.
+- Dotfiles convention `_dotfiles/`: a repo's declarative dotfiles (git config/hooks/ignore/attributes/modules, claude, vscode, obsidian, github, root files) live in ONE top-level `_dotfiles/` folder (`_dotfiles/git/{src,dist}`, `_dotfiles/apps/{src,dist}`) with ONE idempotent entrypoint `_dotfiles/deploy.sh` (`--check` = CI drift gate). The my-ai dotfiles engine defaults to `_dotfiles/apps/src _dotfiles/apps/dist/dotfiles .`. Why: one place per repo instead of the 0_* family (#1290). Guard: deploy.sh --check, dotfiles-fleet test.
+- Claude Code dotfiles (permissions, settings, hooks, c3-infra skill, agents) have ONE source: `0_claude-sot/` in `_git-repos-master` (owner order 2026-11-25). Every other repo, including cloudy-u-linux `da_my-ai/data/claude`, holds a generated mirror; regenerate with `sh 0_claude-sot/deploy-all.sh`, never edit a mirror. Why: five mirrors drifted when the source lived in a child repo. Guard: `0_claude-sot/deploy-all.sh --check`, `0_claude-sot/test-claude-sot.sh`.

@@ -1,0 +1,33 @@
+# Owner workflow, quality, publication
+Each rule: statement, Why, Guard.
+- Work on main only: commit and push direct to main, no PRs; merge or delete stale branches you find. Why: owner order; branches rot unmerged. Guard: hooks no-branch-create and main-only-push.
+- Carry a task to the deployed, verified end; ask only when truly blocked and never what notes or tickets already answer. Why: hand-backs waste the owner's time. Guard: none.
+- An ordered tool or flow brings its required steps (build, guards, push); do them unasked, but deploy only what is in scope. Why: owner standing order 2026-10-21. Guard: none.
+- Do only what was asked; questions starting explain, how, what-is are read-only. Why: unrequested changes erode trust. Guard: none.
+- Number every question so the owner can answer by number. Why: fast replies from a phone. Guard: none.
+- Reports are short: result, files touched, verification, blockers; no recaps. Why: token saving. Guard: none.
+- No cost-affecting change (machine types, paid instances) without explicit approval. Why: the fleet runs on free tiers. Guard: none.
+- Fix root causes at once; never bypass the architecture, never weaken or skip tests to get green. Why: shortcuts compound. Guard: CI test suites.
+- Research and read source before changing; one informed change, not trial and error. Why: loops burn budget. Guard: none.
+- Verify before saying done: check rendered output; for Android verify on the owner's phone, not on green CI. Why: CI cannot see the device. Guard: backlog phone-check line (rules/backlog.md).
+- Android UI is dense Compose UI. Why: owner standing order 2026-10-21. Guard: none.
+- Nothing is downloaded at runtime; assets and data ship in the build. Why: offline-first apps. Guard: none.
+- Never `git add -f`; never npm or npx locally; try commands without sudo first. Why: ignored files are ignored on purpose; local toolchains drift. Guard: none.
+- Use cloudy-c3-mcp (or gh) for GitHub, VM and Cloudflare operations; a missing capability becomes a tool there. Why: one audited control plane. Guard: none.
+- Never quote the owner verbatim in commits, comments, specs or tickets; neutral third-person engineering prose. Why: publication rule, several repos are public. Guard: none.
+- Fleet MCP names (final layout, every name ends in -mcp): cloudy-all-mcp (router: list_servers, list_tools(server), call(server, tool, args)), cloudy-c3-mcp (fleet, CI and the phones: its peers-control tool group is the former cloudy-android-mcp; tools also as the Cloud-C3 app tree c3_infra, c3_containers, c3_ops, c3_observ, c3_configs, c3_home, browse with c3_tree), cloudy-apps-communication-mcp (mail + mattermost), cloudy-apps-drive-mcp (drive + vault, vault mesh-only), cloudy-cgc-pub-mcp, cloud-me-cgc-pvt-mcp, google-workspace-mcp, google-personal-mcp. The old cloud-* names stay as aliases for one release (mcp-policy.json `renames`); cloudy-android-mcp and cloud-superapp-mcp are aliases of cloudy-c3-mcp (#1495). Why: owner decision 2026-11-04, one naming scheme. Guard: test-claude-sot.sh tier checks.
+- Fleet API names (final): cloudy-c3-api (was c3-infra-api), cloudy-all-api (c3-services-api), cloudy-mail-http-to-smtp-api, cloudy-browser-scrapper-api, cloudy-drive-git-proxy-api, cloudy-cgc-pub-graph-api, cloud-me-cgc-pvt-graph-api, cloudy-auth-{google,github,email,cloudflare}-api, capital-stack-{finterm,news-rss,news-github-rss,news-gdelt}-api, and the AI gateway cloudy-ai-api (/ai/{tokens,embeddings,agents,claude,memory} in front of the separate cloudy-ai-*-api backends). Full map: api-renames.json. Old names stay as aliases for one release; clients try the new name first. Why: owner decision 2026-11-04, one naming scheme. Guard: none.
+- **NEVER SIMPLIFY. 'Organize', 'clean up', 'redesign' or 'reorg' never means removing or reducing anything. Every declaration, group, filter, action, column, status detail, page and data point stays; organization only adds structure (grouping, filters, search, sort, hierarchy, detail views). UIs are professional operations-console grade: dense, rich, complete. Before shipping any reorg, diff the previous version and prove (with a test) that nothing was removed. Status indicators must reflect the real underlying state, never a proxy (e.g. ADB 'up' only from a real adb round-trip with Wireless debugging on). Why: owner order, reorgs silently dropped data. Guard: none.**
+- **Definition (owner): REORGANISE = new UI display, NO data field lost; fields are only rearranged. SIMPLIFY happens only when the owner literally says 'simplify'. Any reorg must ship with a field-parity test against the previous version.** Why: owner order, same as rule 16. Guard: none.
+
+## Decisions and deployment (owner order 2026-11-25)
+- Every product and backend decision is the agent's by default. Decide, deploy, verify; the owner reviews after deployment.
+- An undeployed task costs more than a bad decision that can be reverted through git.
+- Report every decision to the owner through the C3 infra bot (`infra_devops telegram_send`): one line per decision with the ticket id, the decision and the reason. Never wait for a reply.
+- No questions to the owner (AskUserQuestion is auto-answered by the owner-auto-answer hook). If the permission system refuses an action, report it once through the bot and continue with other work.
+
+## When an action is stopped (owner order 2026-11-25)
+- Declarative only. Imperative workarounds are forbidden: never route around a refusal with another tool, another session, a hook or a script.
+- When the permission layer or the safety classifier stops a fleet operation, add it to the stop list in `0_claude-sot/permissions-fleet.json` in `_git-repos-master` (`matrix.stopped.actions`: id, when, scope, three forms), more specific each time (exact VM, repo, workflow, inputs), run `gen-permissions.mjs`, regenerate the mirrors with `sh 0_claude-sot/deploy-all.sh`, commit and push. Then try the action once more.
+- The declared rules are the owner's written authorisation. They remove permission prompts; they do not control the safety classifier. If it still refuses, report it once through the C3 infra bot with the exact one-click step, and continue with other work.
+
