@@ -12,7 +12,7 @@ let n = 0;
 const t = (name: string, fn: () => void) => { fn(); n++; console.log(`ok - ${name}`); };
 
 /** The pin: change it together with ac_cloud-c3/data/c3_hierarchy.json (the app's generator) and cloudy-c3-mcp's test-c3-tree.mts. */
-const HIERARCHY_SHA256 = "4a4e0896351aa80c8d07ea503fe67025e5963412da8e0fbed4c4d1aa3512fc3d";
+const HIERARCHY_SHA256 = "281cb27ccd08299ea15ab31c9c56eea15cb35311cd82a5348f2772cfc08c0cb5";
 
 /** Every registered route path of routes/*.ts, `/:kind(apk|containers)/...` expanded, template parts as a parameter. */
 function routes(): string[] {
