@@ -70,6 +70,69 @@ tally_count() { _c=$(cat "$TALLY_DIR/$1" 2>/dev/null | wc -l | tr -d ' '); echo 
 # below uses its own $USER_PW, so this is only documentary).
 PW="$ADMIN_PW"
 
+# ── Admin path that never arrives as the bridge gateway (#1898) ─────────
+# Everything that reaches Stalwart through a docker port mapping, this hook's
+# own calls to the host bind included, arrives from the stalwart_default
+# gateway (.1). On 2026-11-28 fail2ban had banned that gateway, so every call
+# below died in the TLS handshake and the hook could not upsert the very
+# AllowedIp entry that would lift the ban. So the admin channel goes through
+# a throwaway TCP relay on the stalwart network instead: Stalwart then sees
+# the relay's own bridge address, never the gateway. The relay only copies
+# bytes (TLS stays end to end, no credentials pass into the container). The
+# image is one the host already has; docker run pulls it if not. If the relay
+# cannot start, BASE stays the host bind and the hook runs as before.
+# This trap replaces the TALLY_DIR one above and keeps its cleanup.
+RELAY_NAME="stalwart-activate-relay"
+RELAY_PY='
+import socket, threading
+def pipe(a, b):
+    try:
+        while True:
+            d = a.recv(65536)
+            if not d:
+                break
+            b.sendall(d)
+    except OSError:
+        pass
+    try:
+        b.shutdown(socket.SHUT_WR)
+    except OSError:
+        pass
+srv = socket.socket()
+srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+srv.bind(("0.0.0.0", 8443))
+srv.listen(64)
+while True:
+    c, _ = srv.accept()
+    try:
+        u = socket.create_connection(("stalwart", 443), timeout=10)
+        u.settimeout(None)
+    except OSError:
+        c.close()
+        continue
+    threading.Thread(target=pipe, args=(c, u), daemon=True).start()
+    threading.Thread(target=pipe, args=(u, c), daemon=True).start()
+'
+trap 'rm -rf "$TALLY_DIR"; docker rm -f "$RELAY_NAME" >/dev/null 2>&1 || true' EXIT
+STALWART_NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' stalwart 2>/dev/null | awk '{print $1}' || true)
+RELAY_IMG=python:3.11-slim
+for _img in python:3.11-slim python:3.12-slim python:3.13-slim python:3-alpine; do
+  if docker image inspect "$_img" >/dev/null 2>&1; then RELAY_IMG="$_img"; break; fi
+done
+docker rm -f "$RELAY_NAME" >/dev/null 2>&1 || true
+if [ -n "$STALWART_NET" ] && docker run -d --rm --name "$RELAY_NAME" --network "$STALWART_NET" \
+     --memory 32m -p 127.0.0.1::8443 "$RELAY_IMG" python3 -c "$RELAY_PY" >/dev/null 2>&1; then
+  _rport=$(docker port "$RELAY_NAME" 8443/tcp 2>/dev/null | head -1 | sed 's/.*://')
+  if [ -n "$_rport" ]; then
+    BASE="https://127.0.0.1:$_rport"
+    echo "[activate] Admin channel via relay $RELAY_NAME ($RELAY_IMG on $STALWART_NET), not the bridge gateway"
+  else
+    echo "[activate] WARN: relay started but has no published port; using the host bind" >&2
+  fi
+else
+  echo "[activate] WARN: relay on the stalwart network did not start (net=${STALWART_NET:-none}); using the host bind" >&2
+fi
+
 echo "[activate] Waiting for Stalwart JMAP on $BASE (probe: $ADMIN_EMAIL) ..."
 _ready=0
 for i in $(seq 1 60); do
@@ -422,7 +485,7 @@ fi
 # registry). So we upsert AllowedIp registry objects via the same JMAP admin
 # channel used for MTA routes. Idempotent: only creates CIDRs not already
 # present. CIDR list is declared in build.json#allowed_ips.
-ALLOWED_IPS="10.0.0.0/24 172.18.0.0/16"
+ALLOWED_IPS="10.0.0.0/24 172.18.0.0/16 172.16.100.0/24"
 if [ -n "$ALLOWED_IPS" ]; then
   echo "[activate] Ensuring allowed-ip entries: $ALLOWED_IPS"
   ALLOWED_IPS="$ALLOWED_IPS" ADMIN_EMAIL="$ADMIN_EMAIL" ADMIN_PW="$ADMIN_PW" BASE="$BASE" python3 - <<'PYEOF'
@@ -442,15 +505,51 @@ try:
 except Exception as e:
     print("  [allowed-ip] session failed (non-fatal):",e); raise SystemExit(0)
 acct=s.get("primaryAccounts",{}).get("urn:stalwart:jmap") or next(iter(s.get("accounts",{})),None)
+import ipaddress
+def net(a):
+    try: return ipaddress.ip_network(str(a).strip(),strict=False)
+    except ValueError: return None
+declared=[c for c in os.environ["ALLOWED_IPS"].split()]
+nets=[n for n in (net(c) for c in declared) if n is not None]
+changed=False
+# (a) AllowedIp upsert: one object per declared CIDR, matched by network
+#     (Stalwart may normalise the address string).
 r=jmap([["x:AllowedIp/get",{"accountId":acct,"ids":None},"0"]])
-try: existing={o.get("address") for o in r["methodResponses"][0][1].get("list",[])}
+try: existing={net(o.get("address")) for o in r["methodResponses"][0][1].get("list",[])}
 except Exception: existing=set()
-for cidr in os.environ["ALLOWED_IPS"].split():
-    if cidr in existing:
+for cidr in declared:
+    if net(cidr) in existing:
         print(f"  [allowed-ip] {cidr} already present"); continue
     rr=jmap([["x:AllowedIp/set",{"accountId":acct,"create":{"c":{
         "address":cidr,"reason":"WG mesh + docker bridge trusted (declarative)"}}},"0"]])
-    print(f"  [allowed-ip] {cidr} -> {'created' if 'created' in json.dumps(rr) else rr}")
+    ok='created' in json.dumps(rr); changed=changed or ok
+    print(f"  [allowed-ip] {cidr} -> {'created' if ok else rr}")
+# (b) BlockedIp sweep (#1898): an auto-ban recorded before the CIDR was
+#     trusted outlives the AllowedIp entry, so destroy every BlockedIp whose
+#     address lies inside a declared CIDR. Only the removed IPs are printed.
+#     Object names per stalwart v0.16.5 crates/registry/src/schema/structs.rs
+#     (BlockedIp.address: IpAddrOrMask) and the ReloadBlockedIps Action.
+r=jmap([["x:BlockedIp/get",{"accountId":acct,"ids":None},"0"]])
+try: blocked=r["methodResponses"][0][1].get("list",[])
+except Exception:
+    blocked=[]; print("  [blocked-ip] list failed (non-fatal):",str(r)[:200])
+doomed={}
+for o in blocked:
+    b=net(o.get("address"))
+    if b is not None and o.get("id") and any(b.version==n.version and b.subnet_of(n) for n in nets):
+        doomed[o["id"]]=str(o.get("address"))
+if doomed:
+    rr=jmap([["x:BlockedIp/set",{"accountId":acct,"destroy":list(doomed)},"0"]])
+    try: gone=set(rr["methodResponses"][0][1].get("destroyed") or [])
+    except Exception: gone=set()
+    for i,a in doomed.items():
+        print(f"  [blocked-ip] {a} -> {'removed' if i in gone else 'NOT removed'}")
+    changed=changed or bool(gone)
+else:
+    print(f"  [blocked-ip] none inside the allowed CIDRs ({len(blocked)} blocked in total)")
+if changed:
+    rr=jmap([["x:Action/set",{"accountId":acct,"create":{"a":{"@type":"ReloadBlockedIps"}}},"0"]])
+    print(f"  [blocked-ip] ReloadBlockedIps -> {'ok' if 'created' in json.dumps(rr) else str(rr)[:200]}")
 PYEOF
 fi
 
