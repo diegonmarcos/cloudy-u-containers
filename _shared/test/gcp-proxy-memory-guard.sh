@@ -3,7 +3,7 @@
 # its RENDERED compose (dist), the auth plane (caddy, authelia, introspect-proxy, mcp-oauth) must
 # have memswap_limit == the memory limit (no swap: a swapped-out gate refaults at HDD speed and
 # stalls the edge), caddy and the ws tunnel must carry oom_score_adj -900, and the postlite-*
-# sidecars must be capped at >= 64 MB. Mutation-proven (a limit removed from any dist makes it red).
+# sidecars must be capped (postlite-authelia >= 64 MB, the others >= 32 MB; measured peak 4-10 MB). Mutation-proven (a limit removed from any dist makes it red).
 # Usage: sh _shared/test/gcp-proxy-memory-guard.sh [repo-root]
 set -eu
 ROOT="${1:-$(cd "$(dirname "$0")/../.." && pwd)}"
@@ -42,7 +42,8 @@ for name, (d, s) in sorted(services.items()):
 for n in ("postlite-npm", "postlite-ntfy", "postlite-vaultwarden", "postlite-authelia"):
     s = services.get(n)
     ck(f"{n} present in the rendered hub compose", s is not None)
-    if s: ck(f"{n} memory limit >= 64M", (mb(limit(s[1])) or 0) >= 64, str(limit(s[1])))
+    floor = 64 if n == "postlite-authelia" else 32
+    if s: ck(f"{n} memory limit >= {floor}M", (mb(limit(s[1])) or 0) >= floor, str(limit(s[1])))
 for n in ("caddy", "authelia", "introspect-proxy", "mcp-oauth"):
     s = services.get(n)
     ck(f"{n} present in the rendered hub compose", s is not None)

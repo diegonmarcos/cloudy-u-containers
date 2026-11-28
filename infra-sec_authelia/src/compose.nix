@@ -56,6 +56,8 @@ in
       cap_add = [ "DAC_OVERRIDE" ];
       # #1898: memswap_limit == memory limit = no swap for the auth portal (swap-in stalls the edge).
       memswap_limit = "128M";
+      # #1898: critical path: restart after an OOM kill (fleet default is no).
+      restart = "unless-stopped";
       deploy.resources = {
         limits       = { memory = "128M"; cpus = "1.0"; };
         reservations = { memory = "32M"; };

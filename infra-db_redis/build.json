@@ -64,7 +64,7 @@
     }
   },
   "redis": {
-    "maxmemory": "128mb",
+    "maxmemory": "32mb",
     "maxmemory_policy": "allkeys-lru"
   }
 }

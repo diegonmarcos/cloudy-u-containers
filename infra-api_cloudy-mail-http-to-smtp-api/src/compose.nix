@@ -14,7 +14,9 @@ in
       restart = "no";
       # 0.4 MiB resident on gcp-proxy (944 MB VM): size the ceiling to the
       # workload, not the api category default (2G).
-      deploy.resources.limits.memory = "64M";
+      # #1898: 0.4 MiB measured; 32M ceiling, memswap == memory.
+      memswap_limit = "32M";
+      deploy.resources.limits.memory = "32M";
       network_mode = "host";
       env_file = [ ".secrets" ];
       environment = {

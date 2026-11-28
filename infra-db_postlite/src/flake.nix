@@ -35,9 +35,9 @@
           container_name: postlite-npm
           restart: "no"  # container-init handles startup
           network_mode: host
-          # #1898: 944 MB hub; measured peak 4-10 MB, 64M cap, memswap == mem (no swap).
-          mem_limit: 64m
-          memswap_limit: 64m
+          # #1898: 944 MB hub; measured peak 4-10 MB, 32M cap, memswap == mem (no swap).
+          mem_limit: 32m
+          memswap_limit: 32m
           volumes:
             - /home/diego/npm/data:/data
           command: ["-addr", ":5433", "-data-dir", "/data"]
@@ -47,9 +47,9 @@
           container_name: postlite-vaultwarden
           restart: "no"  # container-init handles startup
           network_mode: host
-          # #1898: 944 MB hub; measured peak 4-10 MB, 64M cap, memswap == mem (no swap).
-          mem_limit: 64m
-          memswap_limit: 64m
+          # #1898: 944 MB hub; measured peak 4-10 MB, 32M cap, memswap == mem (no swap).
+          mem_limit: 32m
+          memswap_limit: 32m
           volumes:
             - /home/diego/vaultwarden/data:/data
           command: ["-addr", ":5434", "-data-dir", "/data"]
@@ -59,9 +59,9 @@
           container_name: postlite-ntfy
           restart: "no"  # container-init handles startup
           network_mode: host
-          # #1898: 944 MB hub; measured peak 4-10 MB, 64M cap, memswap == mem (no swap).
-          mem_limit: 64m
-          memswap_limit: 64m
+          # #1898: 944 MB hub; measured peak 4-10 MB, 32M cap, memswap == mem (no swap).
+          mem_limit: 32m
+          memswap_limit: 32m
           volumes:
             - /home/diego/ntfy/cache:/data
           command: ["-addr", ":5435", "-data-dir", "/data"]

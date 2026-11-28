@@ -45,6 +45,8 @@ in
         retries      = 3;
         start_period = "30s";
       };
+      # #1898: unused shadow (Caddy routes to the Python introspect-proxy): smallest cap, no swap.
+      memswap_limit = buildJson.resources.mem_limit;
       deploy.resources =
            (if buildJson.resources ? mem_limit       then { limits       = { memory = buildJson.resources.mem_limit; };       } else {})
         // (if buildJson.resources ? mem_reservation then { reservations = { memory = buildJson.resources.mem_reservation; }; } else {});

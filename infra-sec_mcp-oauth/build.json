@@ -55,7 +55,7 @@
   },
   "resources": {
     "mem_reservation": "16M",
-    "mem_limit": "128M"
+    "mem_limit": "96M"
   },
   "build": {
     "headers_enforced": true
