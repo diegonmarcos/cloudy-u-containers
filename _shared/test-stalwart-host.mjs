@@ -58,6 +58,34 @@ const nix = read("user-comm_tools-stalwart/src/compose.nix");
 const sub = /ipam\.config\s*=\s*\[\s*\{\s*subnet\s*=\s*"(172\.(\d+)\.\d+\.\d+)\/(\d+)"/.exec(nix);
 check("A9 the stalwart bridge subnet is pinned inside 172.16.0.0/12 (oci-apps firewall forwards/masquerades only that range)", !!sub && +sub[2] >= 16 && +sub[2] <= 31, sub ? sub[1] : "no pinned subnet");
 
+// ── A10-A13 (#1898): the bridge (and its gateway) must be fail2ban-trusted ─────────────────────────
+// Every connection that reaches Stalwart through a docker port mapping arrives from the bridge gateway
+// (.1). When the bridge moved to the pinned subnet (#1821) allowed_ips still named the old one, so the
+// gateway was auto-banned and all of mail (JMAP proxy, maddy relay, the activate hook) was refused.
+const ip4 = (s) => s.split(".").reduce((a, o) => a * 256 + +o, 0);
+const parseCidr = (c) => { const m = /^(\d+\.\d+\.\d+\.\d+)(?:\/(\d+))?$/.exec(String(c).trim()); return m ? { base: ip4(m[1]), len: m[2] === undefined ? 32 : +m[2] } : null; };
+const inside = (inner, outer) => { const a = parseCidr(inner), b = parseCidr(outer); if (!a || !b || a.len < b.len) return false; const sz = 2 ** (32 - b.len); return Math.floor(a.base / sz) === Math.floor(b.base / sz); };
+export const bridgeCovered = (subnet, allowed) => {
+  if (!subnet) return false;
+  const gw = (() => { const c = parseCidr(subnet); if (!c) return ""; const g = c.base - (c.base % 2 ** (32 - c.len)) + 1; return [24, 16, 8, 0].map((s) => Math.floor(g / 2 ** s) % 256).join("."); })();
+  return (allowed ?? []).some((a) => inside(subnet, a)) && (allowed ?? []).some((a) => inside(gw, a));
+};
+const bridge = sub ? `${sub[1]}/${sub[3]}` : "";
+const allowed = sb?.allowed_ips ?? [];
+check("A10 build.json allowed_ips covers the compose bridge subnet and its gateway .1", bridgeCovered(bridge, allowed), `bridge=${bridge} allowed=${allowed.join(",")}`);
+const fb = /allowedIpsList\s*=\s*buildJson\.allowed_ips\s+or\s+\[([^\]]*)\]/.exec(read("user-comm_tools-stalwart/src/flake.nix"));
+const fbList = fb ? [...fb[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]) : [];
+check("A11 the flake.nix allowed_ips fallback is the same set as build.json", JSON.stringify([...fbList].sort()) === JSON.stringify([...allowed].sort()), `fallback=${fbList.join(",")}`);
+const tpl = read("user-comm_tools-stalwart/src/templates/activate.sh.tpl");
+check("A12 activate.sh Step F upserts AllowedIp and sweeps BlockedIp inside the allowed CIDRs", /x:AllowedIp\/set/.test(tpl) && /x:BlockedIp\/get/.test(tpl) && /x:BlockedIp\/set/.test(tpl) && /ReloadBlockedIps/.test(tpl));
+check("A13 activate.sh reaches Stalwart through a relay on the stalwart network, not only via the gateway-sourced host bind", /docker run -d --rm --name "\$RELAY_NAME" --network "\$STALWART_NET"/.test(tpl) && /create_connection\(\("stalwart", 443\)/.test(tpl));
+// Mutations: A10 must go red when the bridge entry is dropped, when only the gateway is uncovered, or when
+// the bridge moves to a subnet nobody trusts.
+check("A10m1 A10 can fail: allowed_ips without the bridge entry is rejected", !bridgeCovered("172.16.100.0/24", ["10.0.0.0/24", "172.18.0.0/16"]));
+check("A10m2 A10 can fail: a bridge moved to an untrusted subnet is rejected", !bridgeCovered("172.16.101.0/24", allowed));
+check("A10m3 A10 can fail: covering a /25 that excludes the gateway is rejected", !bridgeCovered("172.16.100.0/24", ["172.16.100.128/25"]));
+check("A10m4 A10 passes on the fixed set (positive control)", bridgeCovered("172.16.100.0/24", ["10.0.0.0/24", "172.18.0.0/16", "172.16.100.0/24"]));
+
 // ── C: the consumers (enforced once the hold is gone) ──────────────────────
 const phase = f.hold ? "hold" : "cutover";
 const consumer = (name, fn) => (phase === "hold" ? skipped(name, "build.ship_hold still set: consumers are re-pointed after the data copy") : fn());
